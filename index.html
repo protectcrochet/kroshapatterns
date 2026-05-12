@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KroshaPatterns — Opción B: Pink & Sweet</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --pink-bg: #FDF0F5;
+  --pink-mid: #F5D0E0;
+  --pink-deep: #E8A8C4;
+  --pink-dark: #C06090;
+  --pink-text: #8B3565;
+  --blush: #FFF0F5;
+  --lilac: #EDD5F0;
+  --mint: #D5EFE5;
+  --cream: #FFF8EC;
+  --text: #3A1E2E;
+  --text-mid: #7A4D65;
+  --text-light: #B48EA8;
+  --border: #F0C8DC;
+  --white: #FFFBFD;
+}
+
+body { font-family:'Nunito',sans-serif; background:var(--pink-bg); color:var(--text); overflow-x:hidden; }
+
+/* ── SQUIGGLES / DECO ── */
+.squiggle {
+  position:absolute; pointer-events:none; opacity:0.12;
+}
+
+/* ── NAV ── */
+.nav-bar { background:var(--white); border-bottom:1.5px solid var(--border); position:sticky; top:0; z-index:100; }
+.nav-ann {
+  background:var(--pink-dark); color:#fff;
+  text-align:center; padding:8px;
+  font-size:12.5px; letter-spacing:0.04em;
+}
+.nav-inner {
+  max-width:1200px; margin:0 auto; padding:0 2rem;
+  display:flex; align-items:center; justify-content:space-between;
+  height:70px;
+}
+.logo {
+  font-family:'Fraunces',serif;
+  font-size:26px; font-weight:600; font-style:italic;
+  color:var(--pink-text); text-decoration:none;
+  display:flex; align-items:center; gap:6px;
+}
+.logo-bow { font-size:22px; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  color:var(--text-mid); text-decoration:none;
+  font-size:13.5px; font-weight:600;
+  letter-spacing:0.02em;
+  transition:color 0.2s;
+}
+.nav-links a:hover { color:var(--pink-dark); }
+.nav-right { display:flex; align-items:center; gap:12px; }
+.cur-sel {
+  background:var(--pink-mid); border:1.5px solid var(--border);
+  border-radius:30px; padding:7px 16px;
+  font-size:13px; font-family:'Nunito',sans-serif;
+  color:var(--text); cursor:pointer;
+}
+.btn-cart {
+  background:var(--pink-dark); color:#fff; border:none;
+  padding:10px 22px; border-radius:30px;
+  font-size:13.5px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:8px;
+  font-family:'Nunito',sans-serif;
+  transition:background 0.2s, transform 0.1s;
+}
+.btn-cart:hover { background:var(--pink-text); transform:translateY(-1px); }
+.cn {
+  background:rgba(255,255,255,0.3);
+  width:20px; height:20px; border-radius:50%;
+  font-size:11px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--blush);
+  padding:60px 2rem 0;
+  position:relative;
+  overflow:hidden;
+}
+/* decorative blobs */
+.hero::before {
+  content:'';
+  position:absolute;
+  width:500px; height:500px;
+  border-radius:60% 40% 70% 30% / 50% 60% 40% 50%;
+  background:var(--pink-mid);
+  top:-150px; right:-100px;
+  opacity:0.35;
+}
+.hero::after {
+  content:'';
+  position:absolute;
+  width:300px; height:300px;
+  border-radius:40% 60% 30% 70% / 60% 40% 60% 40%;
+  background:var(--lilac);
+  bottom:0; left:10%;
+  opacity:0.25;
+}
+.hero-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:3rem; align-items:flex-end;
+  position:relative;
+}
+.hero-left { padding-bottom:70px; }
+.bow-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--pink-mid); color:var(--pink-text);
+  font-size:12px; font-weight:700; padding:6px 16px;
+  border-radius:30px; letter-spacing:0.06em;
+  text-transform:uppercase; margin-bottom:18px;
+  border:1.5px solid var(--border);
+}
+.hero h1 {
+  font-family:'Fraunces',serif;
+  font-size:58px; line-height:1.05;
+  font-weight:600; color:var(--text);
+  margin-bottom:16px;
+}
+.hero h1 em { color:var(--pink-dark); font-style:italic; }
+.hero-sub {
+  font-size:16px; color:var(--text-mid);
+  line-height:1.7; max-width:420px; margin-bottom:28px;
+  font-weight:400;
+}
+.hero-btns { display:flex; gap:12px; flex-wrap:wrap; }
+.btn-main {
+  background:var(--pink-dark); color:#fff; border:none;
+  padding:14px 30px; border-radius:30px;
+  font-size:14.5px; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  font-family:'Nunito',sans-serif;
+  transition:background 0.2s, transform 0.1s;
+  box-shadow:0 6px 20px rgba(192,96,144,0.3);
+}
+.btn-main:hover { background:var(--pink-text); transform:translateY(-2px); box-shadow:0 10px 28px rgba(192,96,144,0.35); }
+.btn-sec {
+  background:var(--white); color:var(--pink-dark);
+  border:2px solid var(--pink-deep);
+  padding:14px 30px; border-radius:30px;
+  font-size:14.5px; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  font-family:'Nunito',sans-serif;
+  transition:all 0.2s;
+}
+.btn-sec:hover { background:var(--pink-mid); }
+
+.hero-cards {
+  display:grid; grid-template-columns:1.1fr 1fr;
+  grid-template-rows:auto auto;
+  gap:12px;
+}
+.hc {
+  background:var(--white);
+  border-radius:20px;
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  box-shadow:0 4px 20px rgba(192,96,144,0.08);
+}
+.hc:nth-child(1) { grid-row:1/3; }
+.hc-img { display:flex; align-items:center; justify-content:center; }
+.hc:nth-child(1) .hc-img { height:260px; background:var(--pink-mid); font-size:80px; }
+.hc:nth-child(2) .hc-img { height:118px; background:var(--lilac); font-size:48px; }
+.hc:nth-child(3) .hc-img { height:118px; background:var(--mint); font-size:48px; }
+.hc-body { padding:10px 14px 14px; }
+.hc-body h4 { font-size:14px; font-weight:700; margin-bottom:2px; color:var(--text); }
+.hc-body p { font-size:13px; color:var(--pink-dark); font-weight:600; }
+
+/* ── STRIP ── */
+.strip {
+  background:var(--pink-dark);
+  padding:16px 2rem;
+}
+.strip-inner {
+  max-width:1200px; margin:0 auto;
+  display:flex; justify-content:space-around; flex-wrap:wrap; gap:1rem;
+}
+.strip-item { display:flex; align-items:center; gap:10px; color:rgba(255,255,255,0.9); font-size:13px; }
+.strip-icon { font-size:20px; }
+.strip-item strong { display:block; color:#fff; font-size:13.5px; font-weight:700; }
+
+/* ── CAT ── */
+.cat-row {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:16px;
+  max-width:1200px; margin:0 auto; padding:60px 2rem;
+}
+.cat-tile {
+  background:var(--white);
+  border-radius:24px;
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  cursor:pointer; text-decoration:none;
+  transition:transform 0.2s, box-shadow 0.2s;
+  display:flex; flex-direction:column;
+}
+.cat-tile:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(192,96,144,0.15); }
+.cat-img { display:flex; align-items:center; justify-content:center; height:160px; font-size:72px; }
+.cat-tile:nth-child(1) .cat-img { background:var(--pink-mid); }
+.cat-tile:nth-child(2) .cat-img { background:var(--lilac); }
+.cat-tile:nth-child(3) .cat-img { background:var(--mint); }
+.cat-body { padding:18px 22px; }
+.cat-body h3 {
+  font-family:'Fraunces',serif; font-size:20px; font-weight:600;
+  color:var(--text); margin-bottom:4px;
+}
+.cat-body p { font-size:13px; color:var(--text-light); }
+.cat-arrow { font-size:18px; color:var(--pink-dark); margin-top:8px; font-weight:700; }
+
+/* ── PRODUCTS ── */
+.sec { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.sec-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; }
+.sec-title { font-family:'Fraunces',serif; font-size:38px; font-weight:600; color:var(--text); line-height:1.1; }
+.sec-title em { color:var(--pink-dark); font-style:italic; }
+.sec-sub { font-size:13.5px; color:var(--text-light); margin-top:4px; }
+.see-all { font-size:13px; color:var(--pink-dark); text-decoration:none; font-weight:700; border-bottom:1.5px solid var(--pink-dark); padding-bottom:1px; white-space:nowrap; }
+
+.pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+.pcard {
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  transition:transform 0.2s, box-shadow 0.2s;
+  cursor:pointer;
+}
+.pcard:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(192,96,144,0.14); }
+.pcard-img { height:190px; display:flex; align-items:center; justify-content:center; font-size:58px; position:relative; }
+.pcard:nth-child(4n+1) .pcard-img { background:var(--pink-mid); }
+.pcard:nth-child(4n+2) .pcard-img { background:var(--lilac); }
+.pcard:nth-child(4n+3) .pcard-img { background:var(--mint); }
+.pcard:nth-child(4n+4) .pcard-img { background:var(--cream); }
+.pbadge {
+  position:absolute; top:10px; left:10px;
+  background:var(--pink-dark); color:#fff;
+  font-size:10px; font-weight:700; padding:3px 11px;
+  border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;
+}
+.pbadge.nb { background:#9B60C0; }
+.pbadge.kb { background:#60A090; }
+.pcard-body { padding:14px 18px 18px; }
+.pcard-cat { font-size:10.5px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-light); font-weight:700; margin-bottom:4px; }
+.pcard-name { font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin-bottom:5px; line-height:1.2; color:var(--text); }
+.pcard-desc { font-size:12.5px; color:var(--text-mid); line-height:1.5; margin-bottom:12px; }
+.pcard-foot { display:flex; justify-content:space-between; align-items:center; }
+.pcard-price { font-size:19px; font-weight:700; color:var(--pink-dark); }
+.btn-plus {
+  background:var(--pink-dark); color:#fff; border:none;
+  width:36px; height:36px; border-radius:12px;
+  font-size:20px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.2s;
+  font-family:'Nunito',sans-serif;
+}
+.btn-plus:hover { background:var(--pink-text); }
+
+/* ── YARN ── */
+.yarn-wrap { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.yarn-box {
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:28px;
+  padding:44px;
+  position:relative; overflow:hidden;
+}
+.yarn-box::before {
+  content:'🎀';
+  position:absolute; right:40px; top:30px;
+  font-size:80px; opacity:0.1;
+}
+.yarn-eyebrow { font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:var(--pink-dark); font-weight:700; margin-bottom:10px; }
+.yarn-box h2 { font-family:'Fraunces',serif; font-size:32px; font-weight:600; margin-bottom:10px; color:var(--text); }
+.yarn-box > p { font-size:14px; color:var(--text-mid); line-height:1.7; max-width:500px; margin-bottom:28px; }
+.yarn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; max-width:780px; }
+.ycard {
+  background:var(--pink-bg);
+  border:2px solid var(--border);
+  border-radius:16px;
+  padding:14px 10px;
+  cursor:pointer;
+  transition:border-color 0.2s, transform 0.1s;
+  text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.ycard:hover, .ycard.sel { border-color:var(--pink-dark); transform:scale(1.03); }
+.ys { width:50px; height:50px; border-radius:50%; }
+.ycard-n { font-size:12px; font-weight:700; color:var(--text); }
+.ycard-p { font-size:13px; color:var(--pink-dark); font-weight:700; }
+
+/* ── PAY ── */
+.pay-wrap { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.pay-box {
+  background:linear-gradient(135deg, var(--pink-mid) 0%, var(--lilac) 100%);
+  border-radius:28px; padding:44px;
+  border:1.5px solid var(--border);
+}
+.pay-box h2 { font-family:'Fraunces',serif; font-size:32px; font-weight:600; color:var(--text); margin-bottom:8px; }
+.pay-box > p { font-size:14px; color:var(--text-mid); margin-bottom:28px; }
+.pay-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+.pay-card {
+  background:var(--white);
+  border-radius:16px; padding:20px;
+  display:flex; gap:12px; align-items:center;
+  border:1.5px solid var(--border);
+}
+.pay-logo { font-size:28px; flex-shrink:0; }
+.pay-card h4 { font-size:14px; font-weight:700; margin-bottom:2px; color:var(--text); }
+.pay-card p { font-size:12px; color:var(--text-light); }
+
+/* ── MODAL ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(58,30,46,0.55); z-index:200;
+  align-items:center; justify-content:center; padding:2rem;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--white);
+  border-radius:24px;
+  max-width:880px; width:100%;
+  max-height:90vh; overflow-y:auto;
+  position:relative;
+  box-shadow:0 30px 80px rgba(58,30,46,0.25);
+  border:1.5px solid var(--border);
+}
+.modal-x {
+  position:absolute; top:16px; right:16px;
+  background:var(--pink-mid); border:1.5px solid var(--border);
+  border-radius:50%; width:34px; height:34px; font-size:16px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10;
+}
+.modal-grid { display:grid; grid-template-columns:1fr 1fr; }
+.modal-pic {
+  border-radius:24px 0 0 24px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:110px; min-height:380px;
+}
+.modal-content { padding:34px; }
+.modal-cat { font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--pink-dark); font-weight:700; margin-bottom:8px; }
+.modal-content h2 { font-family:'Fraunces',serif; font-size:28px; font-weight:600; margin-bottom:12px; line-height:1.2; color:var(--text); }
+.modal-content .desc { font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px; }
+.detail-box { background:var(--pink-bg); border-radius:12px; padding:14px; margin-bottom:16px; border:1px solid var(--border); }
+.detail-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid var(--border); }
+.detail-row:last-child { border:none; }
+.detail-row span:first-child { color:var(--text-light); }
+.detail-row span:last-child { font-weight:700; }
+.yarn-addon { margin-bottom:16px; }
+.yarn-addon-title { font-size:13px; font-weight:700; margin-bottom:10px; color:var(--text); }
+.chip-row { display:flex; gap:7px; flex-wrap:wrap; }
+.chip {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:20px;
+  border:2px solid var(--border);
+  font-size:12px; cursor:pointer;
+  background:var(--white); transition:border-color 0.2s;
+  font-family:'Nunito',sans-serif; font-weight:600;
+}
+.chip:hover, .chip.on { border-color:var(--pink-dark); background:var(--pink-bg); }
+.chip-dot { width:12px; height:12px; border-radius:50%; }
+.buy-row { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
+.buy-price { font-size:28px; font-weight:700; color:var(--pink-dark); }
+.buy-sub { font-size:12px; color:var(--text-light); }
+.btn-buy {
+  width:100%; background:var(--pink-dark); color:#fff; border:none;
+  padding:15px; border-radius:30px;
+  font-size:15px; font-weight:700; cursor:pointer;
+  margin-bottom:10px; font-family:'Nunito',sans-serif;
+  transition:background 0.2s;
+  box-shadow:0 6px 20px rgba(192,96,144,0.3);
+}
+.btn-buy:hover { background:var(--pink-text); }
+.pay-pills { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.ppill {
+  background:var(--pink-bg); border:1.5px solid var(--border);
+  border-radius:20px; padding:4px 12px;
+  font-size:11px; color:var(--text-mid); font-weight:600;
+}
+
+/* ── FOOTER ── */
+footer {
+  background:var(--pink-text); color:rgba(255,220,235,0.8);
+  padding:60px 2rem 30px; margin-top:20px;
+}
+.foot-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:3rem; margin-bottom:3rem;
+}
+.foot-logo { font-family:'Fraunces',serif; font-size:26px; font-weight:600; font-style:italic; color:var(--pink-mid); text-decoration:none; display:block; margin-bottom:10px; }
+.foot-brand p { font-size:13.5px; line-height:1.7; margin-bottom:16px; }
+.socials { display:flex; gap:8px; }
+.soc {
+  width:34px; height:34px;
+  background:rgba(255,255,255,0.12);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; text-decoration:none;
+  transition:background 0.2s;
+}
+.soc:hover { background:var(--pink-dark); }
+.foot-col h4 { color:var(--pink-mid); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px; }
+.foot-col ul { list-style:none; }
+.foot-col ul li { margin-bottom:9px; }
+.foot-col ul li a { color:rgba(255,220,235,0.7); text-decoration:none; font-size:13.5px; transition:color 0.2s; }
+.foot-col ul li a:hover { color:var(--pink-mid); }
+.foot-bottom {
+  max-width:1200px; margin:0 auto;
+  border-top:1px solid rgba(255,255,255,0.12);
+  padding-top:22px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:12.5px; flex-wrap:wrap; gap:1rem;
+}
+
+/* TOAST */
+.toast {
+  position:fixed; bottom:28px; right:28px;
+  background:var(--text); color:#fff;
+  padding:13px 20px; border-radius:30px;
+  font-size:13.5px; z-index:500;
+  transform:translateY(60px); opacity:0;
+  transition:all 0.3s;
+  font-weight:600;
+}
+.toast.on { transform:translateY(0); opacity:1; }
+
+@media(max-width:768px){
+  .hero-inner,.modal-grid,.cat-row { grid-template-columns:1fr; }
+  .hero h1 { font-size:40px; }
+  .modal-pic { border-radius:24px 24px 0 0; min-height:180px; font-size:70px; }
+  .foot-inner { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<nav class="nav-bar">
+  <div class="nav-ann">🎀 Patrones digitales al instante · Envíos a México y República Dominicana · Kits completos</div>
+  <div class="nav-inner">
+    <a href="#" class="logo"><span class="logo-bow">🎀</span> KroshaPatterns</a>
+    <ul class="nav-links">
+      <li><a href="#">Patrones</a></li>
+      <li><a href="#">Kits</a></li>
+      <li><a href="#">Estambres</a></li>
+      <li><a href="#">Amigurumis</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+    <div class="nav-right">
+      <select class="cur-sel" id="cur" onchange="setC()">
+        <option value="MXN">🇲🇽 MXN</option>
+        <option value="USD">🇺🇸 USD</option>
+        <option value="EUR">🇪🇺 EUR</option>
+        <option value="DOP">🇩🇴 DOP</option>
+        <option value="CAD">🇨🇦 CAD</option>
+        <option value="GBP">🇬🇧 GBP</option>
+      </select>
+      <button class="btn-cart" onclick="openCart()">🛍 Carrito <span class="cn" id="cn">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="bow-tag">🎀 Artesanía con amor</div>
+      <h1>Tu crochet,<br><em>más bonito</em></h1>
+      <p class="hero-sub">Patrones en PDF, kits completos con materiales y estambres premium de 200g — todo diseñado por Jennyfer para tejedoras apasionadas.</p>
+      <div class="hero-btns">
+        <a href="#patrones" class="btn-main">Ver Patrones 🎀</a>
+        <a href="#kits" class="btn-sec">Explorar Kits</a>
+      </div>
+    </div>
+    <div class="hero-cards">
+      <div class="hc">
+        <div class="hc-img">🧸</div>
+        <div class="hc-body"><h4>Amigurumi Ramo</h4><p id="hp1">$280 MXN</p></div>
+      </div>
+      <div class="hc">
+        <div class="hc-img">🧺</div>
+        <div class="hc-body"><h4>Kit Completo</h4><p id="hp2">$850 MXN</p></div>
+      </div>
+      <div class="hc">
+        <div class="hc-img">🧶</div>
+        <div class="hc-body"><h4>Estambre 200g</h4><p id="hp3">$95 MXN</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRIP -->
+<div class="strip">
+  <div class="strip-inner">
+    <div class="strip-item"><span class="strip-icon">📥</span><div><strong>Descarga inmediata</strong>PDF al instante</div></div>
+    <div class="strip-item"><span class="strip-icon">💳</span><div><strong>Pago seguro</strong>Stripe · PayPal · Mercado Pago</div></div>
+    <div class="strip-item"><span class="strip-icon">🌍</span><div><strong>Tu moneda</strong>MXN, USD, EUR, DOP y más</div></div>
+    <div class="strip-item"><span class="strip-icon">🧶</span><div><strong>+Estambre 200g</strong>Agrégalo a tu patrón</div></div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="cat-row">
+  <a href="#patrones" class="cat-tile">
+    <div class="cat-img">📋</div>
+    <div class="cat-body">
+      <h3>Patrones Digitales</h3>
+      <p>PDF · Todos los niveles</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+  <a href="#kits" class="cat-tile">
+    <div class="cat-img">🧺</div>
+    <div class="cat-body">
+      <h3>Kits Crochet</h3>
+      <p>Materiales completos</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+  <a href="#estambres" class="cat-tile">
+    <div class="cat-img">🧶</div>
+    <div class="cat-body">
+      <h3>Estambres</h3>
+      <p>200g · Múltiples colores</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+</div>
+
+<!-- PATRONES -->
+<div class="sec" id="patrones">
+  <div class="sec-head">
+    <div>
+      <h2 class="sec-title">Patrones <em>más amados</em> 🎀</h2>
+      <p class="sec-sub">Descarga al instante · Instrucciones paso a paso</p>
+    </div>
+    <a href="#" class="see-all">Ver todos →</a>
+  </div>
+  <div class="pgrid" id="pgrid"></div>
+</div>
+
+<!-- YARN -->
+<div class="yarn-wrap" id="estambres">
+  <div class="yarn-box">
+    <p class="yarn-eyebrow">🎀 Materiales premium</p>
+    <h2>Estambres que uso en mis patrones</h2>
+    <p>Presentación de 200g, suaves al tacto. Múltiples tonos — agrégalos directo al pedir tu patrón.</p>
+    <div class="yarn-grid" id="ycards"></div>
+  </div>
+</div>
+
+<!-- KITS -->
+<div class="sec" id="kits">
+  <div class="sec-head">
+    <div>
+      <h2 class="sec-title">Kits <em>completos</em> ✨</h2>
+      <p class="sec-sub">Todo lo que necesitas para empezar hoy</p>
+    </div>
+    <a href="#" class="see-all">Ver todos →</a>
+  </div>
+  <div class="pgrid" id="kgrid"></div>
+</div>
+
+<!-- PAYMENT -->
+<div class="pay-wrap">
+  <div class="pay-box">
+    <h2>Paga como prefieras 💳</h2>
+    <p>Métodos de pago seguros para México, República Dominicana y todo el mundo.</p>
+    <div class="pay-grid">
+      <div class="pay-card"><span class="pay-logo">💳</span><div><h4>Stripe</h4><p>Visa · Mastercard · Amex</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🅿️</span><div><h4>PayPal</h4><p>Internacional · Seguro</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🏪</span><div><h4>Mercado Pago</h4><p>OXXO · Tiendas · LATAM</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🌍</span><div><h4>Moneda local</h4><p>MXN · USD · EUR · DOP y más</p></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <a href="#" class="foot-logo">🎀 KroshaPatterns</a>
+      <p>Patrones de crochet con amor, diseñados por Jennyfer. Tienda oficial kroshapatterns.com — México y República Dominicana.</p>
+      <div class="socials">
+        <a href="https://www.facebook.com/kroshaa/" class="soc">f</a>
+        <a href="https://www.instagram.com/kro_shaa/" class="soc">◎</a>
+        <a href="https://www.tiktok.com/@kroshard" class="soc">♪</a>
+      </div>
+    </div>
+    <div class="foot-col">
+      <h4>Tienda</h4>
+      <ul>
+        <li><a href="#">Patrones Digitales</a></li>
+        <li><a href="#">Kits Crochet</a></li>
+        <li><a href="#">Estambres</a></li>
+        <li><a href="#">Amigurumis</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Ayuda</h4>
+      <ul>
+        <li><a href="#">¿Cómo descargar?</a></li>
+        <li><a href="#">Envíos</a></li>
+        <li><a href="#">Devoluciones</a></li>
+        <li><a href="#">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacidad</a></li>
+        <li><a href="#">Términos</a></li>
+        <li><a href="#">Derechos de autor</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 KroshaPatterns · kroshapatterns.com</span>
+    <span>Stripe · PayPal · Mercado Pago</span>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="ov">
+  <div class="modal">
+    <button class="modal-x" onclick="closeM()">✕</button>
+    <div class="modal-grid">
+      <div class="modal-pic" id="mpic">🧸</div>
+      <div class="modal-content">
+        <p class="modal-cat" id="mcat"></p>
+        <h2 id="mname"></h2>
+        <p class="desc" id="mdesc"></p>
+        <div class="detail-box" id="mdetails"></div>
+        <div class="yarn-addon" id="yaddon" style="display:none">
+          <p class="yarn-addon-title">🧶 Agregar estambre 200g (+<span id="yp">$95 MXN</span>)</p>
+          <div class="chip-row" id="chips"></div>
+        </div>
+        <div class="buy-row">
+          <div><div class="buy-price" id="mprice"></div><div class="buy-sub" id="mprice2"></div></div>
+        </div>
+        <button class="btn-buy" onclick="addCart()">Agregar al carrito 🎀</button>
+        <div class="pay-pills">
+          <span class="ppill">💳 Stripe</span>
+          <span class="ppill">🅿️ PayPal</span>
+          <span class="ppill">🏪 Mercado Pago</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const rates={MXN:1,USD:0.052,EUR:0.048,DOP:3.12,CAD:0.071,GBP:0.041};
+const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
+let cur='MXN',cartN=0,curProd=null,selYarn=null;
+
+const yarnColors=[
+  {n:'Rosa Bebé',c:'#F4B8B8'},{n:'Crema',c:'#F5E6CC'},{n:'Blanco',c:'#F0F0F0'},
+  {n:'Lavanda',c:'#C9B5E0'},{n:'Menta',c:'#A8D8C0'},{n:'Caramelo',c:'#D4935A'},
+  {n:'Cielo',c:'#8BB8C8'},{n:'Coral',c:'#E8A0B0'},
+];
+
+const prods=[
+  {id:1,e:'🧸',cat:'Amigurumi',n:'Munequita Ramo',d:'Adorable amigurumi para ramos de flores. Patrón en español e inglés.',p:280,b:'bestseller',det:[['Páginas','24 pgs PDF'],['Nivel','Intermedio'],['Idioma','ES / EN'],['Gancho','3mm'],['Tiempo','4–6 hrs']],yarn:true},
+  {id:2,e:'🐻',cat:'Amigurumi',n:'Osito Teddy',d:'Instrucciones para orejas, ojos seguros y relleno perfecto.',p:250,b:'new',det:[['Páginas','18 pgs PDF'],['Nivel','Principiante'],['Idioma','ES / EN'],['Gancho','3.5mm'],['Tiempo','3–5 hrs']],yarn:true},
+  {id:3,e:'🌸',cat:'Patrón',n:'Flores Boho',d:'6 diseños de flores en relieve para ropa, accesorios o decoración.',p:150,b:'',det:[['Páginas','12 pgs PDF'],['Nivel','Básico'],['Idioma','ES'],['Gancho','2.5–3mm'],['Diseños','6 variantes']],yarn:false},
+  {id:4,e:'🦊',cat:'Amigurumi',n:'Zorro Kawaii',d:'Amigurumi con cabeza articulada. Piezas separadas, instrucciones avanzadas.',p:320,b:'',det:[['Páginas','28 pgs PDF'],['Nivel','Avanzado'],['Idioma','ES / EN'],['Gancho','3mm'],['Tiempo','6–8 hrs']],yarn:true},
+];
+const kits=[
+  {id:10,e:'🧺',cat:'Kit Crochet',n:'Kit Munequita Ramo',d:'Estambres 200g, relleno, ojos de seguridad, aguja y patrón PDF.',p:850,b:'kit',det:[['Incluye','Estambre+Relleno+Ojos'],['Patrón','PDF digital'],['Envío','México y RD'],['Colores','A elegir']],yarn:false},
+  {id:11,e:'🌈',cat:'Kit Crochet',n:'Kit Mensual Sorpresa',d:'Patrón exclusivo + materiales cada mes. ¡Una sorpresa nueva siempre!',p:720,b:'new',det:[['Frecuencia','Mensual'],['Contenido','Patrón+materiales'],['Envío','México y RD'],['Nivel','Intermedio']],yarn:false},
+];
+
+function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+
+function renderGrid(arr,id){
+  document.getElementById(id).innerHTML=arr.map(p=>`
+    <div class="pcard" onclick="openM(${p.id})">
+      <div class="pcard-img">
+        <span style="font-size:58px">${p.e}</span>
+        ${p.b?`<span class="pbadge ${p.b==='new'?'nb':p.b==='kit'?'kb':''}">${p.b==='bestseller'?'🎀 Top':p.b==='new'?'Nuevo':'Kit'}</span>`:''}
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-cat">${p.cat}</div>
+        <div class="pcard-name">${p.n}</div>
+        <div class="pcard-desc">${p.d.substring(0,65)}…</div>
+        <div class="pcard-foot">
+          <div class="pcard-price">${f(p.p)}</div>
+          <button class="btn-plus" onclick="event.stopPropagation();qAdd(${p.id})">+</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderYarn(){
+  document.getElementById('ycards').innerHTML=yarnColors.map(y=>`
+    <div class="ycard" onclick="pickY(this,'${y.n}')">
+      <div class="ys" style="background:${y.c};${y.c==='#F0F0F0'?'border:1px solid #ddd':''}"></div>
+      <div class="ycard-n">${y.n}</div>
+      <div class="ycard-p">${f(95)}</div>
+    </div>`).join('');
+  document.getElementById('hp1').textContent=f(280);
+  document.getElementById('hp2').textContent=f(850);
+  document.getElementById('hp3').textContent=f(95);
+}
+
+function setC(){cur=document.getElementById('cur').value;renderAll();}
+function renderAll(){renderGrid(prods,'pgrid');renderGrid(kits,'kgrid');renderYarn();}
+
+function openM(id){
+  const all=[...prods,...kits];curProd=all.find(x=>x.id===id);selYarn=null;
+  document.getElementById('mpic').textContent=curProd.e;
+  document.getElementById('mcat').textContent=curProd.cat;
+  document.getElementById('mname').textContent=curProd.n;
+  document.getElementById('mdesc').textContent=curProd.d;
+  document.getElementById('mdetails').innerHTML=curProd.det.map(d=>`<div class="detail-row"><span>${d[0]}</span><span>${d[1]}</span></div>`).join('');
+  document.getElementById('mprice').textContent=f(curProd.p);
+  document.getElementById('mprice2').textContent=cur!=='MXN'?'≈ '+f(curProd.p):'';
+  document.getElementById('yp').textContent=f(95);
+  const ya=document.getElementById('yaddon');
+  if(curProd.yarn){ya.style.display='block';document.getElementById('chips').innerHTML=yarnColors.map(y=>`<button class="chip" onclick="toggleChip(this,'${y.n}')"><span class="chip-dot" style="background:${y.c};${y.c==='#F0F0F0'?'border:1px solid #ccc':''}"></span>${y.n}</button>`).join('');}
+  else ya.style.display='none';
+  document.getElementById('ov').classList.add('open');
+}
+function closeM(){document.getElementById('ov').classList.remove('open');selYarn=null;}
+document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM();});
+function toggleChip(el,n){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));selYarn=selYarn===n?null:n;if(selYarn)el.classList.add('on');}
+function addCart(){cartN++;document.getElementById('cn').textContent=cartN;closeM();toast(selYarn?`🎀 ${curProd.n} + Estambre ${selYarn}`:`🎀 ${curProd.n} agregado`);}
+function qAdd(id){cartN++;document.getElementById('cn').textContent=cartN;const p=[...prods,...kits].find(x=>x.id===id);toast(`🎀 ${p.n} agregado`);}
+function openCart(){toast(`🛍 ${cartN} producto(s) en carrito`);}
+function pickY(el,n){document.querySelectorAll('.ycard').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');toast(`🧶 ${n} seleccionado`);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2700);}
+
+renderAll();
+</script>
+</body>
+</html>

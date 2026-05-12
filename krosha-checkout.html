@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KroshaPatterns — Carrito & Checkout</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink-bg:#FDF0F5;--pink-mid:#F5D0E0;--pink-deep:#E8A8C4;
+  --pink-dark:#C06090;--pink-text:#8B3565;
+  --blush:#FFF0F5;--lilac:#EDD5F0;--mint:#D5EFE5;--cream:#FFF8EC;
+  --text:#3A1E2E;--text-mid:#7A4D65;--text-light:#B48EA8;
+  --border:#F0C8DC;--white:#FFFBFD;
+  --green:#2E7D52;--green-light:#D4EFE3;
+}
+body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text);overflow-x:hidden;}
+
+/* NAV */
+.nav-bar{background:var(--white);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100;}
+.nav-ann{background:var(--pink-dark);color:#fff;text-align:center;padding:8px;font-size:12.5px;}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:66px;}
+.logo{font-family:'Fraunces',serif;font-size:23px;font-weight:600;font-style:italic;color:var(--pink-text);text-decoration:none;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.lang-toggle{display:flex;background:var(--pink-mid);border-radius:30px;padding:3px;border:1.5px solid var(--border);}
+.lang-btn{padding:5px 13px;border-radius:30px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);transition:all .2s;}
+.lang-btn.active{background:var(--pink-dark);color:#fff;}
+.cur-sel{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:30px;padding:6px 13px;font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;}
+
+/* STEPS */
+.steps-bar{background:var(--white);border-bottom:1.5px solid var(--border);padding:16px 2rem;}
+.steps-inner{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:0;}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-light);}
+.step.active{color:var(--pink-dark);}
+.step.done{color:var(--green);}
+.step-num{width:28px;height:28px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.step.active .step-num{background:var(--pink-dark);color:#fff;border-color:var(--pink-dark);}
+.step.done .step-num{background:var(--green);color:#fff;border-color:var(--green);}
+.step-line{width:60px;height:2px;background:var(--border);margin:0 8px;flex-shrink:0;}
+.step.done+.step-line,.step-line.done{background:var(--green);}
+
+/* PAGES */
+.page{display:none;max-width:1100px;margin:0 auto;padding:32px 2rem 80px;}
+.page.active{display:block;}
+
+/* ── CART PAGE ── */
+.cart-layout{display:grid;grid-template-columns:1fr 380px;gap:2.5rem;align-items:start;}
+.cart-title{font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--text);margin-bottom:24px;}
+.cart-title em{color:var(--pink-dark);font-style:italic;}
+
+/* cart items */
+.cart-items{display:flex;flex-direction:column;gap:14px;margin-bottom:24px;}
+.cart-item{background:var(--white);border:1.5px solid var(--border);border-radius:18px;padding:18px;display:flex;gap:16px;align-items:flex-start;}
+.ci-img{width:80px;height:80px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:40px;flex-shrink:0;}
+.ci-img.p1{background:var(--pink-mid);}
+.ci-img.p2{background:var(--lilac);}
+.ci-img.p3{background:var(--mint);}
+.ci-body{flex:1;}
+.ci-cat{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-light);font-weight:700;margin-bottom:3px;}
+.ci-name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:4px;}
+.ci-detail{font-size:12.5px;color:var(--text-mid);margin-bottom:10px;}
+.ci-actions{display:flex;align-items:center;gap:10px;}
+.qty-box{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:20px;overflow:hidden;}
+.qty-btn{width:32px;height:32px;border:none;background:transparent;font-size:18px;cursor:pointer;color:var(--pink-dark);font-weight:700;transition:background .2s;font-family:'Nunito',sans-serif;}
+.qty-btn:hover{background:var(--pink-mid);}
+.qty-n{width:32px;text-align:center;font-size:14px;font-weight:700;border:none;outline:none;background:transparent;font-family:'Nunito',sans-serif;}
+.remove-btn{background:none;border:none;font-size:13px;color:var(--text-light);cursor:pointer;text-decoration:underline;font-family:'Nunito',sans-serif;transition:color .2s;}
+.remove-btn:hover{color:var(--pink-dark);}
+.ci-price{font-size:18px;font-weight:700;color:var(--pink-dark);white-space:nowrap;text-align:right;}
+
+/* empty cart */
+.empty-cart{text-align:center;padding:60px 20px;}
+.empty-icon{font-size:80px;margin-bottom:16px;}
+.empty-cart h3{font-family:'Fraunces',serif;font-size:24px;margin-bottom:10px;}
+.empty-cart p{color:var(--text-mid);margin-bottom:24px;}
+
+/* coupon */
+.coupon-row{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:10px;align-items:center;}
+.coupon-input{flex:1;border:1.5px solid var(--border);border-radius:20px;padding:10px 16px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;transition:border-color .2s;}
+.coupon-input:focus{border-color:var(--pink-dark);}
+.coupon-btn{background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;}
+
+/* order summary */
+.summary-box{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:24px;position:sticky;top:90px;}
+.summary-box h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:20px;}
+.sum-row{display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid var(--border);}
+.sum-row:last-of-type{border:none;}
+.sum-row.total{font-size:18px;font-weight:700;color:var(--text);padding-top:14px;margin-top:4px;border-top:2px solid var(--border);border-bottom:none;}
+.sum-row.total span:last-child{color:var(--pink-dark);}
+.digital-badge{background:var(--green-light);color:var(--green);font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;text-align:center;margin:14px 0;}
+.btn-checkout{width:100%;background:var(--pink-dark);color:#fff;border:none;padding:16px;border-radius:30px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;box-shadow:0 6px 20px rgba(192,96,144,.3);margin-top:14px;}
+.btn-checkout:hover{background:var(--pink-text);transform:translateY(-1px);}
+.trust-badges{display:flex;flex-direction:column;gap:6px;margin-top:16px;}
+.trust-badge{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-light);}
+.trust-icon{font-size:14px;}
+.pay-icons{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;justify-content:center;}
+.pay-ico{background:var(--pink-bg);border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;color:var(--text-mid);font-weight:700;}
+
+/* ── CHECKOUT PAGE ── */
+.checkout-layout{display:grid;grid-template-columns:1fr 360px;gap:2.5rem;align-items:start;}
+.checkout-form{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:28px;}
+.form-section{margin-bottom:28px;}
+.form-section h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:18px;color:var(--text);display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.full{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:12.5px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.08em;}
+.field input,.field select{
+  border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;
+  font-size:14px;font-family:'Nunito',sans-serif;outline:none;
+  transition:border-color .2s;background:var(--white);color:var(--text);
+}
+.field input:focus,.field select:focus{border-color:var(--pink-dark);}
+.field input::placeholder{color:var(--text-light);}
+
+/* payment methods */
+.pay-methods{display:flex;flex-direction:column;gap:10px;}
+.pay-method{
+  border:2px solid var(--border);border-radius:14px;padding:16px 18px;
+  cursor:pointer;transition:border-color .2s,background .2s;
+  display:flex;align-items:center;gap:14px;
+}
+.pay-method:hover{border-color:var(--pink-deep);}
+.pay-method.sel{border-color:var(--pink-dark);background:var(--blush);}
+.pay-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.pay-method.sel .pay-radio{border-color:var(--pink-dark);background:var(--pink-dark);}
+.pay-radio-dot{width:8px;height:8px;border-radius:50%;background:#fff;}
+.pay-logo-big{font-size:26px;flex-shrink:0;}
+.pay-method-info h4{font-size:14px;font-weight:700;}
+.pay-method-info p{font-size:12px;color:var(--text-light);}
+
+/* card fields */
+.card-fields{background:var(--pink-bg);border-radius:12px;padding:18px;margin-top:14px;border:1.5px solid var(--border);}
+.card-row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;}
+
+/* mini summary right */
+.mini-summary{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;position:sticky;top:90px;}
+.mini-summary h3{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:18px;}
+.mini-items{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.mini-item{display:flex;align-items:center;gap:12px;}
+.mini-img{width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+.mini-img.p1{background:var(--pink-mid);}
+.mini-img.p2{background:var(--lilac);}
+.mini-img.p3{background:var(--mint);}
+.mini-info{flex:1;}
+.mini-info h4{font-size:13px;font-weight:700;}
+.mini-info p{font-size:12px;color:var(--text-light);}
+.mini-price{font-size:14px;font-weight:700;color:var(--pink-dark);}
+.mini-divider{height:1px;background:var(--border);margin:14px 0;}
+.mini-row{display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0;}
+.mini-row.total{font-size:16px;font-weight:700;border-top:2px solid var(--border);padding-top:12px;margin-top:6px;}
+.mini-row.total span:last-child{color:var(--pink-dark);}
+
+/* ── CONFIRMATION PAGE ── */
+.confirm-wrap{max-width:620px;margin:0 auto;text-align:center;padding:60px 2rem 80px;}
+.confirm-icon{font-size:80px;margin-bottom:16px;}
+.confirm-wrap h1{font-family:'Fraunces',serif;font-size:36px;font-weight:600;margin-bottom:12px;color:var(--text);}
+.confirm-wrap .sub{font-size:16px;color:var(--text-mid);margin-bottom:32px;line-height:1.6;}
+.confirm-box{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:28px;margin-bottom:28px;text-align:left;}
+.confirm-box h3{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:16px;}
+.confirm-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.confirm-row:last-child{border:none;}
+.confirm-row .label{font-size:13px;color:var(--text-light);}
+.confirm-row .val{font-size:14px;font-weight:700;}
+.download-btn{
+  width:100%;background:var(--green);color:#fff;border:none;
+  padding:16px;border-radius:30px;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:12px;
+  transition:background .2s;
+  box-shadow:0 6px 20px rgba(46,125,82,.3);
+}
+.download-btn:hover{background:#1f5c3a;}
+.back-btn{
+  width:100%;background:var(--white);color:var(--pink-dark);
+  border:2px solid var(--pink-deep);
+  padding:14px;border-radius:30px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;
+}
+.back-btn:hover{background:var(--pink-mid);}
+.share-confirm{margin-top:24px;}
+.share-confirm p{font-size:13px;color:var(--text-light);margin-bottom:12px;}
+.share-confirm-btns{display:flex;gap:10px;justify-content:center;}
+.sc-btn{
+  padding:10px 18px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--white);font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Nunito',sans-serif;transition:all .2s;color:var(--text-mid);
+}
+.sc-btn:hover{background:var(--pink-mid);border-color:var(--pink-dark);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:13px 20px;border-radius:30px;font-size:13.5px;z-index:500;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:600;}
+.toast.on{transform:translateY(0);opacity:1;}
+
+footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;margin-top:40px;}
+.foot-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+.foot-logo{font-family:'Fraunces',serif;font-size:20px;font-style:italic;color:var(--pink-mid);text-decoration:none;}
+.foot-copy{font-size:12px;opacity:.6;}
+
+@media(max-width:860px){
+  .cart-layout,.checkout-layout{grid-template-columns:1fr;}
+  .summary-box,.mini-summary{position:static;}
+  .form-grid{grid-template-columns:1fr;}
+  .card-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- NAV -->
+<nav class="nav-bar">
+  <div class="nav-ann" id="nav-ann">🎀 Patrones digitales al instante · Pago 100% seguro</div>
+  <div class="nav-inner">
+    <a href="krosha-opcion-B.html" class="logo">🎀 KroshaPatterns</a>
+    <div class="nav-right">
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
+        <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+      </div>
+      <select class="cur-sel" id="cur" onchange="setC()">
+        <option value="MXN">🇲🇽 MXN</option>
+        <option value="USD">🇺🇸 USD</option>
+        <option value="EUR">🇪🇺 EUR</option>
+        <option value="DOP">🇩🇴 DOP</option>
+        <option value="CAD">🇨🇦 CAD</option>
+        <option value="GBP">🇬🇧 GBP</option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+<!-- STEPS -->
+<div class="steps-bar">
+  <div class="steps-inner">
+    <div class="step done" id="s1"><div class="step-num">✓</div><span data-es="Carrito" data-en="Cart">Carrito</span></div>
+    <div class="step-line" id="l1"></div>
+    <div class="step active" id="s2"><div class="step-num">2</div><span data-es="Pago" data-en="Payment">Pago</span></div>
+    <div class="step-line" id="l2"></div>
+    <div class="step" id="s3"><div class="step-num">3</div><span data-es="Confirmación" data-en="Confirmation">Confirmación</span></div>
+  </div>
+</div>
+
+<!-- PAGE 1: CART -->
+<div class="page active" id="page-cart">
+  <h2 class="cart-title" data-es="Tu carrito 🎀" data-en="Your cart 🎀">Tu carrito 🎀</h2>
+  <div class="cart-layout">
+    <div>
+      <!-- ITEMS -->
+      <div class="cart-items" id="cart-items">
+        <div class="cart-item">
+          <div class="ci-img p1">🧸</div>
+          <div class="ci-body">
+            <div class="ci-cat" data-es="Amigurumi · PDF Digital" data-en="Amigurumi · Digital PDF">Amigurumi · PDF Digital</div>
+            <div class="ci-name" data-es="Munequita Ramo" data-en="Bouquet Doll">Munequita Ramo</div>
+            <div class="ci-detail" data-es="+ Estambre Rosa Bebé 200g" data-en="+ Baby Pink Yarn 200g">+ Estambre Rosa Bebé 200g</div>
+            <div class="ci-actions">
+              <div class="qty-box">
+                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
+                <input class="qty-n" value="1" readonly>
+                <button class="qty-btn" onclick="chQty(this,1)">+</button>
+              </div>
+              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
+            </div>
+          </div>
+          <div class="ci-price" data-price="375" id="ci-price-1">$375 MXN</div>
+        </div>
+        <div class="cart-item">
+          <div class="ci-img p2">🐻</div>
+          <div class="ci-body">
+            <div class="ci-cat" data-es="Amigurumi · PDF Digital" data-en="Amigurumi · Digital PDF">Amigurumi · PDF Digital</div>
+            <div class="ci-name" data-es="Osito Teddy" data-en="Teddy Bear">Osito Teddy</div>
+            <div class="ci-detail" data-es="Sin estambre adicional" data-en="No extra yarn">Sin estambre adicional</div>
+            <div class="ci-actions">
+              <div class="qty-box">
+                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
+                <input class="qty-n" value="1" readonly>
+                <button class="qty-btn" onclick="chQty(this,1)">+</button>
+              </div>
+              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
+            </div>
+          </div>
+          <div class="ci-price" data-price="250" id="ci-price-2">$250 MXN</div>
+        </div>
+        <div class="cart-item">
+          <div class="ci-img p3">🌸</div>
+          <div class="ci-body">
+            <div class="ci-cat" data-es="Patrón · PDF Digital" data-en="Pattern · Digital PDF">Patrón · PDF Digital</div>
+            <div class="ci-name" data-es="Flores Boho" data-en="Boho Flowers">Flores Boho</div>
+            <div class="ci-detail" data-es="+ Estambre Menta 200g" data-en="+ Mint Yarn 200g">+ Estambre Menta 200g</div>
+            <div class="ci-actions">
+              <div class="qty-box">
+                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
+                <input class="qty-n" value="1" readonly>
+                <button class="qty-btn" onclick="chQty(this,1)">+</button>
+              </div>
+              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
+            </div>
+          </div>
+          <div class="ci-price" data-price="245" id="ci-price-3">$245 MXN</div>
+        </div>
+      </div>
+
+      <!-- COUPON -->
+      <div class="coupon-row">
+        <input class="coupon-input" id="coupon-input" placeholder="Código de descuento" data-es-ph="Código de descuento" data-en-ph="Discount code">
+        <button class="coupon-btn" onclick="applyCoupon()" data-es="Aplicar" data-en="Apply">Aplicar</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary-box">
+      <h3 data-es="Resumen del pedido" data-en="Order summary">Resumen del pedido</h3>
+      <div class="sum-row"><span data-es="Subtotal (3 productos)" data-en="Subtotal (3 items)">Subtotal (3 productos)</span><span id="subtotal">$870 MXN</span></div>
+      <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val">−$87 MXN</span></div>
+      <div class="sum-row"><span data-es="Envío digital" data-en="Digital delivery">Envío digital</span><span style="color:var(--green);" data-es="Gratis 📥" data-en="Free 📥">Gratis 📥</span></div>
+      <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$870 MXN</span></div>
+      <div class="digital-badge" data-es="📥 Descarga instantánea al confirmar pago" data-en="📥 Instant download after payment">📥 Descarga instantánea al confirmar pago</div>
+      <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
+      <div class="trust-badges">
+        <div class="trust-badge"><span class="trust-icon">🔒</span><span data-es="Pago 100% seguro y cifrado" data-en="100% secure & encrypted payment">Pago 100% seguro y cifrado</span></div>
+        <div class="trust-badge"><span class="trust-icon">📥</span><span data-es="Patrones digitales: acceso inmediato" data-en="Digital patterns: instant access">Patrones digitales: acceso inmediato</span></div>
+        <div class="trust-badge"><span class="trust-icon">♻️</span><span data-es="Política de reembolso en 7 días" data-en="7-day refund policy">Política de reembolso en 7 días</span></div>
+      </div>
+      <div class="pay-icons">
+        <span class="pay-ico">💳 Stripe</span>
+        <span class="pay-ico">🅿️ PayPal</span>
+        <span class="pay-ico">🏪 MP</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: CHECKOUT -->
+<div class="page" id="page-checkout">
+  <div class="checkout-layout">
+    <div>
+      <div class="checkout-form">
+
+        <!-- Contact -->
+        <div class="form-section">
+          <h3>📧 <span data-es="Información de contacto" data-en="Contact information">Información de contacto</span></h3>
+          <div class="form-grid full">
+            <div class="field">
+              <label data-es="CORREO ELECTRÓNICO" data-en="EMAIL">CORREO ELECTRÓNICO</label>
+              <input type="email" placeholder="tu@email.com">
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div class="field">
+              <label data-es="NOMBRE" data-en="FIRST NAME">NOMBRE</label>
+              <input type="text" id="fname" placeholder="Jennyfer">
+            </div>
+            <div class="field">
+              <label data-es="APELLIDO" data-en="LAST NAME">APELLIDO</label>
+              <input type="text" placeholder="García">
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping note -->
+        <div class="form-section">
+          <h3>📦 <span data-es="Entrega" data-en="Delivery">Entrega</span></h3>
+          <div style="background:var(--green-light);border-radius:14px;padding:16px;display:flex;gap:12px;align-items:flex-start;">
+            <span style="font-size:24px;">📥</span>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:4px;" data-es="Producto digital — sin envío físico" data-en="Digital product — no physical shipping">Producto digital — sin envío físico</div>
+              <div style="font-size:13px;color:var(--text-mid);" data-es="Recibirás el enlace de descarga en tu correo electrónico al instante después del pago." data-en="You will receive the download link to your email instantly after payment.">Recibirás el enlace de descarga en tu correo electrónico al instante después del pago.</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <div class="field">
+              <label data-es="PAÍS / REGIÓN" data-en="COUNTRY / REGION">PAÍS / REGIÓN</label>
+              <select>
+                <option>🇲🇽 México</option>
+                <option>🇩🇴 República Dominicana</option>
+                <option>🇺🇸 Estados Unidos</option>
+                <option>🇨🇦 Canadá</option>
+                <option>🇪🇸 España</option>
+                <option>🇦🇷 Argentina</option>
+                <option>🌍 Otro</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="form-section">
+          <h3>💳 <span data-es="Método de pago" data-en="Payment method">Método de pago</span></h3>
+          <div class="pay-methods">
+            <div class="pay-method sel" onclick="selPay(this,'stripe')">
+              <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+              <span class="pay-logo-big">💳</span>
+              <div class="pay-method-info">
+                <h4>Stripe</h4>
+                <p data-es="Visa, Mastercard, Amex — Pago seguro" data-en="Visa, Mastercard, Amex — Secure payment">Visa, Mastercard, Amex — Pago seguro</p>
+              </div>
+            </div>
+            <div class="pay-method" onclick="selPay(this,'paypal')">
+              <div class="pay-radio"></div>
+              <span class="pay-logo-big">🅿️</span>
+              <div class="pay-method-info">
+                <h4>PayPal</h4>
+                <p data-es="Pago internacional — Protección al comprador" data-en="International payment — Buyer protection">Pago internacional — Protección al comprador</p>
+              </div>
+            </div>
+            <div class="pay-method" onclick="selPay(this,'mp')">
+              <div class="pay-radio"></div>
+              <span class="pay-logo-big">🏪</span>
+              <div class="pay-method-info">
+                <h4>Mercado Pago</h4>
+                <p data-es="OXXO, tiendas de conveniencia, tarjeta — ideal para México y LATAM" data-en="OXXO, convenience stores, card — ideal for Mexico and LATAM">OXXO, tiendas, tarjeta — ideal para México y LATAM</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card fields -->
+          <div class="card-fields" id="card-fields">
+            <div class="field" style="margin-bottom:12px;">
+              <label data-es="NÚMERO DE TARJETA" data-en="CARD NUMBER">NÚMERO DE TARJETA</label>
+              <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)">
+            </div>
+            <div class="card-row">
+              <div class="field">
+                <label data-es="NOMBRE EN TARJETA" data-en="NAME ON CARD">NOMBRE EN TARJETA</label>
+                <input type="text" placeholder="Jennyfer García">
+              </div>
+              <div class="field">
+                <label data-es="VENCIMIENTO" data-en="EXPIRY">VENCIMIENTO</label>
+                <input type="text" placeholder="MM/AA" maxlength="5" oninput="fmtExp(this)">
+              </div>
+              <div class="field">
+                <label>CVC</label>
+                <input type="text" placeholder="123" maxlength="4">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-checkout" onclick="confirmOrder()" id="confirm-btn" data-es="Confirmar y pagar" data-en="Confirm & pay">Confirmar y pagar</button>
+        <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-light);" data-es="🔒 Pago cifrado con SSL · Nunca almacenamos tus datos" data-en="🔒 SSL encrypted payment · We never store your data">🔒 Pago cifrado con SSL · Nunca almacenamos tus datos</div>
+      </div>
+    </div>
+
+    <!-- MINI SUMMARY -->
+    <div class="mini-summary">
+      <h3 data-es="Tu pedido" data-en="Your order">Tu pedido</h3>
+      <div class="mini-items">
+        <div class="mini-item">
+          <div class="mini-img p1">🧸</div>
+          <div class="mini-info">
+            <h4 data-es="Munequita Ramo + Estambre" data-en="Bouquet Doll + Yarn">Munequita Ramo + Estambre</h4>
+            <p data-es="PDF Digital · Rosa Bebé 200g" data-en="Digital PDF · Baby Pink 200g">PDF Digital · Rosa Bebé 200g</p>
+          </div>
+          <span class="mini-price" data-price="375">$375 MXN</span>
+        </div>
+        <div class="mini-item">
+          <div class="mini-img p2">🐻</div>
+          <div class="mini-info">
+            <h4 data-es="Osito Teddy" data-en="Teddy Bear">Osito Teddy</h4>
+            <p data-es="PDF Digital" data-en="Digital PDF">PDF Digital</p>
+          </div>
+          <span class="mini-price" data-price="250">$250 MXN</span>
+        </div>
+        <div class="mini-item">
+          <div class="mini-img p3">🌸</div>
+          <div class="mini-info">
+            <h4 data-es="Flores Boho + Estambre" data-en="Boho Flowers + Yarn">Flores Boho + Estambre</h4>
+            <p data-es="PDF Digital · Menta 200g" data-en="Digital PDF · Mint 200g">PDF Digital · Menta 200g</p>
+          </div>
+          <span class="mini-price" data-price="245">$245 MXN</span>
+        </div>
+      </div>
+      <div class="mini-divider"></div>
+      <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$870 MXN</span></div>
+      <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount">−$87 MXN</span></div>
+      <div class="mini-row"><span data-es="Entrega digital" data-en="Digital delivery">Entrega digital</span><span style="color:var(--green);" data-es="Gratis" data-en="Free">Gratis</span></div>
+      <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$870 MXN</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: CONFIRMATION -->
+<div class="page" id="page-confirm">
+  <div class="confirm-wrap">
+    <div class="confirm-icon">🎀</div>
+    <h1 data-es="¡Pedido confirmado!" data-en="Order confirmed!">¡Pedido confirmado!</h1>
+    <p class="sub" data-es="Gracias por tu compra. Tu patrón ya está listo para descargar — te enviamos el enlace a tu correo." data-en="Thank you for your purchase! Your pattern is ready to download — we sent the link to your email.">Gracias por tu compra. Tu patrón ya está listo para descargar — te enviamos el enlace a tu correo.</p>
+
+    <div class="confirm-box">
+      <h3 data-es="Detalles del pedido" data-en="Order details">Detalles del pedido</h3>
+      <div class="confirm-row">
+        <span class="label" data-es="Número de pedido" data-en="Order number">Número de pedido</span>
+        <span class="val">#KP-2026-0842</span>
+      </div>
+      <div class="confirm-row">
+        <span class="label" data-es="Productos" data-en="Products">Productos</span>
+        <span class="val" data-es="3 patrones + estambres" data-en="3 patterns + yarns">3 patrones + estambres</span>
+      </div>
+      <div class="confirm-row">
+        <span class="label" data-es="Total pagado" data-en="Total paid">Total pagado</span>
+        <span class="val" id="confirm-total" style="color:var(--pink-dark);">$870 MXN</span>
+      </div>
+      <div class="confirm-row">
+        <span class="label" data-es="Método de pago" data-en="Payment method">Método de pago</span>
+        <span class="val" id="confirm-pay">💳 Stripe</span>
+      </div>
+      <div class="confirm-row">
+        <span class="label" data-es="Entrega" data-en="Delivery">Entrega</span>
+        <span class="val" style="color:var(--green);" data-es="📥 Descarga inmediata" data-en="📥 Instant download">📥 Descarga inmediata</span>
+      </div>
+    </div>
+
+    <button class="download-btn" onclick="showToast(lang==='es'?'📥 Descargando tus patrones...':'📥 Downloading your patterns...')">
+      📥 <span data-es="Descargar mis patrones (PDF)" data-en="Download my patterns (PDF)">Descargar mis patrones (PDF)</span>
+    </button>
+    <button class="back-btn" onclick="goHome()">
+      <span data-es="← Seguir comprando" data-en="← Continue shopping">← Seguir comprando</span>
+    </button>
+
+    <div class="share-confirm">
+      <p data-es="¿Te gustó? ¡Compártelo y etiquétame! 🧸" data-en="Loved it? Share it and tag me! 🧸">¿Te gustó? ¡Compártelo y etiquétame! 🧸</p>
+      <div class="share-confirm-btns">
+        <button class="sc-btn" onclick="showToast('◎ @kro_shaa')">◎ Instagram</button>
+        <button class="sc-btn" onclick="showToast('♪ @kroshard')">♪ TikTok</button>
+        <button class="sc-btn" onclick="showToast('💬 WhatsApp')">💬 WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <a href="krosha-opcion-B.html" class="foot-logo">🎀 KroshaPatterns</a>
+    <div class="foot-copy">© 2026 kroshapatterns.com · Stripe · PayPal · Mercado Pago</div>
+  </div>
+</footer>
+
+<script>
+const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041};
+const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
+let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
+const basePrices=[375,250,245];
+
+function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+
+function updatePrices(){
+  const sub=basePrices.reduce((a,b)=>a+b,0);
+  const disc=hasDiscount?Math.round(sub*.1):0;
+  const total=sub-disc;
+  document.getElementById('subtotal').textContent=f(sub);
+  document.getElementById('total').textContent=f(total);
+  document.getElementById('ms-subtotal').textContent=f(sub);
+  document.getElementById('ms-total').textContent=f(total);
+  document.getElementById('confirm-total').textContent=f(total);
+  if(hasDiscount){
+    document.getElementById('discount-val').textContent='−'+f(disc);
+    document.getElementById('ms-discount').textContent='−'+f(disc);
+    document.getElementById('discount-row').style.display='flex';
+    document.getElementById('ms-discount-row').style.display='flex';
+  }
+  document.querySelectorAll('.ci-price').forEach((el,i)=>{
+    if(basePrices[i])el.textContent=f(basePrices[i]);
+  });
+  document.querySelectorAll('.mini-price').forEach((el,i)=>{
+    const p=parseFloat(el.dataset.price);
+    if(p)el.textContent=f(p);
+  });
+}
+
+function setC(){cur=document.getElementById('cur').value;updatePrices();}
+
+function setLang(l){
+  lang=l;
+  document.getElementById('btn-es').classList.toggle('active',l==='es');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.querySelectorAll('[data-'+l+']').forEach(el=>{el.textContent=el.dataset[l];});
+  const ci=document.getElementById('coupon-input');
+  if(ci)ci.placeholder=l==='es'?'Código de descuento':'Discount code';
+}
+
+function chQty(btn,d){
+  const box=btn.parentElement;
+  const inp=box.querySelector('.qty-n');
+  let v=parseInt(inp.value)+d;
+  if(v<1)v=1;
+  inp.value=v;
+}
+
+function removeItem(btn){
+  const item=btn.closest('.cart-item');
+  item.style.opacity='0';item.style.transform='translateX(-20px)';item.style.transition='all .3s';
+  setTimeout(()=>{item.remove();showToast(lang==='es'?'🗑 Eliminado del carrito':'🗑 Removed from cart');},300);
+}
+
+function applyCoupon(){
+  const v=document.getElementById('coupon-input').value.toUpperCase();
+  if(v==='KROSHA10'||v==='KROSHA'){
+    hasDiscount=true;updatePrices();
+    showToast(lang==='es'?'🎀 ¡Cupón aplicado! 10% de descuento':'🎀 Coupon applied! 10% discount');
+  } else {
+    showToast(lang==='es'?'❌ Código inválido':'❌ Invalid code');
+  }
+}
+
+function goToCheckout(){
+  setStep(2);
+  document.getElementById('page-cart').classList.remove('active');
+  document.getElementById('page-checkout').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function selPay(el,method){
+  selPayMethod=method;
+  document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('sel'));
+  el.classList.add('sel');
+  document.getElementById('card-fields').style.display=method==='stripe'?'block':'none';
+  const payNames={stripe:'💳 Stripe',paypal:'🅿️ PayPal',mp:'🏪 Mercado Pago'};
+  document.getElementById('confirm-pay').textContent=payNames[method];
+}
+
+function confirmOrder(){
+  const btn=document.getElementById('confirm-btn');
+  btn.textContent=lang==='es'?'Procesando pago...':'Processing payment...';
+  btn.disabled=true;btn.style.opacity='.7';
+  setTimeout(()=>{
+    setStep(3);
+    document.getElementById('page-checkout').classList.remove('active');
+    document.getElementById('page-confirm').classList.add('active');
+    window.scrollTo({top:0,behavior:'smooth'});
+  },2000);
+}
+
+function goHome(){
+  window.location.href='krosha-opcion-B.html';
+}
+
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const s=document.getElementById('s'+i);
+    s.classList.remove('active','done');
+    if(i<n)s.classList.add('done');
+    else if(i===n)s.classList.add('active');
+    const num=s.querySelector('.step-num');
+    num.textContent=i<n?'✓':i;
+  });
+  [1,2].forEach(i=>{
+    const l=document.getElementById('l'+i);
+    if(i<n)l.classList.add('done');else l.classList.remove('done');
+  });
+}
+
+function fmtCard(el){
+  let v=el.value.replace(/\D/g,'').substring(0,16);
+  el.value=v.replace(/(.{4})/g,'$1 ').trim();
+}
+function fmtExp(el){
+  let v=el.value.replace(/\D/g,'').substring(0,4);
+  if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2);
+  el.value=v;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2700);
+}
+
+// init
+setStep(2);
+updatePrices();
+</script>
+</body>
+</html>
