@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KroshaPatterns — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink-bg:#FDF0F5;--pink-mid:#F5D0E0;--pink-deep:#E8A8C4;
+  --pink-dark:#C06090;--pink-text:#8B3565;
+  --blush:#FFF0F5;--border:#F0C8DC;--white:#FFFBFD;
+  --text:#3A1E2E;--text-mid:#7A4D65;--text-light:#B48EA8;
+  --green:#2E7D52;--green-light:#D4EFE3;
+  --red:#C0392B;--red-light:#FDECEA;
+  --sidebar:220px;
+}
+body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text);}
+
+/* ── LOGIN ── */
+#login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;background:var(--blush);
+}
+.login-box{
+  background:var(--white);border-radius:24px;padding:48px 40px;
+  width:380px;text-align:center;
+  border:1.5px solid var(--border);
+  box-shadow:0 20px 60px rgba(192,96,144,.15);
+}
+.login-logo{font-family:'Fraunces',serif;font-size:28px;font-style:italic;color:var(--pink-text);margin-bottom:8px;}
+.login-sub{font-size:13px;color:var(--text-light);margin-bottom:32px;}
+.login-box input{
+  width:100%;border:1.5px solid var(--border);border-radius:12px;
+  padding:13px 16px;font-size:15px;font-family:'Nunito',sans-serif;
+  outline:none;transition:border-color .2s;margin-bottom:14px;
+  background:var(--white);color:var(--text);
+}
+.login-box input:focus{border-color:var(--pink-dark);}
+.login-btn{
+  width:100%;background:var(--pink-dark);color:#fff;border:none;
+  padding:14px;border-radius:30px;font-size:15px;font-weight:700;
+  cursor:pointer;font-family:'Nunito',sans-serif;
+  transition:background .2s;
+}
+.login-btn:hover{background:var(--pink-text);}
+.login-error{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+
+/* ── APP SHELL ── */
+#app{display:none;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:var(--sidebar);
+  background:var(--pink-text);color:rgba(255,220,235,.85);
+  display:flex;flex-direction:column;z-index:100;
+}
+.sb-logo{
+  padding:24px 20px 20px;
+  font-family:'Fraunces',serif;font-size:20px;font-style:italic;
+  color:var(--pink-mid);border-bottom:1px solid rgba(255,255,255,.1);
+  margin-bottom:8px;
+}
+.sb-logo span{font-size:11px;font-family:'Nunito',sans-serif;font-style:normal;display:block;color:rgba(255,220,235,.5);margin-top:2px;}
+.sb-nav{flex:1;padding:8px 12px;}
+.sb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;border-radius:12px;
+  font-size:13.5px;font-weight:600;cursor:pointer;
+  transition:background .2s;margin-bottom:4px;
+  color:rgba(255,220,235,.8);
+}
+.sb-item:hover{background:rgba(255,255,255,.1);}
+.sb-item.active{background:var(--pink-dark);color:#fff;}
+.sb-icon{font-size:17px;flex-shrink:0;}
+.sb-bottom{padding:14px 12px;border-top:1px solid rgba(255,255,255,.1);}
+.sb-logout{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-radius:10px;
+  font-size:13px;font-weight:600;cursor:pointer;
+  color:rgba(255,220,235,.6);transition:all .2s;
+}
+.sb-logout:hover{color:#fff;background:rgba(255,255,255,.08);}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);padding:28px 32px;min-height:100vh;}
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;}
+.page-title{font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--text);}
+.page-title em{color:var(--pink-dark);font-style:italic;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;}
+.stat-label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:8px;}
+.stat-val{font-size:28px;font-weight:800;color:var(--text);}
+.stat-sub{font-size:12px;color:var(--text-light);margin-top:4px;}
+.stat-card.pink .stat-val{color:var(--pink-dark);}
+.stat-card.green .stat-val{color:var(--green);}
+
+/* TABS */
+.tab-section{display:none;}
+.tab-section.active{display:block;}
+
+/* BUTTONS */
+.btn{padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:none;transition:all .2s;}
+.btn-pink{background:var(--pink-dark);color:#fff;}
+.btn-pink:hover{background:var(--pink-text);}
+.btn-outline{background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);}
+.btn-outline:hover{background:var(--pink-mid);}
+.btn-red{background:var(--red-light);color:var(--red);border:1.5px solid #f5c6c2;}
+.btn-red:hover{background:#f5c6c2;}
+.btn-green{background:var(--green-light);color:var(--green);border:1.5px solid #b0ddc8;}
+.btn-green:hover{background:#b0ddc8;}
+.btn-sm{padding:6px 14px;font-size:12px;}
+
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:16px;overflow:hidden;border:1.5px solid var(--border);}
+.data-table th{background:var(--pink-bg);padding:12px 16px;text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;border-bottom:1.5px solid var(--border);}
+.data-table td{padding:13px 16px;border-bottom:1px solid var(--border);font-size:13.5px;vertical-align:middle;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:hover td{background:var(--blush);}
+.td-img{width:52px;height:52px;object-fit:cover;border-radius:10px;border:1px solid var(--border);}
+.td-actions{display:flex;gap:6px;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-patron{background:var(--pink-mid);color:var(--pink-text);}
+.badge-kit{background:#D5EFE5;color:#1a6644;}
+.badge-hilo{background:#EDD5F0;color:#6b3580;}
+.badge-active{background:var(--green-light);color:var(--green);}
+.badge-draft{background:#FFF3CD;color:#856404;}
+
+/* SEARCH + FILTER BAR */
+.toolbar{display:flex;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;}
+.search-input{
+  flex:1;min-width:200px;border:1.5px solid var(--border);border-radius:20px;
+  padding:9px 16px;font-size:13.5px;font-family:'Nunito',sans-serif;
+  outline:none;background:var(--white);transition:border-color .2s;
+}
+.search-input:focus{border-color:var(--pink-dark);}
+.filter-sel{
+  border:1.5px solid var(--border);border-radius:20px;
+  padding:9px 14px;font-size:13px;font-family:'Nunito',sans-serif;
+  background:var(--white);cursor:pointer;outline:none;
+}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(58,30,46,.55);z-index:300;align-items:center;justify-content:center;padding:1.5rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--white);border-radius:20px;width:100%;max-width:620px;max-height:90vh;overflow-y:auto;padding:28px;box-shadow:0 24px 60px rgba(58,30,46,.2);border:1.5px solid var(--border);}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.modal-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;}
+.modal-close{background:var(--pink-mid);border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid.full{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:2px;}
+.field label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);}
+.field input,.field select,.field textarea{
+  border:1.5px solid var(--border);border-radius:10px;
+  padding:11px 14px;font-size:13.5px;font-family:'Nunito',sans-serif;
+  outline:none;transition:border-color .2s;background:var(--white);color:var(--text);
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--pink-dark);}
+.field textarea{resize:vertical;min-height:80px;}
+.img-preview{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1.5px solid var(--border);margin-top:6px;}
+.img-preview-wrap{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+
+/* HERO EDITOR */
+.hero-editor{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;}
+.hero-editor h3{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--text);}
+.hero-preview{background:var(--blush);border-radius:12px;padding:20px;margin-top:16px;border:1.5px dashed var(--border);}
+.hero-preview-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:10px;}
+
+/* ORDERS */
+.order-status{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.order-status.pending{background:#FFF3CD;color:#856404;}
+.order-status.paid{background:var(--green-light);color:var(--green);}
+.order-status.shipped{background:#D0E8FF;color:#1a5fa6;}
+.order-status.cancelled{background:var(--red-light);color:var(--red);}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:12px 20px;border-radius:20px;font-size:13.5px;z-index:999;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:700;}
+.toast.on{transform:translateY(0);opacity:1;}
+
+/* CONFIRM */
+.confirm-box{background:var(--white);border-radius:16px;padding:28px;max-width:360px;text-align:center;}
+.confirm-box h3{font-size:18px;font-weight:700;margin-bottom:8px;}
+.confirm-box p{font-size:13.5px;color:var(--text-mid);margin-bottom:20px;}
+.confirm-btns{display:flex;gap:10px;justify-content:center;}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">🎀 KroshaPatterns</div>
+    <div class="login-sub">Panel de administración</div>
+    <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Entrar al admin</button>
+    <div class="login-error" id="login-error">❌ Contraseña incorrecta</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">🎀 KroshaPatterns <span>Panel de Administración</span></div>
+    <nav class="sb-nav">
+      <div class="sb-item active" onclick="goTab('dashboard',this)"><span class="sb-icon">📊</span> Dashboard</div>
+      <div class="sb-item" onclick="goTab('products',this)"><span class="sb-icon">🧸</span> Productos</div>
+      <div class="sb-item" onclick="goTab('orders',this)"><span class="sb-icon">📦</span> Pedidos</div>
+      <div class="sb-item" onclick="goTab('customers',this)"><span class="sb-icon">👥</span> Clientes</div>
+      <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
+      <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
+    </nav>
+    <div class="sb-bottom">
+      <a href="index.html" target="_blank" class="sb-logout">🌐 Ver tienda</a>
+      <div class="sb-logout" onclick="doLogout()">🚪 Cerrar sesión</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="tab-section active" id="tab-dashboard">
+      <div class="page-header">
+        <div class="page-title">Bienvenida, <em>Jennyfer</em> 🎀</div>
+        <div style="font-size:13px;color:var(--text-light)" id="dash-date"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card pink">
+          <div class="stat-label">Productos activos</div>
+          <div class="stat-val" id="stat-prods">0</div>
+          <div class="stat-sub">En tu tienda</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">Pedidos totales</div>
+          <div class="stat-val" id="stat-orders">0</div>
+          <div class="stat-sub">Registrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Clientes</div>
+          <div class="stat-val" id="stat-customers">0</div>
+          <div class="stat-sub">Registrados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Categorías</div>
+          <div class="stat-val">3</div>
+          <div class="stat-sub">Patrones · Kits · Hilos</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:22px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:16px;">📦 Últimos pedidos</div>
+          <div id="dash-orders-list" style="font-size:13.5px;color:var(--text-mid);">No hay pedidos aún.</div>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:22px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:16px;">🧸 Productos recientes</div>
+          <div id="dash-prods-list" style="font-size:13.5px;color:var(--text-mid);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="tab-section" id="tab-products">
+      <div class="page-header">
+        <div class="page-title">Productos <em>🧸</em></div>
+        <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="🔍 Buscar producto..." oninput="filterProdsTable(this.value)">
+        <select class="filter-sel" onchange="filterProdsTable('',this.value)">
+          <option value="">Todos los tipos</option>
+          <option value="patrones">Patrones</option>
+          <option value="kits">Kits</option>
+          <option value="hilo">Hilos</option>
+          <option value="amigurumis">Amigurumis</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table" id="prods-table">
+          <thead><tr>
+            <th>Foto</th><th>Nombre</th><th>Tipo</th><th>Precio MXN</th><th>Estado</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="prods-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="tab-section" id="tab-orders">
+      <div class="page-header">
+        <div class="page-title">Pedidos <em>📦</em></div>
+        <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar pedido manual</button>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
+        <select class="filter-sel" onchange="filterOrders('',this.value)">
+          <option value="">Todos los estados</option>
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+          <option value="shipped">Enviado</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="tab-section" id="tab-customers">
+      <div class="page-header">
+        <div class="page-title">Clientes <em>👥</em></div>
+        <button class="btn btn-outline" onclick="openCustModal()">+ Agregar cliente</button>
+      </div>
+      <div class="toolbar">
+        <input class="search-input" placeholder="🔍 Buscar cliente..." oninput="filterCustomers(this.value)">
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead><tr>
+            <th>Nombre</th><th>Email</th><th>País</th><th>Pedidos</th><th>Acciones</th>
+          </tr></thead>
+          <tbody id="customers-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HERO EDITOR -->
+    <div class="tab-section" id="tab-hero">
+      <div class="page-header">
+        <div class="page-title">Hero <em>& Banners</em> 🎨</div>
+        <button class="btn btn-pink" onclick="saveHero()">💾 Guardar cambios</button>
+      </div>
+
+      <div class="hero-editor">
+        <h3>🎀 Texto del Hero</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Título línea 1 (ES)</label>
+            <input type="text" id="hero-title1-es" placeholder="Tu crochet,">
+          </div>
+          <div class="field">
+            <label>Título línea 1 (EN)</label>
+            <input type="text" id="hero-title1-en" placeholder="Your crochet,">
+          </div>
+          <div class="field">
+            <label>Título línea 2 — resaltado (ES)</label>
+            <input type="text" id="hero-title2-es" placeholder="más bonito">
+          </div>
+          <div class="field">
+            <label>Título línea 2 — resaltado (EN)</label>
+            <input type="text" id="hero-title2-en" placeholder="more beautiful">
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:12px;">
+          <div class="field">
+            <label>Subtítulo (ES)</label>
+            <textarea id="hero-sub-es" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label>Subtítulo (EN)</label>
+            <textarea id="hero-sub-en" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-editor">
+        <h3>📢 Barra de anuncio (franja rosa arriba)</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Texto (ES)</label>
+            <input type="text" id="ann-es" placeholder="🎀 Acceso vía ProtectCrochet · Envíos México y RD">
+          </div>
+          <div class="field">
+            <label>Texto (EN)</label>
+            <input type="text" id="ann-en" placeholder="🎀 Access via ProtectCrochet · Shipping MX & DR">
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-editor">
+        <h3>🏷️ Franja de beneficios (strip oscuro)</h3>
+        <div id="strip-items-wrap"></div>
+        <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addStripItem()">+ Agregar ítem</button>
+      </div>
+
+      <div class="hero-preview">
+        <div class="hero-preview-label">Vista previa del título</div>
+        <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--text);line-height:1.1;">
+          <span id="prev-title1">Tu crochet,</span><br>
+          <em style="color:var(--pink-dark);" id="prev-title2">más bonito</em>
+        </div>
+        <div style="font-size:14px;color:var(--text-mid);margin-top:8px;" id="prev-sub">Patrones PDF exclusivos...</div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-section" id="tab-settings">
+      <div class="page-header">
+        <div class="page-title">Ajustes <em>⚙️</em></div>
+        <button class="btn btn-pink" onclick="saveSettings()">💾 Guardar</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🔑 Seguridad</div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Contraseña actual</label>
+            <input type="password" id="pwd-current" placeholder="••••••">
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Nueva contraseña</label>
+            <input type="password" id="pwd-new" placeholder="••••••">
+          </div>
+          <div class="field">
+            <label>Confirmar nueva contraseña</label>
+            <input type="password" id="pwd-confirm" placeholder="••••••">
+          </div>
+          <button class="btn btn-pink btn-sm" style="margin-top:14px;" onclick="changePwd()">Cambiar contraseña</button>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🌐 Datos de la tienda</div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Nombre de la tienda</label>
+            <input type="text" id="store-name" placeholder="KroshaPatterns">
+          </div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Instagram</label>
+            <input type="text" id="store-ig" placeholder="@kro_shaa">
+          </div>
+          <div class="field">
+            <label>TikTok</label>
+            <input type="text" id="store-tt" placeholder="@kroshard">
+          </div>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🗄️ Datos</div>
+          <p style="font-size:13px;color:var(--text-mid);margin-bottom:16px;">Exporta o reinicia todos los datos guardados en el navegador.</p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="exportData()">⬇️ Exportar datos</button>
+            <button class="btn btn-red btn-sm" onclick="confirmReset()">🗑️ Reiniciar todo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="prod-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="prod-modal-title">Nuevo producto</div>
+      <button class="modal-close" onclick="closeProdModal()">✕</button>
+    </div>
+    <input type="hidden" id="prod-edit-id">
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre (ES)</label>
+        <input type="text" id="pf-name-es" placeholder="Ramo Magico Candy">
+      </div>
+      <div class="field">
+        <label>Nombre (EN)</label>
+        <input type="text" id="pf-name-en" placeholder="Magic Bouquet Candy">
+      </div>
+    </div>
+    <div class="form-grid" style="margin-top:12px;">
+      <div class="field">
+        <label>Precio (MXN)</label>
+        <input type="number" id="pf-price" placeholder="290">
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <select id="pf-type">
+          <option value="patrones">Patrón Digital</option>
+          <option value="kits">Kit Crochet</option>
+          <option value="hilo">Hilo / Estambre</option>
+          <option value="amigurumis">Amigurumi</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nivel</label>
+        <select id="pf-skill">
+          <option value="Básico">Básico</option>
+          <option value="Intermedio">Intermedio</option>
+          <option value="Avanzado">Avanzado</option>
+          <option value="">—</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="pf-status">
+          <option value="active">Activo</option>
+          <option value="draft">Borrador</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid full" style="margin-top:12px;">
+      <div class="field">
+        <label>Descripción (ES)</label>
+        <textarea id="pf-desc-es" placeholder="Patrón de crochet..."></textarea>
+      </div>
+      <div class="field">
+        <label>Descripción (EN)</label>
+        <textarea id="pf-desc-en" placeholder="Crochet pattern..."></textarea>
+      </div>
+    </div>
+    <div class="form-grid full" style="margin-top:12px;">
+      <div class="field">
+        <label>URL de foto principal</label>
+        <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')">
+        <div style="margin-top:6px;"><img id="img-prev-1" class="img-preview" src="" alt="" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label>URL foto 2 (opcional)</label>
+        <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')">
+        <div style="margin-top:6px;"><img id="img-prev-2" class="img-preview" src="" alt="" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label>URL foto 3 (opcional)</label>
+        <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
+        <div style="margin-top:6px;"><img id="img-prev-3" class="img-preview" src="" alt="" style="display:none;"></div>
+      </div>
+      <div class="field">
+        <label>URL foto 4 (opcional)</label>
+        <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
+        <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeProdModal()">Cancelar</button>
+      <button class="btn btn-pink" onclick="saveProd()">💾 Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER MODAL -->
+<div class="modal-overlay" id="order-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="order-modal-title">Nuevo pedido</div>
+      <button class="modal-close" onclick="closeOrderModal()">✕</button>
+    </div>
+    <input type="hidden" id="order-edit-id">
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre del cliente</label>
+        <input type="text" id="of-name" placeholder="María García">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="of-email" placeholder="maria@email.com">
+      </div>
+      <div class="field">
+        <label>País</label>
+        <input type="text" id="of-country" placeholder="México">
+      </div>
+      <div class="field">
+        <label>Total (MXN)</label>
+        <input type="number" id="of-total" placeholder="290">
+      </div>
+      <div class="field">
+        <label>Método de pago</label>
+        <select id="of-pay">
+          <option>Stripe</option>
+          <option>PayPal</option>
+          <option>Mercado Pago</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select id="of-status">
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+          <option value="shipped">Enviado</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid full" style="margin-top:12px;">
+      <div class="field">
+        <label>Productos (descripción)</label>
+        <input type="text" id="of-products" placeholder="Ramo Magico Candy + Estambre Rosa">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeOrderModal()">Cancelar</button>
+      <button class="btn btn-pink" onclick="saveOrder()">💾 Guardar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal-overlay" id="cust-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo cliente</div>
+      <button class="modal-close" onclick="closeCustModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="cf-name" placeholder="María García">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="cf-email" placeholder="maria@email.com">
+      </div>
+      <div class="field">
+        <label>País</label>
+        <input type="text" id="cf-country" placeholder="México">
+      </div>
+      <div class="field">
+        <label>Teléfono (opcional)</label>
+        <input type="text" id="cf-phone" placeholder="+52 55 1234 5678">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button class="btn btn-outline" onclick="closeCustModal()">Cancelar</button>
+      <button class="btn btn-pink" onclick="saveCustomer()">💾 Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-box">
+    <h3 id="confirm-title">¿Estás segura?</h3>
+    <p id="confirm-msg">Esta acción no se puede deshacer.</p>
+    <div class="confirm-btns">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-red" id="confirm-ok-btn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONSTANTS ──
+const ADMIN_PWD_KEY='krosha_admin_pwd';
+const PRODS_KEY='krosha_products';
+const ORDERS_KEY='krosha_orders';
+const CUSTS_KEY='krosha_customers';
+const HERO_KEY='krosha_hero';
+const SETTINGS_KEY='krosha_settings';
+
+// Default password
+if(!localStorage.getItem(ADMIN_PWD_KEY)) localStorage.setItem(ADMIN_PWD_KEY,'krosha2024');
+
+// ── LOGIN ──
+function doLogin(){
+  const pwd=document.getElementById('pwd-input').value;
+  if(pwd===localStorage.getItem(ADMIN_PWD_KEY)){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    initApp();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('pwd-input').value='';
+  }
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pwd-input').value='';
+}
+
+// ── DATA ──
+function getProds(){return JSON.parse(localStorage.getItem(PRODS_KEY)||'[]');}
+function saveProds(d){localStorage.setItem(PRODS_KEY,JSON.stringify(d));}
+function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
+function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
+function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
+function saveCusts(d){localStorage.setItem(CUSTS_KEY,JSON.stringify(d));}
+function getHero(){return JSON.parse(localStorage.getItem(HERO_KEY)||JSON.stringify({title1Es:'Tu crochet,',title1En:'Your crochet,',title2Es:'más bonito',title2En:'more beautiful',subEs:'Patrones PDF exclusivos, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.',subEn:'Exclusive PDF patterns, complete kits with materials and premium yarn — all designed by Jennyfer.',annEs:'🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones',annEn:'🎀 Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns',strip:[{icon:'🔐',es:'Acceso protegido',sub_es:'Vía ProtectCrochet'},{icon:'💳',es:'Pago seguro',sub_es:'Stripe · PayPal · Mercado Pago'},{icon:'🌍',es:'Tu moneda',sub_es:'MXN, USD, EUR, DOP'},{icon:'🎀',es:'+40 patrones',sub_es:'Todos los niveles'}]}));}
+function saveHeroData(d){localStorage.setItem(HERO_KEY,JSON.stringify(d));}
+
+// ── INIT ──
+function initApp(){
+  document.getElementById('dash-date').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // seed default products if empty
+  if(!getProds().length) seedDefaultProds();
+  renderDashboard();
+  renderProdsTable();
+  renderOrdersTable();
+  renderCustomersTable();
+  loadHeroEditor();
+  loadSettings();
+}
+
+function seedDefaultProds(){
+  const defaults=[
+    {id:1,nameEs:'Ramo Magico Candy 45 cm',nameEn:'Magic Bouquet Candy 45 cm',price:300,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet. Amigurumi de 45cm. Disponible en español.',descEn:'Crochet pattern. 45cm amigurumi. Available in Spanish.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/0170BCDA-53B2-4B1A-8534-49507562FB6B.jpg?v=1776808456']},
+    {id:2,nameEs:'Kit Ramo Magico Graduadita 35 cm',nameEn:'Magic Bouquet Graduation Kit 35 cm',price:950,type:'kits',skill:'Intermedio',status:'active',descEs:'Kit completo con hilos, gancho, relleno y patrón digital.',descEn:'Complete kit with yarn, hook, stuffing and digital pattern.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/440D50A3-4213-4246-B9B7-D666F441586B.jpg?v=1774292862']},
+    {id:3,nameEs:'Ramo Magico Stitch 40 cm',nameEn:'Magic Bouquet Stitch 40 cm',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Stitch 40cm.',descEn:'Stitch crochet pattern 40cm.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3f93d6d8-3623-4b4d-b4aa-2434406c013b.jpg?v=1748526264']},
+    {id:4,nameEs:'Muñeca Ramo Magico Frida Kahlo',nameEn:'Magic Bouquet Frida Kahlo Doll',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Frida Kahlo.',descEn:'Frida Kahlo crochet pattern.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/65f46203-e064-4cff-add7-8b61c31eab57.jpg?v=1741823897']},
+    {id:5,nameEs:'Hilo Acrílico Premium',nameEn:'Premium Acrylic Yarn',price:160,type:'hilo',skill:'',status:'active',descEs:'Hilo acrílico de alta calidad.',descEn:'High quality acrylic yarn.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/PremierBasix1115-01White-ball.jpg?v=1729441823']},
+  ];
+  saveProds(defaults);
+}
+
+// ── DASHBOARD ──
+function renderDashboard(){
+  const prods=getProds(),orders=getOrders(),custs=getCusts();
+  document.getElementById('stat-prods').textContent=prods.filter(p=>p.status==='active').length;
+  document.getElementById('stat-orders').textContent=orders.length;
+  document.getElementById('stat-customers').textContent=custs.length;
+  const ol=document.getElementById('dash-orders-list');
+  if(orders.length){
+    ol.innerHTML=orders.slice(-5).reverse().map(o=>`
+      <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div><strong>${o.name}</strong><div style="font-size:12px;color:var(--text-light);">${o.products}</div></div>
+        <div style="text-align:right;"><strong>$${o.total} MXN</strong><div class="order-status ${o.status}" style="margin-top:2px;font-size:11px;">${statusLabel(o.status)}</div></div>
+      </div>`).join('');
+  } else ol.innerHTML='<div style="color:var(--text-light);font-size:13px;">No hay pedidos aún.</div>';
+  const pl=document.getElementById('dash-prods-list');
+  pl.innerHTML=prods.slice(-4).reverse().map(p=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <img src="${p.images[0]||''}" style="width:38px;height:38px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+      <div><div style="font-size:13px;font-weight:700;">${p.nameEs}</div><div style="font-size:12px;color:var(--pink-dark);">$${p.price} MXN</div></div>
+    </div>`).join('');
+}
+
+// ── PRODUCTS ──
+let prodFilter='',prodTypeFilter='';
+function renderProdsTable(){
+  const prods=getProds();
+  const filtered=prods.filter(p=>{
+    const matchSearch=!prodFilter||p.nameEs.toLowerCase().includes(prodFilter.toLowerCase())||p.nameEn.toLowerCase().includes(prodFilter.toLowerCase());
+    const matchType=!prodTypeFilter||p.type===prodTypeFilter;
+    return matchSearch&&matchType;
+  });
+  document.getElementById('prods-tbody').innerHTML=filtered.map(p=>`
+    <tr>
+      <td><img src="${p.images[0]||''}" class="td-img" onerror="this.style.display='none'"></td>
+      <td><strong>${p.nameEs}</strong><div style="font-size:12px;color:var(--text-light);">${p.nameEn}</div></td>
+      <td><span class="badge badge-${p.type}">${typeLabel(p.type)}</span></td>
+      <td><strong>$${p.price}</strong></td>
+      <td><span class="badge badge-${p.status}">${p.status==='active'?'Activo':'Borrador'}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="editProd(${p.id})">✏️ Editar</button>
+        <button class="btn btn-red btn-sm" onclick="confirmDelete('prod',${p.id})">🗑️</button>
+      </div></td>
+    </tr>`).join('');
+}
+function filterProdsTable(search,type){
+  if(search!==undefined)prodFilter=search;
+  if(type!==undefined)prodTypeFilter=type;
+  renderProdsTable();
+}
+function typeLabel(t){return t==='patrones'?'Patrón':t==='kits'?'Kit':t==='hilo'?'Hilo':'Amigurumi';}
+
+function openProdModal(id){
+  document.getElementById('prod-edit-id').value='';
+  document.getElementById('prod-modal-title').textContent='Nuevo producto';
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pf-type').value='patrones';
+  document.getElementById('pf-skill').value='Intermedio';
+  document.getElementById('pf-status').value='active';
+  ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
+  document.getElementById('prod-modal').classList.add('open');
+}
+function editProd(id){
+  const p=getProds().find(x=>x.id===id);if(!p)return;
+  document.getElementById('prod-edit-id').value=id;
+  document.getElementById('prod-modal-title').textContent='Editar producto';
+  document.getElementById('pf-name-es').value=p.nameEs||'';
+  document.getElementById('pf-name-en').value=p.nameEn||'';
+  document.getElementById('pf-price').value=p.price||'';
+  document.getElementById('pf-type').value=p.type||'patrones';
+  document.getElementById('pf-skill').value=p.skill||'';
+  document.getElementById('pf-status').value=p.status||'active';
+  document.getElementById('pf-desc-es').value=p.descEs||'';
+  document.getElementById('pf-desc-en').value=p.descEn||'';
+  (p.images||[]).forEach((url,i)=>{
+    const inp=document.getElementById(`pf-img${i+1}`);
+    const prev=document.getElementById(`img-prev-${i+1}`);
+    if(inp){inp.value=url;if(prev&&url){prev.src=url;prev.style.display='block';}}
+  });
+  document.getElementById('prod-modal').classList.add('open');
+}
+function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
+function saveProd(){
+  const editId=document.getElementById('prod-edit-id').value;
+  const imgs=[document.getElementById('pf-img1').value,document.getElementById('pf-img2').value,document.getElementById('pf-img3').value,document.getElementById('pf-img4').value].filter(Boolean);
+  const prod={
+    id:editId?parseInt(editId):Date.now(),
+    nameEs:document.getElementById('pf-name-es').value,
+    nameEn:document.getElementById('pf-name-en').value,
+    price:parseFloat(document.getElementById('pf-price').value)||0,
+    type:document.getElementById('pf-type').value,
+    skill:document.getElementById('pf-skill').value,
+    status:document.getElementById('pf-status').value,
+    descEs:document.getElementById('pf-desc-es').value,
+    descEn:document.getElementById('pf-desc-en').value,
+    images:imgs,
+  };
+  if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
+  let prods=getProds();
+  if(editId){prods=prods.map(p=>p.id===parseInt(editId)?prod:p);}
+  else prods.push(prod);
+  saveProds(prods);
+  closeProdModal();
+  renderProdsTable();
+  renderDashboard();
+  showToast(editId?'✅ Producto actualizado':'🎀 Producto agregado');
+}
+function previewImg(inp,prevId){
+  const prev=document.getElementById(prevId);
+  if(inp.value){prev.src=inp.value;prev.style.display='block';}
+  else{prev.src='';prev.style.display='none';}
+}
+
+// ── ORDERS ──
+let orderFilter='',orderStatusFilter='';
+function renderOrdersTable(){
+  const orders=getOrders();
+  const filtered=orders.filter(o=>{
+    const ms=!orderFilter||o.name.toLowerCase().includes(orderFilter.toLowerCase())||o.email.toLowerCase().includes(orderFilter.toLowerCase());
+    const mst=!orderStatusFilter||o.status===orderStatusFilter;
+    return ms&&mst;
+  });
+  document.getElementById('orders-tbody').innerHTML=filtered.length?filtered.slice().reverse().map(o=>`
+    <tr>
+      <td><strong>#${o.id.toString().slice(-4)}</strong></td>
+      <td><strong>${o.name}</strong><div style="font-size:12px;color:var(--text-light);">${o.email}</div></td>
+      <td style="font-size:12.5px;max-width:160px;">${o.products}</td>
+      <td><strong>$${o.total} MXN</strong></td>
+      <td><span class="order-status ${o.status}">${statusLabel(o.status)}</span></td>
+      <td style="font-size:12px;color:var(--text-light);">${new Date(o.date).toLocaleDateString('es-MX')}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-outline btn-sm" onclick="editOrder(${o.id})">✏️</button>
+        <button class="btn btn-red btn-sm" onclick="confirmDelete('order',${o.id})">🗑️</button>
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">No hay pedidos aún.</td></tr>';
+}
+function filterOrders(s,st){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;renderOrdersTable();}
+function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
+
+function openOrderModal(){
+  document.getElementById('order-edit-id').value='';
+  document.getElementById('order-modal-title').textContent='Nuevo pedido';
+  ['of-name','of-email','of-country','of-total','of-products'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('of-status').value='pending';
+  document.getElementById('order-modal').classList.add('open');
+}
+function editOrder(id){
+  const o=getOrders().find(x=>x.id===id);if(!o)return;
+  document.getElementById('order-edit-id').value=id;
+  document.getElementById('order-modal-title').textContent='Editar pedido';
+  document.getElementById('of-name').value=o.name;
+  document.getElementById('of-email').value=o.email;
+  document.getElementById('of-country').value=o.country||'';
+  document.getElementById('of-total').value=o.total;
+  document.getElementById('of-products').value=o.products;
+  document.getElementById('of-status').value=o.status;
+  document.getElementById('of-pay').value=o.pay||'Stripe';
+  document.getElementById('order-modal').classList.add('open');
+}
+function closeOrderModal(){document.getElementById('order-modal').classList.remove('open');}
+function saveOrder(){
+  const editId=document.getElementById('order-edit-id').value;
+  const order={
+    id:editId?parseInt(editId):Date.now(),
+    name:document.getElementById('of-name').value,
+    email:document.getElementById('of-email').value,
+    country:document.getElementById('of-country').value,
+    total:parseFloat(document.getElementById('of-total').value)||0,
+    products:document.getElementById('of-products').value,
+    pay:document.getElementById('of-pay').value,
+    status:document.getElementById('of-status').value,
+    date:new Date().toISOString(),
+  };
+  if(!order.name){showToast('⚠️ El nombre es obligatorio');return;}
+  let orders=getOrders();
+  if(editId){orders=orders.map(o=>o.id===parseInt(editId)?order:o);}
+  else orders.push(order);
+  saveOrders(orders);
+  closeOrderModal();
+  renderOrdersTable();
+  renderDashboard();
+  showToast(editId?'✅ Pedido actualizado':'📦 Pedido agregado');
+}
+
+// ── CUSTOMERS ──
+let custFilter='';
+function renderCustomersTable(){
+  const custs=getCusts();
+  const filtered=custs.filter(c=>!custFilter||c.name.toLowerCase().includes(custFilter.toLowerCase())||c.email.toLowerCase().includes(custFilter.toLowerCase()));
+  const orders=getOrders();
+  document.getElementById('customers-tbody').innerHTML=filtered.length?filtered.slice().reverse().map(c=>`
+    <tr>
+      <td><strong>${c.name}</strong></td>
+      <td>${c.email}</td>
+      <td>${c.country||'—'}</td>
+      <td>${orders.filter(o=>o.email===c.email).length}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-red btn-sm" onclick="confirmDelete('cust',${c.id})">🗑️</button>
+      </div></td>
+    </tr>`).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text-light);">No hay clientes aún.</td></tr>';
+}
+function filterCustomers(s){custFilter=s;renderCustomersTable();}
+function openCustModal(){['cf-name','cf-email','cf-country','cf-phone'].forEach(id=>{document.getElementById(id).value='';});document.getElementById('cust-modal').classList.add('open');}
+function closeCustModal(){document.getElementById('cust-modal').classList.remove('open');}
+function saveCustomer(){
+  const c={id:Date.now(),name:document.getElementById('cf-name').value,email:document.getElementById('cf-email').value,country:document.getElementById('cf-country').value,phone:document.getElementById('cf-phone').value};
+  if(!c.name){showToast('⚠️ El nombre es obligatorio');return;}
+  const custs=getCusts();custs.push(c);saveCusts(custs);
+  closeCustModal();renderCustomersTable();renderDashboard();
+  showToast('👥 Cliente agregado');
+}
+
+// ── HERO EDITOR ──
+function loadHeroEditor(){
+  const h=getHero();
+  document.getElementById('hero-title1-es').value=h.title1Es||'';
+  document.getElementById('hero-title1-en').value=h.title1En||'';
+  document.getElementById('hero-title2-es').value=h.title2Es||'';
+  document.getElementById('hero-title2-en').value=h.title2En||'';
+  document.getElementById('hero-sub-es').value=h.subEs||'';
+  document.getElementById('hero-sub-en').value=h.subEn||'';
+  document.getElementById('ann-es').value=h.annEs||'';
+  document.getElementById('ann-en').value=h.annEn||'';
+  updateHeroPreview();
+  renderStripItems(h.strip||[]);
+  ['hero-title1-es','hero-title2-es','hero-sub-es'].forEach(id=>document.getElementById(id).addEventListener('input',updateHeroPreview));
+}
+function updateHeroPreview(){
+  document.getElementById('prev-title1').textContent=document.getElementById('hero-title1-es').value||'Tu crochet,';
+  document.getElementById('prev-title2').textContent=document.getElementById('hero-title2-es').value||'más bonito';
+  document.getElementById('prev-sub').textContent=document.getElementById('hero-sub-es').value||'';
+}
+function renderStripItems(items){
+  const w=document.getElementById('strip-items-wrap');
+  w.innerHTML=items.map((it,i)=>`
+    <div style="display:grid;grid-template-columns:60px 1fr 1fr auto;gap:10px;align-items:center;margin-bottom:10px;background:var(--pink-bg);padding:10px;border-radius:10px;border:1px solid var(--border);">
+      <input type="text" value="${it.icon||''}" placeholder="🎀" style="border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:18px;text-align:center;font-family:'Nunito',sans-serif;background:var(--white);" data-strip="${i}" data-field="icon" oninput="updateStrip(this)">
+      <input type="text" value="${it.es||''}" placeholder="Texto ES" style="border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:13px;font-family:'Nunito',sans-serif;background:var(--white);" data-strip="${i}" data-field="es" oninput="updateStrip(this)">
+      <input type="text" value="${it.sub_es||''}" placeholder="Subtexto ES" style="border:1.5px solid var(--border);border-radius:8px;padding:8px;font-size:13px;font-family:'Nunito',sans-serif;background:var(--white);" data-strip="${i}" data-field="sub_es" oninput="updateStrip(this)">
+      <button class="btn btn-red btn-sm" onclick="removeStripItem(${i})">✕</button>
+    </div>`).join('');
+}
+let stripItems=getHero().strip||[];
+function updateStrip(el){
+  const i=parseInt(el.dataset.strip),f=el.dataset.field;
+  if(!stripItems[i])stripItems[i]={};
+  stripItems[i][f]=el.value;
+}
+function addStripItem(){stripItems.push({icon:'🎀',es:'Nuevo ítem',sub_es:'Descripción'});renderStripItems(stripItems);}
+function removeStripItem(i){stripItems.splice(i,1);renderStripItems(stripItems);}
+function saveHero(){
+  const h={
+    title1Es:document.getElementById('hero-title1-es').value,
+    title1En:document.getElementById('hero-title1-en').value,
+    title2Es:document.getElementById('hero-title2-es').value,
+    title2En:document.getElementById('hero-title2-en').value,
+    subEs:document.getElementById('hero-sub-es').value,
+    subEn:document.getElementById('hero-sub-en').value,
+    annEs:document.getElementById('ann-es').value,
+    annEn:document.getElementById('ann-en').value,
+    strip:stripItems,
+  };
+  saveHeroData(h);
+  showToast('🎨 Hero guardado — se aplicará al recargar la tienda');
+}
+
+// ── SETTINGS ──
+function loadSettings(){
+  const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
+  if(s.storeName)document.getElementById('store-name').value=s.storeName;
+  if(s.ig)document.getElementById('store-ig').value=s.ig;
+  if(s.tt)document.getElementById('store-tt').value=s.tt;
+}
+function saveSettings(){
+  const s={storeName:document.getElementById('store-name').value,ig:document.getElementById('store-ig').value,tt:document.getElementById('store-tt').value};
+  localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
+  showToast('⚙️ Ajustes guardados');
+}
+function changePwd(){
+  const cur=document.getElementById('pwd-current').value;
+  const nw=document.getElementById('pwd-new').value;
+  const cf=document.getElementById('pwd-confirm').value;
+  if(cur!==localStorage.getItem(ADMIN_PWD_KEY)){showToast('❌ Contraseña actual incorrecta');return;}
+  if(nw!==cf){showToast('❌ Las contraseñas no coinciden');return;}
+  if(nw.length<4){showToast('❌ Mínimo 4 caracteres');return;}
+  localStorage.setItem(ADMIN_PWD_KEY,nw);
+  ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
+  showToast('🔑 Contraseña actualizada');
+}
+function exportData(){
+  const data={products:getProds(),orders:getOrders(),customers:getCusts(),hero:getHero()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='krosha-data.json';a.click();
+  showToast('⬇️ Datos exportados');
+}
+function confirmReset(){
+  showConfirm('¿Reiniciar todos los datos?','Se borrarán todos los productos, pedidos y clientes. No se puede deshacer.',()=>{
+    [PRODS_KEY,ORDERS_KEY,CUSTS_KEY,HERO_KEY,SETTINGS_KEY].forEach(k=>localStorage.removeItem(k));
+    showToast('🗑️ Datos reiniciados');
+    initApp();
+  });
+}
+
+// ── DELETE ──
+function confirmDelete(type,id){
+  const labels={prod:'este producto',order:'este pedido',cust:'este cliente'};
+  showConfirm(`¿Eliminar ${labels[type]}?`,'Esta acción no se puede deshacer.',()=>{
+    if(type==='prod'){saveProds(getProds().filter(p=>p.id!==id));renderProdsTable();}
+    if(type==='order'){saveOrders(getOrders().filter(o=>o.id!==id));renderOrdersTable();}
+    if(type==='cust'){saveCusts(getCusts().filter(c=>c.id!==id));renderCustomersTable();}
+    renderDashboard();showToast('🗑️ Eliminado');
+  });
+}
+
+// ── CONFIRM ──
+let confirmCallback=null;
+function showConfirm(title,msg,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  confirmCallback=cb;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');confirmCallback=null;}
+document.getElementById('confirm-ok-btn').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};
+
+// ── NAVIGATION ──
+function goTab(name,el){
+  document.querySelectorAll('.tab-section').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── TOAST ──
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2800);}
+
+// ── CLOSE MODALS ON BG CLICK ──
+['prod-modal','order-modal','cust-modal','confirm-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
+});
+</script>
+</body>
+</html>
