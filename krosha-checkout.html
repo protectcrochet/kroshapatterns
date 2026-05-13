@@ -923,10 +923,8 @@ async function confirmOrder(){
 
   if(selPayMethod==='stripe'){
     await processStripe(email,name,btn);
-  } else if(selPayMethod==='paypal'){
-    processPayPal(btn);
   } else if(selPayMethod==='mp'){
-    processMP(email,btn);
+    await processMercadoPago(email,name,btn);
   }
 }
 
