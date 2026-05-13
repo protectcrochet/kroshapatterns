@@ -1,0 +1,14 @@
+{
+  "name": "kroshapatterns",
+  "version": "1.0.0",
+  "description": "KroshaPatterns — Tienda de patrones de crochet",
+  "private": true,
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "mercadopago": "^2.0.0",
+    "resend": "^3.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
