@@ -585,12 +585,106 @@ function goToCheckout(){
 }
 
 function selPay(el,method){
+  // Reset everything first
   selPayMethod=method;
   document.querySelectorAll('.pay-method').forEach(m=>m.classList.remove('sel'));
   el.classList.add('sel');
-  document.getElementById('card-fields').style.display=method==='stripe'?'block':'none';
+
+  // Clear payment area
+  const container=document.getElementById('card-fields');
+  container.innerHTML='';
+  container.style.display='block';
+
+  // Reset confirm button
+  const btn=document.getElementById('confirm-btn');
+  btn.style.display='block';
+  btn.disabled=false;btn.style.opacity='1';
+  btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
+  btn.onclick=()=>confirmOrder();
+
   const payNames={stripe:'💳 Stripe',paypal:'🅿️ PayPal',mp:'🏪 Mercado Pago'};
   document.getElementById('confirm-pay').textContent=payNames[method];
+
+  if(method==='stripe'){
+    container.innerHTML=`
+      <div style="padding:16px;background:var(--pink-bg);border-radius:12px;border:1.5px solid var(--border);">
+        <div class="field" style="margin-bottom:12px;">
+          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NÚMERO DE TARJETA':'CARD NUMBER'}</label>
+          <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" 
+            style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
+            oninput="let v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim()">
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;">
+          <div class="field">
+            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE':'NAME'}</label>
+            <input type="text" id="card-name" placeholder="${lang==='es'?'Nombre en tarjeta':'Name on card'}"
+              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
+          </div>
+          <div class="field">
+            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'VENCIMIENTO':'EXPIRY'}</label>
+            <input type="text" id="card-exp" placeholder="MM/AA" maxlength="5"
+              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
+              oninput="let v=this.value.replace(/\D/g,'').substring(0,4);if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2);this.value=v;">
+          </div>
+          <div class="field">
+            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">CVC</label>
+            <input type="text" id="card-cvc" placeholder="123" maxlength="4"
+              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
+          </div>
+        </div>
+        <div id="stripe-error" style="color:#C0392B;font-size:12px;margin-top:8px;min-height:16px;"></div>
+      </div>`;
+  } else if(method==='paypal'){
+    container.innerHTML='<div id="paypal-btn-container" style="margin-top:4px;"></div>';
+    btn.style.display='none';
+    loadPayPalBtn();
+  } else if(method==='mp'){
+    container.innerHTML=`
+      <div style="background:var(--pink-bg);border-radius:12px;padding:20px;text-align:center;border:1.5px solid var(--border);">
+        <div style="font-size:36px;margin-bottom:8px;">🏪</div>
+        <div style="font-weight:700;color:var(--text);margin-bottom:6px;">${lang==='es'?'Pagar con Mercado Pago':'Pay with Mercado Pago'}</div>
+        <div style="font-size:13px;color:var(--text-mid);">${lang==='es'?'OXXO · Tarjeta · Transferencia':'OXXO · Card · Transfer'}</div>
+      </div>`;
+  }
+}
+
+function loadPayPalBtn(){
+  const existing=document.querySelector('script[src*="paypal.com/sdk"]');
+  if(existing)existing.remove();
+  const s=document.createElement('script');
+  s.src=`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=MXN&locale=${lang==='es'?'es_MX':'en_US'}`;
+  s.onload=()=>renderPayPalBtn();
+  document.head.appendChild(s);
+}
+
+function renderPayPalBtn(){
+  const container=document.getElementById('paypal-btn-container');
+  if(!container||!window.paypal)return;
+  container.innerHTML='';
+  const email=document.querySelector('input[type="email"]')?.value||'';
+  const name=document.getElementById('fname')?.value||'Cliente';
+  const total=getCartTotal();
+  const items=getCartItems();
+
+  paypal.Buttons({
+    style:{layout:'vertical',color:'gold',shape:'pill',label:'pay',height:50},
+    createOrder:(d,actions)=>actions.order.create({
+      purchase_units:[{
+        amount:{value:total.toFixed(2),currency_code:'MXN'},
+        description:'KroshaPatterns',
+      }],
+      application_context:{brand_name:'KroshaPatterns',shipping_preference:'NO_SHIPPING'},
+    }),
+    onApprove:async(d,actions)=>{
+      await actions.order.capture();
+      await sendConfirmationEmail(email,name,items,total,'PayPal');
+      showSuccess('🅿️ PayPal');
+    },
+    onError:(err)=>{
+      console.error('PayPal error:',err);
+      showToast(lang==='es'?'⚠️ Error con PayPal, intenta de nuevo':'⚠️ PayPal error, try again');
+    },
+  }).render('#paypal-btn-container');
 }
 
 // ── PAYMENT KEYS (public only) ──
@@ -620,114 +714,82 @@ function loadMPSDK(cb){loadScript('https://sdk.mercadopago.com/js/v2',cb);}
 
 // ── CONFIRM ORDER ──
 async function confirmOrder(){
-  const email=document.querySelector('input[type="email"]').value.trim();
-  const name=document.getElementById('fname').value.trim()||'Cliente';
+  const email=document.querySelector('input[type="email"]')?.value?.trim()||'';
+  const name=document.getElementById('fname')?.value?.trim()||'Cliente';
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
 
   const btn=document.getElementById('confirm-btn');
   btn.textContent=lang==='es'?'Procesando...':'Processing...';
   btn.disabled=true;btn.style.opacity='.7';
 
-  if(selPayMethod==='stripe') await processStripe(email,name,btn);
-  else if(selPayMethod==='paypal') processPayPal(email,name,btn);
-  else if(selPayMethod==='mp') processMercadoPago(email,name,btn);
+  if(selPayMethod==='stripe'){
+    await processStripe(email,name,btn);
+  } else if(selPayMethod==='mp'){
+    await processMercadoPago(email,name,btn);
+  }
 }
 
 // ── STRIPE ──
 async function processStripe(email,name,btn){
-  loadStripeSDK(async()=>{
-    try{
-      const stripe=Stripe(STRIPE_PK);
-      const total=getCartTotal();
-      const items=getCartItems();
+  try{
+    const cardNumber=document.getElementById('card-number')?.value?.replace(/\s/g,'')||'';
+    const cardExp=document.getElementById('card-exp')?.value||'';
+    const cardCvc=document.getElementById('card-cvc')?.value||'';
+    const cardName=document.getElementById('card-name')?.value||name;
 
-      // Call backend to create Payment Intent
-      const res=await fetch('/api/create-payment-intent',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({amount:total,currency:cur,items,customerEmail:email,customerName:name}),
-      });
-      const data=await res.json();
-      if(!res.ok)throw new Error(data.error||'Error creando pago');
-
-      // Mount Stripe Elements
-      const elements=stripe.elements({clientSecret:data.clientSecret});
-      const payEl=elements.create('payment',{
-        layout:'tabs',
-        appearance:{
-          theme:'stripe',
-          variables:{colorPrimary:'#C06090',fontFamily:'Nunito,sans-serif',borderRadius:'12px'},
-        }
-      });
-
-      const container=document.getElementById('card-fields');
-      container.innerHTML='<div id="stripe-el" style="margin-top:8px;"></div><div id="stripe-msg" style="color:#C0392B;font-size:12px;margin-top:6px;min-height:18px;"></div>';
-      payEl.mount('#stripe-el');
-
+    if(!cardNumber||!cardExp||!cardCvc){
+      document.getElementById('stripe-error').textContent=lang==='es'?'Por favor completa los datos de tu tarjeta':'Please complete your card details';
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
-
-      btn.onclick=async()=>{
-        btn.textContent=lang==='es'?'Procesando...':'Processing...';
-        btn.disabled=true;btn.style.opacity='.7';
-        const{error}=await stripe.confirmPayment({
-          elements,
-          confirmParams:{
-            return_url:`https://kroshapatterns.com/krosha-checkout.html?status=success&method=stripe`,
-            receipt_email:email,
-          },
-          redirect:'if_required',
-        });
-        if(error){
-          document.getElementById('stripe-msg').textContent=error.message;
-          btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
-          btn.disabled=false;btn.style.opacity='1';
-        } else {
-          await sendConfirmationEmail(email,name,items,total,'Stripe');
-          showSuccess('💳 Stripe');
-        }
-      };
-    }catch(e){
-      showToast('⚠️ '+e.message);
-      btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
-      btn.disabled=false;btn.style.opacity='1';
+      return;
     }
-  });
-}
 
-// ── PAYPAL ──
-function processPayPal(email,name,btn){
-  btn.textContent=lang==='es'?'Cargando PayPal...':'Loading PayPal...';
-  loadPayPalSDK(()=>{
     const total=getCartTotal();
     const items=getCartItems();
-    const container=document.getElementById('card-fields');
-    container.innerHTML='<div id="paypal-btn" style="margin-top:12px;"></div>';
-    btn.style.display='none';
 
-    paypal.Buttons({
-      style:{layout:'vertical',color:'gold',shape:'pill',label:'pay',height:48},
-      createOrder:(d,actions)=>actions.order.create({
-        purchase_units:[{
-          amount:{value:total.toFixed(2),currency_code:cur==='MXN'||cur==='USD'||cur==='EUR'?cur:'USD'},
-          description:'KroshaPatterns — Patrones de Crochet',
-        }],
-        application_context:{brand_name:'KroshaPatterns',shipping_preference:'NO_SHIPPING'},
-        payer:{email_address:email,name:{given_name:name}},
-      }),
-      onApprove:async(d,actions)=>{
-        await actions.order.capture();
-        await sendConfirmationEmail(email,name,items,total,'PayPal');
-        showSuccess('🅿️ PayPal');
-      },
-      onError:()=>showToast('⚠️ Error con PayPal. Intenta de nuevo.'),
-      onCancel:()=>{
-        container.innerHTML='';btn.style.display='block';
-        btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
-        btn.disabled=false;btn.style.opacity='1';
-      },
-    }).render('#paypal-btn');
-  });
+    // Call backend
+    const res=await fetch('/api/create-payment-intent',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({amount:total,currency:cur,items,customerEmail:email,customerName:name}),
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Error procesando pago');
+
+    // Use Stripe.js to confirm
+    if(!window.Stripe){
+      await new Promise(r=>{const s=document.createElement('script');s.src='https://js.stripe.com/v3/';s.onload=r;document.head.appendChild(s);});
+    }
+    const stripe=Stripe(STRIPE_PK);
+    const[expMonth,expYear]=cardExp.split('/');
+
+    const{paymentIntent,error}=await stripe.confirmCardPayment(data.clientSecret,{
+      payment_method:{
+        card:{
+          number:cardNumber,
+          exp_month:parseInt(expMonth),
+          exp_year:parseInt('20'+expYear),
+          cvc:cardCvc,
+        },
+        billing_details:{name:cardName,email},
+      }
+    });
+
+    if(error){
+      document.getElementById('stripe-error').textContent=error.message;
+      btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
+      btn.disabled=false;btn.style.opacity='1';
+    } else if(paymentIntent.status==='succeeded'){
+      await sendConfirmationEmail(email,name,items,total,'Stripe');
+      showSuccess('💳 Stripe');
+    }
+  }catch(e){
+    const errEl=document.getElementById('stripe-error');
+    if(errEl)errEl.textContent=e.message;
+    else showToast('⚠️ '+e.message);
+    btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
+    btn.disabled=false;btn.style.opacity='1';
+  }
 }
 
 // ── MERCADO PAGO ──
