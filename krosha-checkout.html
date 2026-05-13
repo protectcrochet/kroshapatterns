@@ -247,60 +247,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
   <h2 class="cart-title" data-es="Tu carrito 🎀" data-en="Your cart 🎀">Tu carrito 🎀</h2>
   <div class="cart-layout">
     <div>
-      <!-- ITEMS -->
-      <div class="cart-items" id="cart-items">
-        <div class="cart-item">
-          <div class="ci-img p1">🧸</div>
-          <div class="ci-body">
-            <div class="ci-cat" data-es="Amigurumi · PDF Digital" data-en="Amigurumi · Digital PDF">Amigurumi · PDF Digital</div>
-            <div class="ci-name" data-es="Munequita Ramo" data-en="Bouquet Doll">Munequita Ramo</div>
-            <div class="ci-detail" data-es="+ Estambre Rosa Bebé 200g" data-en="+ Baby Pink Yarn 200g">+ Estambre Rosa Bebé 200g</div>
-            <div class="ci-actions">
-              <div class="qty-box">
-                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
-                <input class="qty-n" value="1" readonly>
-                <button class="qty-btn" onclick="chQty(this,1)">+</button>
-              </div>
-              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
-            </div>
-          </div>
-          <div class="ci-price" data-price="375" id="ci-price-1">$375 MXN</div>
-        </div>
-        <div class="cart-item">
-          <div class="ci-img p2">🐻</div>
-          <div class="ci-body">
-            <div class="ci-cat" data-es="Amigurumi · PDF Digital" data-en="Amigurumi · Digital PDF">Amigurumi · PDF Digital</div>
-            <div class="ci-name" data-es="Osito Teddy" data-en="Teddy Bear">Osito Teddy</div>
-            <div class="ci-detail" data-es="Sin estambre adicional" data-en="No extra yarn">Sin estambre adicional</div>
-            <div class="ci-actions">
-              <div class="qty-box">
-                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
-                <input class="qty-n" value="1" readonly>
-                <button class="qty-btn" onclick="chQty(this,1)">+</button>
-              </div>
-              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
-            </div>
-          </div>
-          <div class="ci-price" data-price="250" id="ci-price-2">$250 MXN</div>
-        </div>
-        <div class="cart-item">
-          <div class="ci-img p3">🌸</div>
-          <div class="ci-body">
-            <div class="ci-cat" data-es="Patrón · PDF Digital" data-en="Pattern · Digital PDF">Patrón · PDF Digital</div>
-            <div class="ci-name" data-es="Flores Boho" data-en="Boho Flowers">Flores Boho</div>
-            <div class="ci-detail" data-es="+ Estambre Menta 200g" data-en="+ Mint Yarn 200g">+ Estambre Menta 200g</div>
-            <div class="ci-actions">
-              <div class="qty-box">
-                <button class="qty-btn" onclick="chQty(this,-1)">−</button>
-                <input class="qty-n" value="1" readonly>
-                <button class="qty-btn" onclick="chQty(this,1)">+</button>
-              </div>
-              <button class="remove-btn" onclick="removeItem(this)" data-es="Eliminar" data-en="Remove">Eliminar</button>
-            </div>
-          </div>
-          <div class="ci-price" data-price="245" id="ci-price-3">$245 MXN</div>
-        </div>
-      </div>
+      <!-- ITEMS — rendered dynamically from localStorage -->
+      <div class="cart-items" id="cart-items"></div>
 
       <!-- COUPON -->
       <div class="coupon-row">
@@ -312,15 +260,15 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
     <!-- SUMMARY -->
     <div class="summary-box">
       <h3 data-es="Resumen del pedido" data-en="Order summary">Resumen del pedido</h3>
-      <div class="sum-row"><span data-es="Subtotal (3 productos)" data-en="Subtotal (3 items)">Subtotal (3 productos)</span><span id="subtotal">$870 MXN</span></div>
-      <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val">−$87 MXN</span></div>
-      <div class="sum-row"><span data-es="Envío digital" data-en="Digital delivery">Envío digital</span><span style="color:var(--green);" data-es="Gratis 📥" data-en="Free 📥">Gratis 📥</span></div>
-      <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$870 MXN</span></div>
-      <div class="digital-badge" data-es="📥 Descarga instantánea al confirmar pago" data-en="📥 Instant download after payment">📥 Descarga instantánea al confirmar pago</div>
+      <div class="sum-row"><span id="subtotal-label">Subtotal (0 productos)</span><span id="subtotal">$0 MXN</span></div>
+      <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val"></span></div>
+      <div class="sum-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span style="color:var(--green);" data-es="🔐 ProtectCrochet" data-en="🔐 ProtectCrochet">🔐 ProtectCrochet</span></div>
+      <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$0 MXN</span></div>
+      <div class="digital-badge" data-es="🔐 Acceso vía ProtectCrochet al confirmar pago" data-en="🔐 Access via ProtectCrochet after payment">🔐 Acceso vía ProtectCrochet al confirmar pago</div>
       <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
       <div class="trust-badges">
         <div class="trust-badge"><span class="trust-icon">🔒</span><span data-es="Pago 100% seguro y cifrado" data-en="100% secure & encrypted payment">Pago 100% seguro y cifrado</span></div>
-        <div class="trust-badge"><span class="trust-icon">📥</span><span data-es="Patrones digitales: acceso inmediato" data-en="Digital patterns: instant access">Patrones digitales: acceso inmediato</span></div>
+        <div class="trust-badge"><span class="trust-icon">🔐</span><span data-es="Acceso protegido vía ProtectCrochet" data-en="Protected access via ProtectCrochet">Acceso protegido vía ProtectCrochet</span></div>
         <div class="trust-badge"><span class="trust-icon">♻️</span><span data-es="Política de reembolso en 7 días" data-en="7-day refund policy">Política de reembolso en 7 días</span></div>
       </div>
       <div class="pay-icons">
@@ -446,37 +394,12 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
     <!-- MINI SUMMARY -->
     <div class="mini-summary">
       <h3 data-es="Tu pedido" data-en="Your order">Tu pedido</h3>
-      <div class="mini-items">
-        <div class="mini-item">
-          <div class="mini-img p1">🧸</div>
-          <div class="mini-info">
-            <h4 data-es="Munequita Ramo + Estambre" data-en="Bouquet Doll + Yarn">Munequita Ramo + Estambre</h4>
-            <p data-es="PDF Digital · Rosa Bebé 200g" data-en="Digital PDF · Baby Pink 200g">PDF Digital · Rosa Bebé 200g</p>
-          </div>
-          <span class="mini-price" data-price="375">$375 MXN</span>
-        </div>
-        <div class="mini-item">
-          <div class="mini-img p2">🐻</div>
-          <div class="mini-info">
-            <h4 data-es="Osito Teddy" data-en="Teddy Bear">Osito Teddy</h4>
-            <p data-es="PDF Digital" data-en="Digital PDF">PDF Digital</p>
-          </div>
-          <span class="mini-price" data-price="250">$250 MXN</span>
-        </div>
-        <div class="mini-item">
-          <div class="mini-img p3">🌸</div>
-          <div class="mini-info">
-            <h4 data-es="Flores Boho + Estambre" data-en="Boho Flowers + Yarn">Flores Boho + Estambre</h4>
-            <p data-es="PDF Digital · Menta 200g" data-en="Digital PDF · Mint 200g">PDF Digital · Menta 200g</p>
-          </div>
-          <span class="mini-price" data-price="245">$245 MXN</span>
-        </div>
-      </div>
+      <div class="mini-items" id="mini-items"></div>
       <div class="mini-divider"></div>
-      <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$870 MXN</span></div>
-      <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount">−$87 MXN</span></div>
-      <div class="mini-row"><span data-es="Entrega digital" data-en="Digital delivery">Entrega digital</span><span style="color:var(--green);" data-es="Gratis" data-en="Free">Gratis</span></div>
-      <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$870 MXN</span></div>
+      <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$0 MXN</span></div>
+      <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount"></span></div>
+      <div class="mini-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span style="color:var(--green);" data-es="ProtectCrochet 🔐" data-en="ProtectCrochet 🔐">ProtectCrochet 🔐</span></div>
+      <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$0 MXN</span></div>
     </div>
   </div>
 </div>
@@ -538,38 +461,87 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 </footer>
 
 <script>
-const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041};
-const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
+const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,ARS:53};
+const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',ARS:'$'};
 let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
-const basePrices=[375,250,245];
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 
-function updatePrices(){
-  const sub=basePrices.reduce((a,b)=>a+b,0);
-  const disc=hasDiscount?Math.round(sub*.1):0;
-  const total=sub-disc;
-  document.getElementById('subtotal').textContent=f(sub);
-  document.getElementById('total').textContent=f(total);
-  document.getElementById('ms-subtotal').textContent=f(sub);
-  document.getElementById('ms-total').textContent=f(total);
-  document.getElementById('confirm-total').textContent=f(total);
-  if(hasDiscount){
-    document.getElementById('discount-val').textContent='−'+f(disc);
-    document.getElementById('ms-discount').textContent='−'+f(disc);
-    document.getElementById('discount-row').style.display='flex';
-    document.getElementById('ms-discount-row').style.display='flex';
+function renderCart(){
+  const cart=getCartItems();
+  const container=document.getElementById('cart-items');
+  if(!cart.length){
+    container.innerHTML=`
+      <div style="text-align:center;padding:60px 20px;color:var(--text-light);">
+        <div style="font-size:60px;margin-bottom:16px;">🛍</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:12px;">${lang==='es'?'Tu carrito está vacío':'Your cart is empty'}</div>
+        <a href="index.html" style="color:var(--pink-dark);font-weight:700;font-size:14px;">${lang==='es'?'← Ver productos':'← See products'}</a>
+      </div>`;
+    updateSummary(0);return;
   }
-  document.querySelectorAll('.ci-price').forEach((el,i)=>{
-    if(basePrices[i])el.textContent=f(basePrices[i]);
-  });
-  document.querySelectorAll('.mini-price').forEach((el,i)=>{
-    const p=parseFloat(el.dataset.price);
-    if(p)el.textContent=f(p);
-  });
+  container.innerHTML=cart.map((item,i)=>`
+    <div class="cart-item" data-id="${item.id}">
+      <div class="ci-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;border-radius:14px;">
+        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+      </div>
+      <div class="ci-body">
+        <div class="ci-cat">Patrón · KroshaPatterns</div>
+        <div class="ci-name">${item.title}</div>
+        <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
+        <div class="ci-actions">
+          <div class="qty-box">
+            <button class="qty-btn" onclick="chQty(this,-1,${item.id})">−</button>
+            <input class="qty-n" value="${item.qty}" readonly>
+            <button class="qty-btn" onclick="chQty(this,1,${item.id})">+</button>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${item.id})">${lang==='es'?'Eliminar':'Remove'}</button>
+        </div>
+      </div>
+      <div class="ci-price">${f(item.price*item.qty)}</div>
+    </div>`).join('');
+  const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
+  updateSummary(sub);
+  renderMiniSummary(cart,sub);
 }
 
-function setC(){cur=document.getElementById('cur').value;updatePrices();}
+function updateSummary(sub){
+  const disc=hasDiscount?Math.round(sub*.1):0;
+  const total=sub-disc;
+  const cart=getCartItems();
+  const sl=document.getElementById('subtotal-label');
+  if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${cart.length} ${lang==='es'?'producto':'item'}${cart.length!==1?'s':''})`;
+  const s=document.getElementById('subtotal');if(s)s.textContent=f(sub);
+  const t=document.getElementById('total');if(t)t.textContent=f(total);
+  const ct=document.getElementById('confirm-total');if(ct)ct.textContent=f(total);
+  if(hasDiscount){
+    document.getElementById('discount-val').textContent='−'+f(disc);
+    document.getElementById('discount-row').style.display='flex';
+  }
+}
+
+function renderMiniSummary(cart,sub){
+  const disc=hasDiscount?Math.round(sub*.1):0;
+  const total=sub-disc;
+  const mi=document.getElementById('mini-items');
+  if(mi)mi.innerHTML=cart.map((item,i)=>`
+    <div class="mini-item">
+      <div class="mini-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;">
+        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+      </div>
+      <div class="mini-info"><h4>${item.title}</h4><p>x${item.qty}</p></div>
+      <span class="mini-price">${f(item.price*item.qty)}</span>
+    </div>`).join('');
+  const ms=document.getElementById('ms-subtotal');if(ms)ms.textContent=f(sub);
+  const mt=document.getElementById('ms-total');if(mt)mt.textContent=f(total);
+  if(hasDiscount){
+    const md=document.getElementById('ms-discount');if(md)md.textContent='−'+f(disc);
+    const mdr=document.getElementById('ms-discount-row');if(mdr)mdr.style.display='flex';
+  }
+}
+
+function updatePrices(){renderCart();}
+function setC(){cur=document.getElementById('cur').value;renderCart();}
 
 function setLang(l){
   lang=l;
@@ -578,27 +550,28 @@ function setLang(l){
   document.querySelectorAll('[data-'+l+']').forEach(el=>{el.textContent=el.dataset[l];});
   const ci=document.getElementById('coupon-input');
   if(ci)ci.placeholder=l==='es'?'Código de descuento':'Discount code';
+  renderCart();
 }
 
-function chQty(btn,d){
-  const box=btn.parentElement;
-  const inp=box.querySelector('.qty-n');
-  let v=parseInt(inp.value)+d;
-  if(v<1)v=1;
-  inp.value=v;
+function chQty(btn,d,id){
+  const cart=getCartItems();
+  const item=cart.find(i=>i.id===id);
+  if(!item)return;
+  item.qty=Math.max(1,item.qty+d);
+  saveCart(cart);renderCart();
 }
 
-function removeItem(btn){
-  const item=btn.closest('.cart-item');
-  item.style.opacity='0';item.style.transform='translateX(-20px)';item.style.transition='all .3s';
-  setTimeout(()=>{item.remove();showToast(lang==='es'?'🗑 Eliminado del carrito':'🗑 Removed from cart');},300);
+function removeItem(id){
+  const cart=getCartItems().filter(i=>i.id!==id);
+  saveCart(cart);renderCart();
+  showToast(lang==='es'?'🗑 Eliminado':'🗑 Removed');
 }
 
 function applyCoupon(){
   const v=document.getElementById('coupon-input').value.toUpperCase();
   if(v==='KROSHA10'||v==='KROSHA'){
-    hasDiscount=true;updatePrices();
-    showToast(lang==='es'?'🎀 ¡Cupón aplicado! 10% de descuento':'🎀 Coupon applied! 10% discount');
+    hasDiscount=true;renderCart();
+    showToast(lang==='es'?'🎀 ¡Cupón aplicado! 10% de descuento':'🎀 Coupon applied! 10% off');
   } else {
     showToast(lang==='es'?'❌ Código inválido':'❌ Invalid code');
   }
@@ -1096,7 +1069,7 @@ function showToast(msg){
 
 // init
 setStep(2);
-updatePrices();
+renderCart();
 checkReturnStatus();
 </script>
 </body>
