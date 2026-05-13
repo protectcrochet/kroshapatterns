@@ -640,10 +640,12 @@ function selPay(el,method){
     loadPayPalBtn();
   } else if(method==='mp'){
     container.innerHTML=`
-      <div style="background:var(--pink-bg);border-radius:12px;padding:20px;text-align:center;border:1.5px solid var(--border);">
-        <div style="font-size:36px;margin-bottom:8px;">🏪</div>
-        <div style="font-weight:700;color:var(--text);margin-bottom:6px;">${lang==='es'?'Pagar con Mercado Pago':'Pay with Mercado Pago'}</div>
-        <div style="font-size:13px;color:var(--text-mid);">${lang==='es'?'OXXO · Tarjeta · Transferencia':'OXXO · Card · Transfer'}</div>
+      <div style="background:#fff7e6;border-radius:12px;padding:16px 18px;border:1.5px solid #ffe0a0;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:28px;">🏪</span>
+        <div>
+          <div style="font-weight:700;color:#7a5200;font-size:14px;">${lang==='es'?'Serás redirigida a Mercado Pago':'You will be redirected to Mercado Pago'}</div>
+          <div style="font-size:12px;color:#a07020;margin-top:2px;">${lang==='es'?'OXXO · Tarjeta · Transferencia · y más':'OXXO · Card · Transfer · and more'}</div>
+        </div>
       </div>`;
   }
 }
@@ -794,35 +796,35 @@ async function processStripe(email,name,btn){
 
 // ── MERCADO PAGO ──
 async function processMercadoPago(email,name,btn){
+  if(!email){
+    showToast(lang==='es'?'⚠️ Ingresa tu email primero':'⚠️ Enter your email first');
+    btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
+    btn.disabled=false;btn.style.opacity='1';
+    return;
+  }
   btn.textContent=lang==='es'?'Cargando Mercado Pago...':'Loading Mercado Pago...';
   try{
     const items=getCartItems();
+    const total=getCartTotal();
+
+    // Call backend to create MP preference
     const res=await fetch('/api/create-mp-preference',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:cur}),
+      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:'MXN'}),
     });
     const data=await res.json();
-    if(!res.ok)throw new Error(data.error||'Error creando preferencia');
+    if(!res.ok)throw new Error(data.error||'Error con Mercado Pago');
 
-    loadMPSDK(()=>{
-      const mp=new MercadoPago(MP_PUBLIC_KEY,{locale:lang==='es'?'es-MX':'en-US'});
-      const container=document.getElementById('card-fields');
-      container.innerHTML='<div id="mp-btn" style="margin-top:12px;"></div>';
-      btn.style.display='none';
+    // Store email for return
+    localStorage.setItem('krosha_pending_email',email);
+    localStorage.setItem('krosha_pending_name',name);
+    localStorage.setItem('krosha_pending_total',total);
 
-      mp.bricks().create('wallet','#mp-btn',{
-        initialization:{preferenceId:data.preferenceId},
-        customization:{texts:{valueProp:'smart_option'},visual:{buttonBackground:'default',borderRadius:'30px'}},
-        callbacks:{
-          onReady:()=>{},
-          onSubmit:async()=>{
-            await sendConfirmationEmail(email,name,items,getCartTotal(),'Mercado Pago');
-          },
-          onError:()=>showToast('⚠️ Error con Mercado Pago.'),
-        },
-      });
-    });
+    // Redirect to MP Checkout Pro — real payment page
+    btn.textContent=lang==='es'?'Redirigiendo a Mercado Pago...':'Redirecting to Mercado Pago...';
+    setTimeout(()=>{window.location.href=data.initPoint;},800);
+
   }catch(e){
     showToast('⚠️ '+e.message);
     btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
@@ -856,17 +858,25 @@ function showSuccess(payMethod){
 }
 
 // ── CHECK URL PARAMS (return from MP/PayPal redirect) ──
-function checkReturnStatus(){
+async function checkReturnStatus(){
   const params=new URLSearchParams(window.location.search);
   const status=params.get('status');
   const method=params.get('method');
-  if(status==='success'){
+  if(status==='success'||status==='approved'){
+    // Send confirmation email with stored data
+    const email=localStorage.getItem('krosha_pending_email')||'';
+    const name=localStorage.getItem('krosha_pending_name')||'Cliente';
+    const total=parseFloat(localStorage.getItem('krosha_pending_total')||'0');
+    const items=getCartItems();
+    if(email) await sendConfirmationEmail(email,name,items,total,method==='mp'?'Mercado Pago':'PayPal');
+    // Clear pending data
+    ['krosha_pending_email','krosha_pending_name','krosha_pending_total'].forEach(k=>localStorage.removeItem(k));
     setTimeout(()=>{
       setStep(3);
       document.getElementById('page-cart').classList.remove('active');
       document.getElementById('page-checkout').classList.remove('active');
       document.getElementById('page-confirm').classList.add('active');
-      document.getElementById('confirm-pay').textContent=method==='mp'?'🏪 Mercado Pago':method==='stripe'?'💳 Stripe':'🅿️ PayPal';
+      document.getElementById('confirm-pay').textContent=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
       localStorage.removeItem(CART_KEY);
     },300);
   }
