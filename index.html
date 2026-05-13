@@ -3,155 +3,443 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KroshaPatterns — Patrones, Kits & Materiales de Crochet</title>
+<title>KroshaPatterns — Opción B: Pink & Sweet</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --pink-bg:#FDF0F5;--pink-mid:#F5D0E0;--pink-deep:#E8A8C4;
-  --pink-dark:#C06090;--pink-text:#8B3565;
-  --blush:#FFF0F5;--lilac:#EDD5F0;--mint:#D5EFE5;--cream:#FFF8EC;
-  --text:#3A1E2E;--text-mid:#7A4D65;--text-light:#B48EA8;
-  --border:#F0C8DC;--white:#FFFBFD;
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --pink-bg: #FDF0F5;
+  --pink-mid: #F5D0E0;
+  --pink-deep: #E8A8C4;
+  --pink-dark: #C06090;
+  --pink-text: #8B3565;
+  --blush: #FFF0F5;
+  --lilac: #EDD5F0;
+  --mint: #D5EFE5;
+  --cream: #FFF8EC;
+  --text: #3A1E2E;
+  --text-mid: #7A4D65;
+  --text-light: #B48EA8;
+  --border: #F0C8DC;
+  --white: #FFFBFD;
 }
-body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text);overflow-x:hidden;}
 
-/* NAV */
-.nav-bar{background:var(--white);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100;}
-.nav-ann{background:var(--pink-dark);color:#fff;text-align:center;padding:8px;font-size:12.5px;letter-spacing:.04em;}
-.nav-inner{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:70px;}
-.logo{font-family:'Fraunces',serif;font-size:26px;font-weight:600;font-style:italic;color:var(--pink-text);text-decoration:none;display:flex;align-items:center;gap:6px;}
-.nav-links{display:flex;gap:2rem;list-style:none;}
-.nav-links a{color:var(--text-mid);text-decoration:none;font-size:13px;font-weight:600;letter-spacing:.02em;transition:color .2s;}
-.nav-links a:hover{color:var(--pink-dark);}
-.nav-right{display:flex;align-items:center;gap:10px;}
-.lang-toggle{display:flex;background:var(--pink-mid);border-radius:30px;padding:3px;border:1.5px solid var(--border);}
-.lang-btn{padding:5px 14px;border-radius:30px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);transition:all .2s;}
-.lang-btn.active{background:var(--pink-dark);color:#fff;}
-.cur-sel{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:30px;padding:6px 14px;font-size:13px;font-family:'Nunito',sans-serif;color:var(--text);cursor:pointer;}
-.btn-cart{background:var(--pink-dark);color:#fff;border:none;padding:10px 22px;border-radius:30px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:'Nunito',sans-serif;transition:background .2s;}
-.btn-cart:hover{background:var(--pink-text);}
-.cn{background:rgba(255,255,255,.3);width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+body { font-family:'Nunito',sans-serif; background:var(--pink-bg); color:var(--text); overflow-x:hidden; }
 
-/* HERO */
-.hero{background:var(--blush);padding:60px 2rem 0;overflow:hidden;position:relative;}
-.hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:60% 40% 70% 30% / 50% 60% 40% 50%;background:var(--pink-mid);top:-150px;right:-100px;opacity:.3;}
-.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:flex-end;position:relative;}
-.hero-left{padding-bottom:70px;}
-.bow-tag{display:inline-flex;align-items:center;gap:6px;background:var(--pink-mid);color:var(--pink-text);font-size:12px;font-weight:700;padding:6px 16px;border-radius:30px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px;border:1.5px solid var(--border);}
-.hero h1{font-family:'Fraunces',serif;font-size:54px;line-height:1.05;font-weight:600;color:var(--text);margin-bottom:16px;}
-.hero h1 em{color:var(--pink-dark);font-style:italic;}
-.hero-sub{font-size:16px;color:var(--text-mid);line-height:1.7;max-width:420px;margin-bottom:28px;}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
-.btn-main{background:var(--pink-dark);color:#fff;border:none;padding:14px 30px;border-radius:30px;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif;transition:all .2s;box-shadow:0 6px 20px rgba(192,96,144,.3);}
-.btn-main:hover{background:var(--pink-text);transform:translateY(-2px);}
-.btn-sec{background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:14px 30px;border-radius:30px;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif;transition:all .2s;}
-.btn-sec:hover{background:var(--pink-mid);}
-.hero-imgs{display:grid;grid-template-columns:1.1fr 1fr;grid-template-rows:auto auto;gap:12px;}
-.hc{background:var(--white);border-radius:20px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 4px 20px rgba(192,96,144,.08);}
-.hc:nth-child(1){grid-row:1/3;}
-.hc-img{overflow:hidden;}
-.hc:nth-child(1) .hc-img{height:280px;}
-.hc:nth-child(2) .hc-img,.hc:nth-child(3) .hc-img{height:130px;}
-.hc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
-.hc:hover .hc-img img{transform:scale(1.05);}
-.hc-body{padding:10px 14px 14px;}
-.hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
-.hc-body p{font-size:13px;color:var(--pink-dark);font-weight:700;}
+/* ── SQUIGGLES / DECO ── */
+.squiggle {
+  position:absolute; pointer-events:none; opacity:0.12;
+}
 
-/* STRIP */
-.strip{background:var(--pink-dark);padding:16px 2rem;}
-.strip-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-around;flex-wrap:wrap;gap:1rem;}
-.strip-item{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.9);font-size:13px;}
-.strip-icon{font-size:20px;}
-.strip-item strong{display:block;color:#fff;font-size:13.5px;font-weight:700;}
+/* ── NAV ── */
+.nav-bar { background:var(--white); border-bottom:1.5px solid var(--border); position:sticky; top:0; z-index:100; }
+.nav-ann {
+  background:var(--pink-dark); color:#fff;
+  text-align:center; padding:8px;
+  font-size:12.5px; letter-spacing:0.04em;
+}
+.nav-inner {
+  max-width:1200px; margin:0 auto; padding:0 2rem;
+  display:flex; align-items:center; justify-content:space-between;
+  height:70px;
+}
+.logo {
+  font-family:'Fraunces',serif;
+  font-size:26px; font-weight:600; font-style:italic;
+  color:var(--pink-text); text-decoration:none;
+  display:flex; align-items:center; gap:6px;
+}
+.logo-bow { font-size:22px; }
+.nav-links { display:flex; gap:2rem; list-style:none; }
+.nav-links a {
+  color:var(--text-mid); text-decoration:none;
+  font-size:13.5px; font-weight:600;
+  letter-spacing:0.02em;
+  transition:color 0.2s;
+}
+.nav-links a:hover { color:var(--pink-dark); }
+.nav-right { display:flex; align-items:center; gap:12px; }
+.cur-sel {
+  background:var(--pink-mid); border:1.5px solid var(--border);
+  border-radius:30px; padding:7px 16px;
+  font-size:13px; font-family:'Nunito',sans-serif;
+  color:var(--text); cursor:pointer;
+}
+.btn-cart {
+  background:var(--pink-dark); color:#fff; border:none;
+  padding:10px 22px; border-radius:30px;
+  font-size:13.5px; font-weight:600;
+  cursor:pointer; display:flex; align-items:center; gap:8px;
+  font-family:'Nunito',sans-serif;
+  transition:background 0.2s, transform 0.1s;
+}
+.btn-cart:hover { background:var(--pink-text); transform:translateY(-1px); }
+.cn {
+  background:rgba(255,255,255,0.3);
+  width:20px; height:20px; border-radius:50%;
+  font-size:11px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center;
+}
 
-/* FILTER TABS */
-.filter-wrap{max-width:1200px;margin:0 auto;padding:50px 2rem 0;}
-.filter-tabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;}
-.ftab{padding:9px 22px;border-radius:30px;border:2px solid var(--border);font-size:13px;font-weight:700;cursor:pointer;background:var(--white);color:var(--text-mid);transition:all .2s;font-family:'Nunito',sans-serif;}
-.ftab:hover,.ftab.active{background:var(--pink-dark);color:#fff;border-color:var(--pink-dark);}
-.filter-title{font-family:'Fraunces',serif;font-size:36px;font-weight:600;color:var(--text);margin-bottom:8px;}
-.filter-title em{color:var(--pink-dark);font-style:italic;}
-.filter-sub{font-size:14px;color:var(--text-light);margin-bottom:20px;}
+/* ── HERO ── */
+.hero {
+  background: var(--blush);
+  padding:60px 2rem 0;
+  position:relative;
+  overflow:hidden;
+}
+/* decorative blobs */
+.hero::before {
+  content:'';
+  position:absolute;
+  width:500px; height:500px;
+  border-radius:60% 40% 70% 30% / 50% 60% 40% 50%;
+  background:var(--pink-mid);
+  top:-150px; right:-100px;
+  opacity:0.35;
+}
+.hero::after {
+  content:'';
+  position:absolute;
+  width:300px; height:300px;
+  border-radius:40% 60% 30% 70% / 60% 40% 60% 40%;
+  background:var(--lilac);
+  bottom:0; left:10%;
+  opacity:0.25;
+}
+.hero-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:3rem; align-items:flex-end;
+  position:relative;
+}
+.hero-left { padding-bottom:70px; }
+.bow-tag {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--pink-mid); color:var(--pink-text);
+  font-size:12px; font-weight:700; padding:6px 16px;
+  border-radius:30px; letter-spacing:0.06em;
+  text-transform:uppercase; margin-bottom:18px;
+  border:1.5px solid var(--border);
+}
+.hero h1 {
+  font-family:'Fraunces',serif;
+  font-size:58px; line-height:1.05;
+  font-weight:600; color:var(--text);
+  margin-bottom:16px;
+}
+.hero h1 em { color:var(--pink-dark); font-style:italic; }
+.hero-sub {
+  font-size:16px; color:var(--text-mid);
+  line-height:1.7; max-width:420px; margin-bottom:28px;
+  font-weight:400;
+}
+.hero-btns { display:flex; gap:12px; flex-wrap:wrap; }
+.btn-main {
+  background:var(--pink-dark); color:#fff; border:none;
+  padding:14px 30px; border-radius:30px;
+  font-size:14.5px; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  font-family:'Nunito',sans-serif;
+  transition:background 0.2s, transform 0.1s;
+  box-shadow:0 6px 20px rgba(192,96,144,0.3);
+}
+.btn-main:hover { background:var(--pink-text); transform:translateY(-2px); box-shadow:0 10px 28px rgba(192,96,144,0.35); }
+.btn-sec {
+  background:var(--white); color:var(--pink-dark);
+  border:2px solid var(--pink-deep);
+  padding:14px 30px; border-radius:30px;
+  font-size:14.5px; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  font-family:'Nunito',sans-serif;
+  transition:all 0.2s;
+}
+.btn-sec:hover { background:var(--pink-mid); }
 
-/* PRODUCT GRID */
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;max-width:1200px;margin:0 auto;padding:0 2rem 60px;}
-.pcard{background:var(--white);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;}
-.pcard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
-.pcard.hidden{display:none;}
-.pcard-img{height:200px;overflow:hidden;position:relative;background:var(--pink-mid);}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
-.pcard:hover .pcard-img img{transform:scale(1.06);}
-.pbadge{position:absolute;top:10px;left:10px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
-.pbadge.kit{background:#60A090;}
-.pbadge.hilo{background:#9060C0;}
-.pwish{position:absolute;top:10px;right:10px;width:32px;height:32px;background:rgba(255,255,255,.9);border-radius:50%;border:none;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.pwish:hover{background:#fff;}
-.pcard-body{padding:14px 16px 16px;}
-.pcard-cat{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-light);font-weight:700;margin-bottom:4px;}
-.pcard-name{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:6px;line-height:1.2;color:var(--text);}
-.pcard-foot{display:flex;justify-content:space-between;align-items:center;}
-.pcard-price{font-size:19px;font-weight:700;color:var(--pink-dark);}
-.btn-plus{background:var(--pink-dark);color:#fff;border:none;width:36px;height:36px;border-radius:12px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;font-family:'Nunito',sans-serif;}
-.btn-plus:hover{background:var(--pink-text);}
+.hero-cards {
+  display:grid; grid-template-columns:1.1fr 1fr;
+  grid-template-rows:auto auto;
+  gap:12px;
+}
+.hc {
+  background:var(--white);
+  border-radius:20px;
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  box-shadow:0 4px 20px rgba(192,96,144,0.08);
+}
+.hc:nth-child(1) { grid-row:1/3; }
+.hc-img { display:flex; align-items:center; justify-content:center; }
+.hc:nth-child(1) .hc-img { height:260px; background:var(--pink-mid); font-size:80px; }
+.hc:nth-child(2) .hc-img { height:118px; background:var(--lilac); font-size:48px; }
+.hc:nth-child(3) .hc-img { height:118px; background:var(--mint); font-size:48px; }
+.hc-body { padding:10px 14px 14px; }
+.hc-body h4 { font-size:14px; font-weight:700; margin-bottom:2px; color:var(--text); }
+.hc-body p { font-size:13px; color:var(--pink-dark); font-weight:600; }
 
-/* MODAL */
-.overlay{display:none;position:fixed;inset:0;background:rgba(58,30,46,.6);z-index:200;align-items:center;justify-content:center;padding:1.5rem;}
-.overlay.open{display:flex;}
-.modal{background:var(--white);border-radius:24px;max-width:860px;width:100%;max-height:92vh;overflow-y:auto;position:relative;box-shadow:0 30px 80px rgba(58,30,46,.25);border:1.5px solid var(--border);}
-.modal-x{position:absolute;top:16px;right:16px;background:var(--pink-mid);border:1.5px solid var(--border);border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;font-family:'Nunito',sans-serif;}
-.modal-grid{display:grid;grid-template-columns:1fr 1fr;}
-.modal-gallery{background:var(--pink-mid);border-radius:24px 0 0 24px;overflow:hidden;min-height:360px;display:flex;flex-direction:column;}
-.mgallery-main{flex:1;overflow:hidden;}
-.mgallery-main img{width:100%;height:100%;object-fit:cover;min-height:300px;}
-.mgallery-thumbs{display:flex;gap:6px;padding:8px;background:rgba(255,255,255,.5);}
-.mthumb{width:52px;height:52px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0;}
-.mthumb.active{border-color:var(--pink-dark);}
-.mthumb img{width:100%;height:100%;object-fit:cover;}
-.modal-info{padding:28px;}
-.modal-cat{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--pink-dark);font-weight:700;margin-bottom:8px;}
-.modal-info h2{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:10px;line-height:1.2;color:var(--text);}
-.modal-desc{font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:16px;max-height:80px;overflow-y:auto;}
-.detail-box{background:var(--pink-bg);border-radius:12px;padding:12px;margin-bottom:16px;border:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px;}
-.detail-chip .dl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;}
-.detail-chip .dv{font-size:13px;font-weight:700;color:var(--text);}
-.buy-price{font-size:30px;font-weight:700;color:var(--pink-dark);margin-bottom:4px;}
-.buy-price-sub{font-size:12px;color:var(--text-light);margin-bottom:14px;}
-.btn-buy{width:100%;background:var(--pink-dark);color:#fff;border:none;padding:15px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background .2s;box-shadow:0 6px 20px rgba(192,96,144,.3);margin-bottom:8px;}
-.btn-buy:hover{background:var(--pink-text);}
-.btn-add-m{width:100%;background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:13px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;margin-bottom:10px;}
-.btn-add-m:hover{background:var(--pink-mid);}
-.pay-pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
-.ppill{background:var(--pink-bg);border:1.5px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text-mid);font-weight:600;}
+/* ── STRIP ── */
+.strip {
+  background:var(--pink-dark);
+  padding:16px 2rem;
+}
+.strip-inner {
+  max-width:1200px; margin:0 auto;
+  display:flex; justify-content:space-around; flex-wrap:wrap; gap:1rem;
+}
+.strip-item { display:flex; align-items:center; gap:10px; color:rgba(255,255,255,0.9); font-size:13px; }
+.strip-icon { font-size:20px; }
+.strip-item strong { display:block; color:#fff; font-size:13.5px; font-weight:700; }
 
-/* FOOTER */
-footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
-.foot-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem;}
-.foot-logo{font-family:'Fraunces',serif;font-size:24px;font-style:italic;color:var(--pink-mid);text-decoration:none;display:block;margin-bottom:10px;}
-.foot-brand p{font-size:13px;line-height:1.7;margin-bottom:14px;}
-.socials{display:flex;gap:8px;}
-.soc{width:34px;height:34px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;text-decoration:none;transition:background .2s;color:rgba(255,220,235,.8);}
-.soc:hover{background:var(--pink-dark);}
-.foot-col h4{color:var(--pink-mid);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;}
-.foot-col ul{list-style:none;}
-.foot-col ul li{margin-bottom:8px;}
-.foot-col ul li a{color:rgba(255,220,235,.7);text-decoration:none;font-size:13px;transition:color .2s;}
-.foot-col ul li a:hover{color:var(--pink-mid);}
-.foot-bottom{max-width:1200px;margin:0 auto;border-top:1px solid rgba(255,255,255,.12);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;flex-wrap:wrap;gap:1rem;}
+/* ── CAT ── */
+.cat-row {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:16px;
+  max-width:1200px; margin:0 auto; padding:60px 2rem;
+}
+.cat-tile {
+  background:var(--white);
+  border-radius:24px;
+  overflow:hidden;
+  border:1.5px solid var(--border);
+  cursor:pointer; text-decoration:none;
+  transition:transform 0.2s, box-shadow 0.2s;
+  display:flex; flex-direction:column;
+}
+.cat-tile:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(192,96,144,0.15); }
+.cat-img { display:flex; align-items:center; justify-content:center; height:160px; font-size:72px; }
+.cat-tile:nth-child(1) .cat-img { background:var(--pink-mid); }
+.cat-tile:nth-child(2) .cat-img { background:var(--lilac); }
+.cat-tile:nth-child(3) .cat-img { background:var(--mint); }
+.cat-body { padding:18px 22px; }
+.cat-body h3 {
+  font-family:'Fraunces',serif; font-size:20px; font-weight:600;
+  color:var(--text); margin-bottom:4px;
+}
+.cat-body p { font-size:13px; color:var(--text-light); }
+.cat-arrow { font-size:18px; color:var(--pink-dark); margin-top:8px; font-weight:700; }
+
+/* ── PRODUCTS ── */
+.sec { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.sec-head { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem; }
+.sec-title { font-family:'Fraunces',serif; font-size:38px; font-weight:600; color:var(--text); line-height:1.1; }
+.sec-title em { color:var(--pink-dark); font-style:italic; }
+.sec-sub { font-size:13.5px; color:var(--text-light); margin-top:4px; }
+.see-all { font-size:13px; color:var(--pink-dark); text-decoration:none; font-weight:700; border-bottom:1.5px solid var(--pink-dark); padding-bottom:1px; white-space:nowrap; }
+
+.pgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+.pcard {
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  overflow:hidden;
+  transition:transform 0.2s, box-shadow 0.2s;
+  cursor:pointer;
+}
+.pcard:hover { transform:translateY(-4px); box-shadow:0 12px 36px rgba(192,96,144,0.14); }
+.pcard-img { height:190px; display:flex; align-items:center; justify-content:center; font-size:58px; position:relative; }
+.pcard:nth-child(4n+1) .pcard-img { background:var(--pink-mid); }
+.pcard:nth-child(4n+2) .pcard-img { background:var(--lilac); }
+.pcard:nth-child(4n+3) .pcard-img { background:var(--mint); }
+.pcard:nth-child(4n+4) .pcard-img { background:var(--cream); }
+.pbadge {
+  position:absolute; top:10px; left:10px;
+  background:var(--pink-dark); color:#fff;
+  font-size:10px; font-weight:700; padding:3px 11px;
+  border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;
+}
+.pbadge.nb { background:#9B60C0; }
+.pbadge.kb { background:#60A090; }
+.pcard-body { padding:14px 18px 18px; }
+.pcard-cat { font-size:10.5px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-light); font-weight:700; margin-bottom:4px; }
+.pcard-name { font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin-bottom:5px; line-height:1.2; color:var(--text); }
+.pcard-desc { font-size:12.5px; color:var(--text-mid); line-height:1.5; margin-bottom:12px; }
+.pcard-foot { display:flex; justify-content:space-between; align-items:center; }
+.pcard-price { font-size:19px; font-weight:700; color:var(--pink-dark); }
+.btn-plus {
+  background:var(--pink-dark); color:#fff; border:none;
+  width:36px; height:36px; border-radius:12px;
+  font-size:20px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background 0.2s;
+  font-family:'Nunito',sans-serif;
+}
+.btn-plus:hover { background:var(--pink-text); }
+
+/* ── YARN ── */
+.yarn-wrap { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.yarn-box {
+  background:var(--white);
+  border:1.5px solid var(--border);
+  border-radius:28px;
+  padding:44px;
+  position:relative; overflow:hidden;
+}
+.yarn-box::before {
+  content:'🎀';
+  position:absolute; right:40px; top:30px;
+  font-size:80px; opacity:0.1;
+}
+.yarn-eyebrow { font-size:11px; text-transform:uppercase; letter-spacing:0.15em; color:var(--pink-dark); font-weight:700; margin-bottom:10px; }
+.yarn-box h2 { font-family:'Fraunces',serif; font-size:32px; font-weight:600; margin-bottom:10px; color:var(--text); }
+.yarn-box > p { font-size:14px; color:var(--text-mid); line-height:1.7; max-width:500px; margin-bottom:28px; }
+.yarn-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; max-width:780px; }
+.ycard {
+  background:var(--pink-bg);
+  border:2px solid var(--border);
+  border-radius:16px;
+  padding:14px 10px;
+  cursor:pointer;
+  transition:border-color 0.2s, transform 0.1s;
+  text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.ycard:hover, .ycard.sel { border-color:var(--pink-dark); transform:scale(1.03); }
+.ys { width:50px; height:50px; border-radius:50%; }
+.ycard-n { font-size:12px; font-weight:700; color:var(--text); }
+.ycard-p { font-size:13px; color:var(--pink-dark); font-weight:700; }
+
+/* ── PAY ── */
+.pay-wrap { max-width:1200px; margin:0 auto; padding:0 2rem 60px; }
+.pay-box {
+  background:linear-gradient(135deg, var(--pink-mid) 0%, var(--lilac) 100%);
+  border-radius:28px; padding:44px;
+  border:1.5px solid var(--border);
+}
+.pay-box h2 { font-family:'Fraunces',serif; font-size:32px; font-weight:600; color:var(--text); margin-bottom:8px; }
+.pay-box > p { font-size:14px; color:var(--text-mid); margin-bottom:28px; }
+.pay-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; }
+.pay-card {
+  background:var(--white);
+  border-radius:16px; padding:20px;
+  display:flex; gap:12px; align-items:center;
+  border:1.5px solid var(--border);
+}
+.pay-logo { font-size:28px; flex-shrink:0; }
+.pay-card h4 { font-size:14px; font-weight:700; margin-bottom:2px; color:var(--text); }
+.pay-card p { font-size:12px; color:var(--text-light); }
+
+/* ── MODAL ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(58,30,46,0.55); z-index:200;
+  align-items:center; justify-content:center; padding:2rem;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--white);
+  border-radius:24px;
+  max-width:880px; width:100%;
+  max-height:90vh; overflow-y:auto;
+  position:relative;
+  box-shadow:0 30px 80px rgba(58,30,46,0.25);
+  border:1.5px solid var(--border);
+}
+.modal-x {
+  position:absolute; top:16px; right:16px;
+  background:var(--pink-mid); border:1.5px solid var(--border);
+  border-radius:50%; width:34px; height:34px; font-size:16px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:10;
+}
+.modal-grid { display:grid; grid-template-columns:1fr 1fr; }
+.modal-pic {
+  border-radius:24px 0 0 24px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:110px; min-height:380px;
+}
+.modal-content { padding:34px; }
+.modal-cat { font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--pink-dark); font-weight:700; margin-bottom:8px; }
+.modal-content h2 { font-family:'Fraunces',serif; font-size:28px; font-weight:600; margin-bottom:12px; line-height:1.2; color:var(--text); }
+.modal-content .desc { font-size:13.5px; color:var(--text-mid); line-height:1.7; margin-bottom:16px; }
+.detail-box { background:var(--pink-bg); border-radius:12px; padding:14px; margin-bottom:16px; border:1px solid var(--border); }
+.detail-row { display:flex; justify-content:space-between; font-size:13px; padding:4px 0; border-bottom:1px solid var(--border); }
+.detail-row:last-child { border:none; }
+.detail-row span:first-child { color:var(--text-light); }
+.detail-row span:last-child { font-weight:700; }
+.yarn-addon { margin-bottom:16px; }
+.yarn-addon-title { font-size:13px; font-weight:700; margin-bottom:10px; color:var(--text); }
+.chip-row { display:flex; gap:7px; flex-wrap:wrap; }
+.chip {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 12px; border-radius:20px;
+  border:2px solid var(--border);
+  font-size:12px; cursor:pointer;
+  background:var(--white); transition:border-color 0.2s;
+  font-family:'Nunito',sans-serif; font-weight:600;
+}
+.chip:hover, .chip.on { border-color:var(--pink-dark); background:var(--pink-bg); }
+.chip-dot { width:12px; height:12px; border-radius:50%; }
+.buy-row { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:14px; }
+.buy-price { font-size:28px; font-weight:700; color:var(--pink-dark); }
+.buy-sub { font-size:12px; color:var(--text-light); }
+.btn-buy {
+  width:100%; background:var(--pink-dark); color:#fff; border:none;
+  padding:15px; border-radius:30px;
+  font-size:15px; font-weight:700; cursor:pointer;
+  margin-bottom:10px; font-family:'Nunito',sans-serif;
+  transition:background 0.2s;
+  box-shadow:0 6px 20px rgba(192,96,144,0.3);
+}
+.btn-buy:hover { background:var(--pink-text); }
+.pay-pills { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; }
+.ppill {
+  background:var(--pink-bg); border:1.5px solid var(--border);
+  border-radius:20px; padding:4px 12px;
+  font-size:11px; color:var(--text-mid); font-weight:600;
+}
+
+/* ── FOOTER ── */
+footer {
+  background:var(--pink-text); color:rgba(255,220,235,0.8);
+  padding:60px 2rem 30px; margin-top:20px;
+}
+.foot-inner {
+  max-width:1200px; margin:0 auto;
+  display:grid; grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:3rem; margin-bottom:3rem;
+}
+.foot-logo { font-family:'Fraunces',serif; font-size:26px; font-weight:600; font-style:italic; color:var(--pink-mid); text-decoration:none; display:block; margin-bottom:10px; }
+.foot-brand p { font-size:13.5px; line-height:1.7; margin-bottom:16px; }
+.socials { display:flex; gap:8px; }
+.soc {
+  width:34px; height:34px;
+  background:rgba(255,255,255,0.12);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; text-decoration:none;
+  transition:background 0.2s;
+}
+.soc:hover { background:var(--pink-dark); }
+.foot-col h4 { color:var(--pink-mid); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:14px; }
+.foot-col ul { list-style:none; }
+.foot-col ul li { margin-bottom:9px; }
+.foot-col ul li a { color:rgba(255,220,235,0.7); text-decoration:none; font-size:13.5px; transition:color 0.2s; }
+.foot-col ul li a:hover { color:var(--pink-mid); }
+.foot-bottom {
+  max-width:1200px; margin:0 auto;
+  border-top:1px solid rgba(255,255,255,0.12);
+  padding-top:22px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:12.5px; flex-wrap:wrap; gap:1rem;
+}
 
 /* TOAST */
-.toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:13px 20px;border-radius:30px;font-size:13.5px;z-index:500;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:600;}
-.toast.on{transform:translateY(0);opacity:1;}
+.toast {
+  position:fixed; bottom:28px; right:28px;
+  background:var(--text); color:#fff;
+  padding:13px 20px; border-radius:30px;
+  font-size:13.5px; z-index:500;
+  transform:translateY(60px); opacity:0;
+  transition:all 0.3s;
+  font-weight:600;
+}
+.toast.on { transform:translateY(0); opacity:1; }
 
 @media(max-width:768px){
-  .nav-links{display:none;}
-  .hero-inner{grid-template-columns:1fr;}
-  .hero h1{font-size:36px;}
-  .hero-imgs{display:none;}
-  .modal-grid{grid-template-columns:1fr;}
-  .modal-gallery{border-radius:24px 24px 0 0;}
-  .foot-inner{grid-template-columns:1fr 1fr;}
+  .hero-inner,.modal-grid,.cat-row { grid-template-columns:1fr; }
+  .hero h1 { font-size:40px; }
+  .modal-pic { border-radius:24px 24px 0 0; min-height:180px; font-size:70px; }
+  .foot-inner { grid-template-columns:1fr 1fr; }
 }
 </style>
 </head>
@@ -159,29 +447,209 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
 
 <div class="toast" id="toast"></div>
 
+<nav class="nav-bar">
+  <div class="nav-ann">🎀 Patrones digitales al instante · Envíos a México y República Dominicana · Kits completos</div>
+  <div class="nav-inner">
+    <a href="#" class="logo"><span class="logo-bow">🎀</span> KroshaPatterns</a>
+    <ul class="nav-links">
+      <li><a href="#">Patrones</a></li>
+      <li><a href="#">Kits</a></li>
+      <li><a href="#">Estambres</a></li>
+      <li><a href="#">Amigurumis</a></li>
+      <li><a href="#">Blog</a></li>
+    </ul>
+    <div class="nav-right">
+      <select class="cur-sel" id="cur" onchange="setC()">
+        <option value="MXN">🇲🇽 MXN</option>
+        <option value="USD">🇺🇸 USD</option>
+        <option value="EUR">🇪🇺 EUR</option>
+        <option value="DOP">🇩🇴 DOP</option>
+        <option value="CAD">🇨🇦 CAD</option>
+        <option value="GBP">🇬🇧 GBP</option>
+      </select>
+      <button class="btn-cart" onclick="openCart()">🛍 Carrito <span class="cn" id="cn">0</span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="bow-tag">🎀 Artesanía con amor</div>
+      <h1>Tu crochet,<br><em>más bonito</em></h1>
+      <p class="hero-sub">Patrones en PDF, kits completos con materiales y estambres premium de 200g — todo diseñado por Jennyfer para tejedoras apasionadas.</p>
+      <div class="hero-btns">
+        <a href="#patrones" class="btn-main">Ver Patrones 🎀</a>
+        <a href="#kits" class="btn-sec">Explorar Kits</a>
+      </div>
+    </div>
+    <div class="hero-cards">
+      <div class="hc">
+        <div class="hc-img">🧸</div>
+        <div class="hc-body"><h4>Amigurumi Ramo</h4><p id="hp1">$280 MXN</p></div>
+      </div>
+      <div class="hc">
+        <div class="hc-img">🧺</div>
+        <div class="hc-body"><h4>Kit Completo</h4><p id="hp2">$850 MXN</p></div>
+      </div>
+      <div class="hc">
+        <div class="hc-img">🧶</div>
+        <div class="hc-body"><h4>Estambre 200g</h4><p id="hp3">$95 MXN</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STRIP -->
+<div class="strip">
+  <div class="strip-inner">
+    <div class="strip-item"><span class="strip-icon">📥</span><div><strong>Descarga inmediata</strong>PDF al instante</div></div>
+    <div class="strip-item"><span class="strip-icon">💳</span><div><strong>Pago seguro</strong>Stripe · PayPal · Mercado Pago</div></div>
+    <div class="strip-item"><span class="strip-icon">🌍</span><div><strong>Tu moneda</strong>MXN, USD, EUR, DOP y más</div></div>
+    <div class="strip-item"><span class="strip-icon">🧶</span><div><strong>+Estambre 200g</strong>Agrégalo a tu patrón</div></div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<div class="cat-row">
+  <a href="#patrones" class="cat-tile">
+    <div class="cat-img">📋</div>
+    <div class="cat-body">
+      <h3>Patrones Digitales</h3>
+      <p>PDF · Todos los niveles</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+  <a href="#kits" class="cat-tile">
+    <div class="cat-img">🧺</div>
+    <div class="cat-body">
+      <h3>Kits Crochet</h3>
+      <p>Materiales completos</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+  <a href="#estambres" class="cat-tile">
+    <div class="cat-img">🧶</div>
+    <div class="cat-body">
+      <h3>Estambres</h3>
+      <p>200g · Múltiples colores</p>
+      <div class="cat-arrow">→</div>
+    </div>
+  </a>
+</div>
+
+<!-- PATRONES -->
+<div class="sec" id="patrones">
+  <div class="sec-head">
+    <div>
+      <h2 class="sec-title">Patrones <em>más amados</em> 🎀</h2>
+      <p class="sec-sub">Descarga al instante · Instrucciones paso a paso</p>
+    </div>
+    <a href="#" class="see-all">Ver todos →</a>
+  </div>
+  <div class="pgrid" id="pgrid"></div>
+</div>
+
+<!-- YARN -->
+<div class="yarn-wrap" id="estambres">
+  <div class="yarn-box">
+    <p class="yarn-eyebrow">🎀 Materiales premium</p>
+    <h2>Estambres que uso en mis patrones</h2>
+    <p>Presentación de 200g, suaves al tacto. Múltiples tonos — agrégalos directo al pedir tu patrón.</p>
+    <div class="yarn-grid" id="ycards"></div>
+  </div>
+</div>
+
+<!-- KITS -->
+<div class="sec" id="kits">
+  <div class="sec-head">
+    <div>
+      <h2 class="sec-title">Kits <em>completos</em> ✨</h2>
+      <p class="sec-sub">Todo lo que necesitas para empezar hoy</p>
+    </div>
+    <a href="#" class="see-all">Ver todos →</a>
+  </div>
+  <div class="pgrid" id="kgrid"></div>
+</div>
+
+<!-- PAYMENT -->
+<div class="pay-wrap">
+  <div class="pay-box">
+    <h2>Paga como prefieras 💳</h2>
+    <p>Métodos de pago seguros para México, República Dominicana y todo el mundo.</p>
+    <div class="pay-grid">
+      <div class="pay-card"><span class="pay-logo">💳</span><div><h4>Stripe</h4><p>Visa · Mastercard · Amex</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🅿️</span><div><h4>PayPal</h4><p>Internacional · Seguro</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🏪</span><div><h4>Mercado Pago</h4><p>OXXO · Tiendas · LATAM</p></div></div>
+      <div class="pay-card"><span class="pay-logo">🌍</span><div><h4>Moneda local</h4><p>MXN · USD · EUR · DOP y más</p></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-brand">
+      <a href="#" class="foot-logo">🎀 KroshaPatterns</a>
+      <p>Patrones de crochet con amor, diseñados por Jennyfer. Tienda oficial kroshapatterns.com — México y República Dominicana.</p>
+      <div class="socials">
+        <a href="https://www.facebook.com/kroshaa/" class="soc">f</a>
+        <a href="https://www.instagram.com/kro_shaa/" class="soc">◎</a>
+        <a href="https://www.tiktok.com/@kroshard" class="soc">♪</a>
+      </div>
+    </div>
+    <div class="foot-col">
+      <h4>Tienda</h4>
+      <ul>
+        <li><a href="#">Patrones Digitales</a></li>
+        <li><a href="#">Kits Crochet</a></li>
+        <li><a href="#">Estambres</a></li>
+        <li><a href="#">Amigurumis</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Ayuda</h4>
+      <ul>
+        <li><a href="#">¿Cómo descargar?</a></li>
+        <li><a href="#">Envíos</a></li>
+        <li><a href="#">Devoluciones</a></li>
+        <li><a href="#">Contacto</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacidad</a></li>
+        <li><a href="#">Términos</a></li>
+        <li><a href="#">Derechos de autor</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 KroshaPatterns · kroshapatterns.com</span>
+    <span>Stripe · PayPal · Mercado Pago</span>
+  </div>
+</footer>
+
 <!-- MODAL -->
 <div class="overlay" id="ov">
   <div class="modal">
     <button class="modal-x" onclick="closeM()">✕</button>
     <div class="modal-grid">
-      <div class="modal-gallery">
-        <div class="mgallery-main"><img id="mimg-main" src="" alt=""></div>
-        <div class="mgallery-thumbs" id="mimg-thumbs"></div>
-      </div>
-      <div class="modal-info">
+      <div class="modal-pic" id="mpic">🧸</div>
+      <div class="modal-content">
         <p class="modal-cat" id="mcat"></p>
         <h2 id="mname"></h2>
-        <div class="modal-desc" id="mdesc"></div>
-        <div class="detail-box">
-          <div class="detail-chip"><div class="dl" data-es="PRECIO" data-en="PRICE">PRECIO</div><div class="dv" id="md-price"></div></div>
-          <div class="detail-chip"><div class="dl" data-es="FORMATO" data-en="FORMAT">FORMATO</div><div class="dv" id="md-format">PDF Digital</div></div>
-          <div class="detail-chip"><div class="dl" data-es="NIVEL" data-en="LEVEL">NIVEL</div><div class="dv" id="md-level"></div></div>
-          <div class="detail-chip"><div class="dl" data-es="ENTREGA" data-en="ACCESS">ENTREGA</div><div class="dv" data-es="ProtectCrochet" data-en="ProtectCrochet">ProtectCrochet</div></div>
+        <p class="desc" id="mdesc"></p>
+        <div class="detail-box" id="mdetails"></div>
+        <div class="yarn-addon" id="yaddon" style="display:none">
+          <p class="yarn-addon-title">🧶 Agregar estambre 200g (+<span id="yp">$95 MXN</span>)</p>
+          <div class="chip-row" id="chips"></div>
         </div>
-        <div class="buy-price" id="mbuy-price"></div>
-        <div class="buy-price-sub" data-es="Precio en tu moneda · Acceso vía ProtectCrochet" data-en="Price in your currency · Access via ProtectCrochet">Precio en tu moneda · Acceso vía ProtectCrochet</div>
-        <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
-        <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
+        <div class="buy-row">
+          <div><div class="buy-price" id="mprice"></div><div class="buy-sub" id="mprice2"></div></div>
+        </div>
+        <button class="btn-buy" onclick="addCart()">Agregar al carrito 🎀</button>
         <div class="pay-pills">
           <span class="ppill">💳 Stripe</span>
           <span class="ppill">🅿️ PayPal</span>
@@ -192,366 +660,89 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
   </div>
 </div>
 
-<!-- NAV -->
-<nav class="nav-bar">
-  <div class="nav-ann" id="nav-ann" data-es="🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones" data-en="🎀 Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns">🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones</div>
-  <div class="nav-inner">
-    <a href="#" class="logo">🎀 KroshaPatterns</a>
-    <ul class="nav-links">
-      <li><a href="#patrones" data-es="Patrones" data-en="Patterns">Patrones</a></li>
-      <li><a href="#kits" data-es="Kits" data-en="Kits">Kits</a></li>
-      <li><a href="#hilos" data-es="Hilos" data-en="Yarns">Hilos</a></li>
-      <li><a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a></li>
-    </ul>
-    <div class="nav-right">
-      <div class="lang-toggle">
-        <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
-        <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
-      </div>
-      <select class="cur-sel" id="cur" onchange="setC()">
-        <option value="MXN">🇲🇽 MXN</option>
-        <option value="USD">🇺🇸 USD</option>
-        <option value="EUR">🇪🇺 EUR</option>
-        <option value="DOP">🇩🇴 DOP</option>
-        <option value="CAD">🇨🇦 CAD</option>
-        <option value="GBP">🇬🇧 GBP</option>
-      </select>
-      <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
-    </div>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-inner">
-    <div class="hero-left">
-      <div class="bow-tag">🎀 <span data-es="Artesanía con amor" data-en="Handmade with love">Artesanía con amor</span></div>
-      <h1><span id="hero-t1" data-es="Tu crochet," data-en="Your crochet,">Tu crochet,</span><br><em id="hero-t2" data-es="más bonito" data-en="more beautiful" style="color:var(--pink-dark);">más bonito</em></h1>
-      <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Jennyfer.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.</p>
-      <div class="hero-btns">
-        <a href="#patrones" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
-        <a href="#kits" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
-      </div>
-    </div>
-    <div class="hero-imgs">
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/DC5C0ACD-ADB5-4DD2-8D15-23A995D4E21D.jpg?v=1764718487" alt="Muñeca Ramo Magico"></div>
-        <div class="hc-body"><h4>Muñeca Ramo Magico</h4><p id="hp1">$290 MXN</p></div>
-      </div>
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/440D50A3-4213-4246-B9B7-D666F441586B.jpg?v=1774292862" alt="Kit Ramo"></div>
-        <div class="hc-body"><h4 data-es="Kit Completo" data-en="Full Kit">Kit Completo</h4><p id="hp2">$950 MXN</p></div>
-      </div>
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3f93d6d8-3623-4b4d-b4aa-2434406c013b.jpg?v=1748526264" alt="Ramo Stitch"></div>
-        <div class="hc-body"><h4>Ramo Stitch</h4><p id="hp3">$290 MXN</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- STRIP -->
-<div class="strip">
-  <div class="strip-inner" id="strip-wrap">
-    <div class="strip-item"><span class="strip-icon">🔐</span><div><strong data-es="Acceso protegido" data-en="Protected access">Acceso protegido</strong><span>vía ProtectCrochet</span></div></div>
-    <div class="strip-item"><span class="strip-icon">💳</span><div><strong data-es="Pago seguro" data-en="Secure payment">Pago seguro</strong><span>Stripe · PayPal · Mercado Pago</span></div></div>
-    <div class="strip-item"><span class="strip-icon">🌍</span><div><strong data-es="Tu moneda" data-en="Your currency">Tu moneda</strong><span>MXN, USD, EUR, DOP</span></div></div>
-    <div class="strip-item"><span class="strip-icon">🎀</span><div><strong data-es="+40 patrones" data-en="40+ patterns">+40 patrones</strong><span data-es="Todos los niveles" data-en="All skill levels">Todos los niveles</span></div></div>
-  </div>
-</div>
-
-<!-- FILTER + PRODUCTS -->
-<div class="filter-wrap">
-  <h2 class="filter-title" data-es="Todos los <em>productos</em>" data-en="All <em>products</em>">Todos los <em>productos</em></h2>
-  <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
-  <div class="filter-tabs">
-    <button class="ftab active" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
-    <button class="ftab" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
-    <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
-    <button class="ftab" onclick="filterProds('hilo',this)" data-es="Hilos" data-en="Yarns">Hilos</button>
-  </div>
-</div>
-
-<div class="pgrid" id="pgrid"></div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="foot-inner">
-    <div class="foot-brand">
-      <a href="#" class="foot-logo">🎀 KroshaPatterns</a>
-      <p data-es="Patrones de crochet con amor, diseñados por Jennyfer. Tienda oficial kroshapatterns.com — México y República Dominicana." data-en="Crochet patterns made with love, designed by Jennyfer. Official store kroshapatterns.com — Mexico and Dominican Republic.">Patrones de crochet con amor, diseñados por Jennyfer. Tienda oficial kroshapatterns.com — México y República Dominicana.</p>
-      <div class="socials">
-        <a href="https://www.facebook.com/kroshaa/" class="soc" target="_blank">f</a>
-        <a href="https://www.instagram.com/kro_shaa/" class="soc" target="_blank">◎</a>
-        <a href="https://www.tiktok.com/@kroshard" class="soc" target="_blank">♪</a>
-      </div>
-    </div>
-    <div class="foot-col">
-      <h4 data-es="Tienda" data-en="Shop">Tienda</h4>
-      <ul>
-        <li><a href="#patrones" data-es="Patrones Digitales" data-en="Digital Patterns">Patrones Digitales</a></li>
-        <li><a href="#kits" data-es="Kits Crochet" data-en="Crochet Kits">Kits Crochet</a></li>
-        <li><a href="#hilos" data-es="Hilos y Estambres" data-en="Yarn">Hilos y Estambres</a></li>
-      </ul>
-    </div>
-    <div class="foot-col">
-      <h4 data-es="Ayuda" data-en="Help">Ayuda</h4>
-      <ul>
-        <li><a href="#" data-es="¿Cómo descargar?" data-en="How to download?">¿Cómo descargar?</a></li>
-        <li><a href="#" data-es="Envíos" data-en="Shipping">Envíos</a></li>
-        <li><a href="#" data-es="Contacto" data-en="Contact">Contacto</a></li>
-      </ul>
-    </div>
-    <div class="foot-col">
-      <h4>Legal</h4>
-      <ul>
-        <li><a href="#" data-es="Privacidad" data-en="Privacy">Privacidad</a></li>
-        <li><a href="#" data-es="Términos" data-en="Terms">Términos</a></li>
-        <li><a href="#" data-es="Derechos de autor" data-en="Copyright">Derechos de autor</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="foot-bottom">
-    <span>© 2026 KroshaPatterns · kroshapatterns.com</span>
-    <span>Stripe · PayPal · Mercado Pago</span>
-  </div>
-</footer>
-
 <script>
-// ── KEYS (same as admin.html) ──
-const PRODS_KEY='krosha_products';
-const HERO_KEY='krosha_hero';
-const CART_KEY='krosha_cart';
-
-const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041};
+const rates={MXN:1,USD:0.052,EUR:0.048,DOP:3.12,CAD:0.071,GBP:0.041};
 const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
-let cur='MXN', lang='es', curProd=null;
+let cur='MXN',cartN=0,curProd=null,selYarn=null;
 
-// ── CART (persists across pages) ──
-function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
-function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
-function getCartCount(){return getCart().reduce((a,i)=>a+i.qty,0);}
-function updateCartBadge(){document.getElementById('cn').textContent=getCartCount();}
+const yarnColors=[
+  {n:'Rosa Bebé',c:'#F4B8B8'},{n:'Crema',c:'#F5E6CC'},{n:'Blanco',c:'#F0F0F0'},
+  {n:'Lavanda',c:'#C9B5E0'},{n:'Menta',c:'#A8D8C0'},{n:'Caramelo',c:'#D4935A'},
+  {n:'Cielo',c:'#8BB8C8'},{n:'Coral',c:'#E8A0B0'},
+];
 
-// ── LOAD PRODUCTS from localStorage (set by admin) ──
-// Falls back to hardcoded defaults if admin hasn't saved yet
-function getProducts(){
-  const stored=localStorage.getItem(PRODS_KEY);
-  if(stored){
-    const arr=JSON.parse(stored);
-    // normalize field names: admin uses nameEs/nameEn/descEs, index uses title/titleEn/desc
-    return arr.filter(p=>p.status==='active'||!p.status).map(p=>({
-      id:p.id,
-      title:p.nameEs||p.title||'',
-      titleEn:p.nameEn||p.titleEn||'',
-      price:p.price||0,
-      type:p.type||'patrones',
-      skill:p.skill||'',
-      images:p.images||[],
-      desc:p.descEs||p.desc||'',
-      descEn:p.descEn||'',
-    }));
-  }
-  return defaultProducts;
-}
-
-// ── LOAD HERO from localStorage ──
-function applyHero(){
-  const h=JSON.parse(localStorage.getItem(HERO_KEY)||'null');
-  if(!h)return;
-  // announcement bar
-  const ann=document.getElementById('nav-ann');
-  if(ann){ann.dataset.es=h.annEs||ann.dataset.es;ann.dataset.en=h.annEn||ann.dataset.en;ann.textContent=lang==='es'?h.annEs:h.annEn;}
-  // hero title
-  const t1=document.getElementById('hero-t1');const t2=document.getElementById('hero-t2');
-  const sub=document.getElementById('hero-sub-text');
-  if(t1){t1.dataset.es=h.title1Es;t1.dataset.en=h.title1En;t1.textContent=lang==='es'?h.title1Es:h.title1En;}
-  if(t2){t2.dataset.es=h.title2Es;t2.dataset.en=h.title2En;t2.textContent=lang==='es'?h.title2Es:h.title2En;}
-  if(sub){sub.dataset.es=h.subEs;sub.dataset.en=h.subEn;sub.textContent=lang==='es'?h.subEs:h.subEn;}
-  // strip
-  if(h.strip&&h.strip.length){
-    const sw=document.getElementById('strip-wrap');
-    if(sw)sw.innerHTML=h.strip.map(it=>`
-      <div class="strip-item"><span class="strip-icon">${it.icon}</span>
-      <div><strong>${lang==='es'?it.es:it.en||it.es}</strong>${lang==='es'?it.sub_es:it.sub_en||it.sub_es||''}</div></div>`).join('');
-  }
-}
-
-const defaultProducts=[
-  {id:1,handle:'ramo-magico-candy-45-cm',title:'Ramo Magico Candy 45 cm',titleEn:'Magic Bouquet Candy 45 cm',price:300,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/0170BCDA-53B2-4B1A-8534-49507562FB6B.jpg?v=1776808456','https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3B6D6A79-66B7-4CB6-BB5E-F89CBC0B685E.jpg?v=1776808445'],desc:'Patrón de crochet PDF. Amigurumi de 45cm. Disponible en español. Nivel intermedio. Conocimiento básico de crochet requerido. Puedes vender las muñecas que elabores dando crédito a @kro_shaa.'},
-  {id:2,handle:'kit-ramo-magico-graduadita',title:'Kit Ramo Magico Graduadita 35 cm',titleEn:'Magic Bouquet Graduation Kit 35 cm',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/440D50A3-4213-4246-B9B7-D666F441586B.jpg?v=1774292862','https://cdn.shopify.com/s/files/1/0846/4806/7370/files/995929FF-B48F-4825-A5BB-C772F7EBDD25.jpg?v=1774292914'],desc:'Kit completo con hilos de alta calidad, gancho ideal, relleno premium, accesorios decorativos y patrón digital paso a paso. Para personas con conocimiento básico de crochet.'},
-  {id:3,handle:'ramo-magico-graduadita-35-cm',title:'Ramo Magico Graduadita 35 cm',titleEn:'Magic Bouquet Graduation 35 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/8DC16E86-3EC5-4EFE-9385-FFA189B99ECE.jpg?v=1774292652'],desc:'Patrón de crochet PDF. Amigurumi de 35cm. Disponible en español. Ideal para regalar en graduaciones.'},
-  {id:4,handle:'patron-mini-rapunzel-25-cm',title:'Patron Mini Rapunzel 25 cm',titleEn:'Mini Rapunzel Pattern 25 cm',price:210,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/4728F150-4BF7-4499-9E1F-A9C46F590835.jpg?v=1774112201'],desc:'Patrón de crochet PDF mini Rapunzel 25 cm. Disponible en español.'},
-  {id:5,handle:'ramo-magico-sirenita-35-cm',title:'Ramo Magico Sirenita 35 cm',titleEn:'Magic Bouquet Little Mermaid 35 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/60F2BAAA-22E1-4FB8-AC5E-6DC2AC100F1F.jpg?v=1773100545'],desc:'Patrón de crochet PDF. Muñeca Sirenita de 35cm. Disponible en español.'},
-  {id:6,handle:'kit-ramo-magico-sirenita',title:'Kit Ramo Magico Sirenita 35 cm',titleEn:'Magic Bouquet Mermaid Kit 35 cm',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/4D0C85B7-48D9-47BB-A999-8328211B4426.jpg?v=1773100458','https://cdn.shopify.com/s/files/1/0846/4806/7370/files/60F2BAAA-22E1-4FB8-AC5E-6DC2AC100F1F.jpg?v=1773100545'],desc:'Kit completo para hacer tu Sirenita. Incluye hilos, gancho, relleno, accesorios y patrón digital.'},
-  {id:7,handle:'kit-mini-rapunzel',title:'Kit Ramo MINI Magico Rapunzel',titleEn:'Mini Magic Rapunzel Kit',price:699,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/F6D7D63A-498F-4189-80FB-0CFD79B03172.png?v=1772835222'],desc:'Kit mini Rapunzel con todos los materiales para hacer tu muñequita.'},
-  {id:8,handle:'kit-ramo-magico-rapunzel',title:'Kit Ramo Magico Rapunzel 35 cm',titleEn:'Magic Bouquet Rapunzel Kit 35 cm',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/84250171-8AFF-48C8-A392-9BB9149FF109.jpg?v=1772772770'],desc:'Kit completo para hacer tu Rapunzel de 35cm. Incluye todo lo necesario.'},
-  {id:9,handle:'ramo-magico-rapunzel-35-cm',title:'Ramo Magico Rapunzel 35 cm',titleEn:'Magic Bouquet Rapunzel 35 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/32884BD3-60D9-4FBD-B998-22D126A90BE5.jpg?v=1772678519'],desc:'Patrón de crochet PDF. Rapunzel 35cm. Disponible en español.'},
-  {id:10,handle:'ramo-magico-malefica-45-cm',title:'Ramo Magico Malefica 45 cm',titleEn:'Magic Bouquet Maleficent 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/240B45BE-E8A1-4F20-A056-1A291E57FAB2.jpg?v=1771439759'],desc:'Patrón de crochet PDF. Maléfica de 45cm. Disponible en español.'},
-  {id:11,handle:'ramo-magico-reina-45-cm',title:'Ramo Magico Reina 45 cm',titleEn:'Magic Bouquet Queen 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/70B101F1-B78D-4F70-94B1-8CF5FAF24D64.jpg?v=1769192142'],desc:'Patrón de crochet PDF. Reina de 45cm. Disponible en español.'},
-  {id:12,handle:'kit-ramo-magico-mini',title:'Kit Ramo Magico Mini',titleEn:'Mini Magic Bouquet Kit',price:699,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/697184F5-00AC-44D2-9FF6-8F65C7B07C67.jpg?v=1765581023'],desc:'Kit mini ramo mágico con todos los materiales incluidos.'},
-  {id:13,handle:'patron-mini-ramo-25-cm',title:'Patron Mini Ramo 25 cm',titleEn:'Mini Bouquet Pattern 25 cm',price:210,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/0D072090-A42A-4BE8-A966-3074BF3EBA77.jpg?v=1765428106'],desc:'Patrón PDF mini ramo 25cm. Disponible en español.'},
-  {id:14,handle:'ramo-magico-valiente-45-cm',title:'Ramo Magico Valiente 45 cm',titleEn:'Magic Bouquet Brave 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/C4FF50AD-F729-4546-A749-66AA278DF214.jpg?v=1763589378'],desc:'Patrón de crochet PDF. Mérida Valiente 45cm. Disponible en español.'},
-  {id:15,handle:'ramo-magico-bella-45-cm',title:'Ramo Magico Bella 45 cm',titleEn:'Magic Bouquet Belle 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/BF343418-FF25-4E51-A415-6581A1A81947.jpg?v=1762450241'],desc:'Patrón de crochet PDF. Bella 45cm. Disponible en español.'},
-  {id:16,handle:'kit-ramo-magico-tiana',title:'Kit Ramo Magico Tiana',titleEn:'Magic Bouquet Tiana Kit',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/422AB736-669B-4148-864B-F2491FAF1FCA.jpg?v=1762371535'],desc:'Kit completo para hacer tu Tiana. Incluye hilos, gancho, relleno y patrón digital.'},
-  {id:17,handle:'ramo-magico-emily-45-cm',title:'Ramo Magico Emily 45 cm',titleEn:'Magic Bouquet Emily 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3AB9504C-D9F6-43A6-91A4-ED787BEA7E92.jpg?v=1761171653'],desc:'Patrón de crochet PDF. Emily 45cm. Disponible en español.'},
-  {id:18,handle:'ramo-magico-sally-45-cm',title:'Ramo Magico Sally 45 cm',titleEn:'Magic Bouquet Sally 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/EDDF2A20-1191-4C92-A849-812C6730F5AD.jpg?v=1759963327'],desc:'Patrón de crochet PDF. Sally 45cm. Disponible en español.'},
-  {id:19,handle:'muneca-ramo-magico-35-cm',title:'Muñeca Ramo Magico 35 cm',titleEn:'Magic Bouquet Doll 35 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/DC5C0ACD-ADB5-4DD2-8D15-23A995D4E21D.jpg?v=1764718487'],desc:'Patrón de crochet PDF. Muñeca ramo mágico 35cm. Disponible en español.'},
-  {id:20,handle:'kit-ramo-magico-bella',title:'Kit Ramo Mágico Bella',titleEn:'Magic Bouquet Belle Kit',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/2208623E-3823-4CA8-8835-6AA6C1E52614.jpg?v=1764718487'],desc:'Kit completo Bella con hilos, gancho, relleno y patrón digital.'},
-  {id:21,handle:'ramo-magico-stitch-40-cm',title:'Ramo Magico Stitch 40 cm',titleEn:'Magic Bouquet Stitch 40 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3f93d6d8-3623-4b4d-b4aa-2434406c013b.jpg?v=1748526264'],desc:'Patrón de crochet PDF. Stitch 40cm. Disponible en español.'},
-  {id:22,handle:'ramo-magico-graduacion',title:'Ramo Magico Graduación 45 cm',titleEn:'Magic Bouquet Graduation 45 cm',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/8DC16E86-3EC5-4EFE-9385-FFA189B99ECE.jpg?v=1774292652'],desc:'Patrón de crochet PDF. Ramo mágico graduación 45cm. Disponible en español.'},
-  {id:23,handle:'muneca-ramo-frida-kahlo',title:'Muñeca Ramo Magico Frida Kahlo',titleEn:'Magic Bouquet Frida Kahlo Doll',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/65f46203-e064-4cff-add7-8b61c31eab57.jpg?v=1741823897'],desc:'Patrón de crochet PDF. Frida Kahlo. Disponible en español.'},
-  {id:24,handle:'muneca-ramo-sailor',title:'Muñeca Ramo Magico Sailor',titleEn:'Magic Bouquet Sailor Doll',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/44e40c66-d173-49aa-a70f-e64ec175834a.jpg?v=1743117413'],desc:'Patrón de crochet PDF. Sailor Moon. Disponible en español.'},
-  {id:25,handle:'kit-ramo-frida',title:'Kit Ramo Magico Frida',titleEn:'Magic Bouquet Frida Kit',price:950,type:'kits',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/692cb6df-6f5c-410a-b0b3-5d7df8fc75b5.jpg?v=1741823953'],desc:'Kit completo Frida Kahlo con hilos, gancho, relleno y patrón digital.'},
-  {id:26,handle:'muneca-ramo-gatita',title:'Muñeca Ramo Magico Gatita',titleEn:'Magic Bouquet Kitty Doll',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/e0574599-60d6-4c75-8b08-74fff5d99fc6_2.jpg?v=1737244001'],desc:'Patrón de crochet PDF. Gatita. Disponible en español.'},
-  {id:27,handle:'muneca-ramo-65-cm',title:'Muñeca Ramo Mágico 65 cm',titleEn:'Magic Bouquet Doll 65 cm',price:300,type:'patrones',skill:'Avanzado',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/15687171-888F-4FAC-A9F2-5E527A38FBC6.jpg?v=1731695182'],desc:'Patrón de crochet PDF. Muñeca XL 65cm. Disponible en español.'},
-  {id:28,handle:'muneca-ramo-virgen',title:'Muñeca Ramo Magico Virgen',titleEn:'Magic Bouquet Virgin Doll',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/IMG_8532.jpg?v=1730316025'],desc:'Patrón de crochet PDF. Virgen María. Disponible en español.'},
-  {id:29,handle:'hilo-acrilico',title:'Hilo Acrílico Premium',titleEn:'Premium Acrylic Yarn',price:160,type:'hilo',skill:'',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/PremierBasix1115-01White-ball.jpg?v=1729441823'],desc:'Hilo acrílico de alta calidad para tus proyectos de crochet. Suave y resistente.'},
-  {id:30,handle:'kit-estambre-rapunzel',title:'Kit Estambre Rapunzel',titleEn:'Rapunzel Yarn Kit',price:990,type:'hilo',skill:'',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/84250171-8AFF-48C8-A392-9BB9149FF109.jpg?v=1772772770'],desc:'Kit de estambres con los colores originales de Rapunzel.'},
-  {id:31,handle:'patron-ramo-rapunzel',title:'Patron Ramo Rapunzel',titleEn:'Rapunzel Bouquet Pattern',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/PHOTO-2024-02-16-18-17-28_1.jpg?v=1708136273'],desc:'Patrón de crochet PDF. Rapunzel. Disponible en español.'},
-  {id:32,handle:'conejita-mia-xl',title:'Conejita Mia XL',titleEn:'Bunny Mia XL',price:250,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/PHOTO-2024-02-04-17-01-18.jpg?v=1707084119'],desc:'Patrón de crochet PDF conejita XL. Disponible en español e inglés.'},
-  {id:33,handle:'princesa-ramo-magico',title:'Princesa Ramo Magico',titleEn:'Princess Magic Bouquet',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/WhatsAppImage2024-01-12at7.59.11PM.jpg?v=1705889875'],desc:'Patrón de crochet PDF. Princesa ramo mágico. Disponible en español.'},
-  {id:34,handle:'muneca-ramo-magico-reversible',title:'Muñeca Ramo Magico Reversible',titleEn:'Reversible Magic Bouquet Doll',price:290,type:'patrones',skill:'Intermedio',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/PHOTO-2023-12-03-09-36-01_25e3183f-b840-4d94-8ae0-8d9b76ac1f92.jpg?v=1701628167'],desc:'Patrón de crochet PDF. Muñeca reversible ramo mágico.'},
-  {id:35,handle:'pepe-panda',title:'Pepe Panda Crochet Pattern',titleEn:'Pepe Panda Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/AAA.png?v=1700529245'],desc:'Patrón de crochet PDF. Panda. Disponible en español e inglés. 35cm.'},
-  {id:36,handle:'loki-fox',title:'Loki Fox Crochet Pattern',titleEn:'Loki Fox Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/head.png?v=1700528926'],desc:'Patrón de crochet PDF. Zorro Loki. Disponible en español e inglés. 35cm.'},
-  {id:37,handle:'giraffe-pattern',title:'Giraffe Crochet Pattern',titleEn:'Giraffe Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/be0e8deb-3660-4651-abde-756e0ebc10cb.jpg?v=1700528145'],desc:'Patrón de crochet PDF. Jirafa. Disponible en español e inglés. 35cm.'},
-  {id:38,handle:'bunny-pattern',title:'Bunny Crochet Pattern',titleEn:'Bunny Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/5a2a6f3d-0151-4168-8cde-d86e39a8e914.jpg?v=1700528072'],desc:'Patrón de crochet PDF. Conejito. Disponible en español e inglés. 35cm.'},
-  {id:39,handle:'toby-puppy',title:'Toby Puppy Crochet Pattern',titleEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061'],desc:'Patrón de crochet PDF. Perrito Toby. Disponible en español e inglés. 35cm.'},
+const prods=[
+  {id:1,e:'🧸',cat:'Amigurumi',n:'Munequita Ramo',d:'Adorable amigurumi para ramos de flores. Patrón en español e inglés.',p:280,b:'bestseller',det:[['Páginas','24 pgs PDF'],['Nivel','Intermedio'],['Idioma','ES / EN'],['Gancho','3mm'],['Tiempo','4–6 hrs']],yarn:true},
+  {id:2,e:'🐻',cat:'Amigurumi',n:'Osito Teddy',d:'Instrucciones para orejas, ojos seguros y relleno perfecto.',p:250,b:'new',det:[['Páginas','18 pgs PDF'],['Nivel','Principiante'],['Idioma','ES / EN'],['Gancho','3.5mm'],['Tiempo','3–5 hrs']],yarn:true},
+  {id:3,e:'🌸',cat:'Patrón',n:'Flores Boho',d:'6 diseños de flores en relieve para ropa, accesorios o decoración.',p:150,b:'',det:[['Páginas','12 pgs PDF'],['Nivel','Básico'],['Idioma','ES'],['Gancho','2.5–3mm'],['Diseños','6 variantes']],yarn:false},
+  {id:4,e:'🦊',cat:'Amigurumi',n:'Zorro Kawaii',d:'Amigurumi con cabeza articulada. Piezas separadas, instrucciones avanzadas.',p:320,b:'',det:[['Páginas','28 pgs PDF'],['Nivel','Avanzado'],['Idioma','ES / EN'],['Gancho','3mm'],['Tiempo','6–8 hrs']],yarn:true},
+];
+const kits=[
+  {id:10,e:'🧺',cat:'Kit Crochet',n:'Kit Munequita Ramo',d:'Estambres 200g, relleno, ojos de seguridad, aguja y patrón PDF.',p:850,b:'kit',det:[['Incluye','Estambre+Relleno+Ojos'],['Patrón','PDF digital'],['Envío','México y RD'],['Colores','A elegir']],yarn:false},
+  {id:11,e:'🌈',cat:'Kit Crochet',n:'Kit Mensual Sorpresa',d:'Patrón exclusivo + materiales cada mes. ¡Una sorpresa nueva siempre!',p:720,b:'new',det:[['Frecuencia','Mensual'],['Contenido','Patrón+materiales'],['Envío','México y RD'],['Nivel','Intermedio']],yarn:false},
 ];
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
-function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Hilo / Estambre':t==='amigurumis'?'Amigurumi':'Patrón Digital';}
-function typeBadge(t){return t==='kits'?'kit':t==='hilo'?'hilo':t==='amigurumis'?'kit':'';}
 
-let activeFilter='all';
-
-function renderGrid(filter){
-  if(filter!==undefined)activeFilter=filter;
-  const products=getProducts();
-  const g=document.getElementById('pgrid');
-  const filtered=activeFilter==='all'?products:products.filter(p=>p.type===activeFilter);
-  if(!filtered.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';return;}
-  g.innerHTML=filtered.map(p=>`
-    <div class="pcard" data-type="${p.type}" onclick="openM(${p.id})">
+function renderGrid(arr,id){
+  document.getElementById(id).innerHTML=arr.map(p=>`
+    <div class="pcard" onclick="openM(${p.id})">
       <div class="pcard-img">
-        <img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">
-        <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
-        <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">♡</button>
+        <span style="font-size:58px">${p.e}</span>
+        ${p.b?`<span class="pbadge ${p.b==='new'?'nb':p.b==='kit'?'kb':''}">${p.b==='bestseller'?'🎀 Top':p.b==='new'?'Nuevo':'Kit'}</span>`:''}
       </div>
       <div class="pcard-body">
-        <div class="pcard-cat">${typeLabel(p.type)}</div>
-        <div class="pcard-name">${lang==='en'&&p.titleEn?p.titleEn:p.title}</div>
+        <div class="pcard-cat">${p.cat}</div>
+        <div class="pcard-name">${p.n}</div>
+        <div class="pcard-desc">${p.d.substring(0,65)}…</div>
         <div class="pcard-foot">
-          <div class="pcard-price">${f(p.price)}</div>
+          <div class="pcard-price">${f(p.p)}</div>
           <button class="btn-plus" onclick="event.stopPropagation();qAdd(${p.id})">+</button>
         </div>
       </div>
     </div>`).join('');
 }
 
-function filterProds(type,btn){
-  document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
-  renderGrid(type);
+function renderYarn(){
+  document.getElementById('ycards').innerHTML=yarnColors.map(y=>`
+    <div class="ycard" onclick="pickY(this,'${y.n}')">
+      <div class="ys" style="background:${y.c};${y.c==='#F0F0F0'?'border:1px solid #ddd':''}"></div>
+      <div class="ycard-n">${y.n}</div>
+      <div class="ycard-p">${f(95)}</div>
+    </div>`).join('');
+  document.getElementById('hp1').textContent=f(280);
+  document.getElementById('hp2').textContent=f(850);
+  document.getElementById('hp3').textContent=f(95);
 }
+
+function setC(){cur=document.getElementById('cur').value;renderAll();}
+function renderAll(){renderGrid(prods,'pgrid');renderGrid(kits,'kgrid');renderYarn();}
 
 function openM(id){
-  const products=getProducts();
-  curProd=products.find(x=>x.id===id);
-  if(!curProd)return;
-  document.getElementById('mimg-main').src=curProd.images[0]||'';
-  document.getElementById('mimg-main').alt=curProd.title;
-  document.getElementById('mimg-thumbs').innerHTML=(curProd.images||[]).map((img,i)=>
-    `<div class="mthumb ${i===0?'active':''}" onclick="switchImg(this,'${img}')"><img src="${img}" alt=""></div>`
-  ).join('');
-  document.getElementById('mcat').textContent=typeLabel(curProd.type);
-  document.getElementById('mname').textContent=lang==='en'&&curProd.titleEn?curProd.titleEn:curProd.title;
-  document.getElementById('mdesc').textContent=lang==='en'&&curProd.descEn?curProd.descEn:curProd.desc;
-  document.getElementById('md-price').textContent=f(curProd.price);
-  document.getElementById('md-level').textContent=curProd.skill||'—';
-  document.getElementById('mbuy-price').textContent=f(curProd.price);
-  document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(curProd.price)}`;
-  document.getElementById('mbtn-add').textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  const all=[...prods,...kits];curProd=all.find(x=>x.id===id);selYarn=null;
+  document.getElementById('mpic').textContent=curProd.e;
+  document.getElementById('mcat').textContent=curProd.cat;
+  document.getElementById('mname').textContent=curProd.n;
+  document.getElementById('mdesc').textContent=curProd.d;
+  document.getElementById('mdetails').innerHTML=curProd.det.map(d=>`<div class="detail-row"><span>${d[0]}</span><span>${d[1]}</span></div>`).join('');
+  document.getElementById('mprice').textContent=f(curProd.p);
+  document.getElementById('mprice2').textContent=cur!=='MXN'?'≈ '+f(curProd.p):'';
+  document.getElementById('yp').textContent=f(95);
+  const ya=document.getElementById('yaddon');
+  if(curProd.yarn){ya.style.display='block';document.getElementById('chips').innerHTML=yarnColors.map(y=>`<button class="chip" onclick="toggleChip(this,'${y.n}')"><span class="chip-dot" style="background:${y.c};${y.c==='#F0F0F0'?'border:1px solid #ccc':''}"></span>${y.n}</button>`).join('');}
+  else ya.style.display='none';
   document.getElementById('ov').classList.add('open');
 }
-
-function switchImg(el,src){
-  document.querySelectorAll('.mthumb').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('mimg-main').src=src;
-}
-
-function closeM(){document.getElementById('ov').classList.remove('open');}
+function closeM(){document.getElementById('ov').classList.remove('open');selYarn=null;}
 document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM();});
+function toggleChip(el,n){document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));selYarn=selYarn===n?null:n;if(selYarn)el.classList.add('on');}
+function addCart(){cartN++;document.getElementById('cn').textContent=cartN;closeM();toast(selYarn?`🎀 ${curProd.n} + Estambre ${selYarn}`:`🎀 ${curProd.n} agregado`);}
+function qAdd(id){cartN++;document.getElementById('cn').textContent=cartN;const p=[...prods,...kits].find(x=>x.id===id);toast(`🎀 ${p.n} agregado`);}
+function openCart(){toast(`🛍 ${cartN} producto(s) en carrito`);}
+function pickY(el,n){document.querySelectorAll('.ycard').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');toast(`🧶 ${n} seleccionado`);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2700);}
 
-function qAdd(id){
-  const products=getProducts();
-  const p=products.find(x=>x.id===id);if(!p)return;
-  const cart=getCart();
-  const existing=cart.find(i=>i.id===id);
-  if(existing)existing.qty++;else cart.push({id:p.id,title:p.title,price:p.price,img:p.images[0]||'',qty:1});
-  saveCart(cart);updateCartBadge();
-  showToast(`🎀 ${lang==='es'?p.title:p.titleEn||p.title} ${lang==='es'?'agregado':'added'}`);
-}
-
-function addToCart(){
-  if(!curProd)return;
-  const cart=getCart();
-  const existing=cart.find(i=>i.id===curProd.id);
-  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1});
-  saveCart(cart);updateCartBadge();closeM();
-  showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
-}
-
-function buyNow(){
-  if(curProd)addToCart();
-  window.location.href='krosha-checkout.html';
-}
-
-function toggleWish(btn){
-  const on=btn.textContent==='♥';
-  btn.textContent=on?'♡':'♥';
-  if(!on)showToast(lang==='es'?'♥ Guardado en favoritos':'♥ Saved to wishlist');
-}
-
-function setC(){
-  cur=document.getElementById('cur').value;
-  renderGrid();
-  // update hero prices
-  const products=getProducts();
-  const p1=products.find(p=>p.type==='patrones');
-  const p2=products.find(p=>p.type==='kits');
-  const p3=products.find(p=>p.type==='patrones'&&p.id!==(p1&&p1.id));
-  if(p1)document.getElementById('hp1').textContent=f(p1.price);
-  if(p2)document.getElementById('hp2').textContent=f(p2.price);
-  if(p3)document.getElementById('hp3').textContent=f(p3.price);
-}
-
-function setLang(l){
-  lang=l;
-  document.getElementById('btn-es').classList.toggle('active',l==='es');
-  document.getElementById('btn-en').classList.toggle('active',l==='en');
-  document.querySelectorAll('[data-'+l+']').forEach(el=>{
-    const val=el.dataset[l];
-    if(val&&!val.includes('<'))el.textContent=val;
-    else if(val)el.innerHTML=val;
-  });
-  applyHero();
-  renderGrid();
-}
-
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2700);}
-
-// ── INIT ──
-applyHero();
-renderGrid();
-updateCartBadge();
-
-// Listen for changes from admin (same tab via storage events won't fire, but cross-tab will)
-window.addEventListener('storage', e=>{
-  if(e.key===PRODS_KEY||e.key===HERO_KEY){applyHero();renderGrid();}
-  if(e.key===CART_KEY){updateCartBadge();}
-});
+renderAll();
 </script>
 </body>
 </html>
