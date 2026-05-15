@@ -522,6 +522,22 @@ let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 
+function imgHtml(img){
+  if(!img)return '🧸';
+  if(img.startsWith('yarn:')){
+    const hex=img.slice(5);
+    return `<div style="width:100%;height:100%;background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};border-radius:inherit;"></div>`;
+  }
+  return `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`;
+}
+
+function itemCat(item){
+  if(item.img&&item.img.startsWith('yarn:'))return 'Estambre · Premier Yarns Basix';
+  if(typeof item.id==='string'&&item.id.endsWith('-kit'))return 'Kit Estambres · KroshaPatterns';
+  if(typeof item.id==='string'&&item.id.endsWith('-eyes'))return 'Accesorio · KroshaPatterns';
+  return 'Patrón · KroshaPatterns';
+}
+
 function renderCart(){
   const cart=getCartItems();
   const container=document.getElementById('cart-items');
@@ -537,10 +553,10 @@ function renderCart(){
   container.innerHTML=cart.map((item,i)=>`
     <div class="cart-item" data-id="${item.id}">
       <div class="ci-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;border-radius:14px;">
-        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+        ${imgHtml(item.img)}
       </div>
       <div class="ci-body">
-        <div class="ci-cat">Patrón · KroshaPatterns</div>
+        <div class="ci-cat">${itemCat(item)}</div>
         <div class="ci-name">${item.title}</div>
         <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
         <div class="ci-actions">
@@ -581,7 +597,7 @@ function renderMiniSummary(cart,sub){
   if(mi)mi.innerHTML=cart.map((item,i)=>`
     <div class="mini-item">
       <div class="mini-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;">
-        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+        ${imgHtml(item.img)}
       </div>
       <div class="mini-info"><h4>${item.title}</h4><p>x${item.qty}</p></div>
       <span class="mini-price">${f(item.price*item.qty)}</span>
@@ -1021,6 +1037,7 @@ function hasPhysicalItems(){
   return cart.some(i=>{
     const t=String(i.id);
     return t.includes('-kit')||t.includes('-eyes')||
+      (i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('kit')||
       i.title.toLowerCase().includes('estambre')||
       i.title.toLowerCase().includes('hilo')||
