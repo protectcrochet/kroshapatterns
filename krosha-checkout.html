@@ -27,6 +27,13 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .lang-btn{padding:5px 13px;border-radius:30px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);transition:all .2s;}
 .lang-btn.active{background:var(--pink-dark);color:#fff;}
 .cur-sel{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:30px;padding:6px 13px;font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;}
+.btn-cart-nav{background:var(--pink-dark);color:#fff;border:none;padding:9px 18px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Nunito',sans-serif;transition:background .2s;}
+.btn-cart-nav:hover{background:var(--pink-text);}
+.cn{background:rgba(255,255,255,.3);width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.btn-back{background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:12px 22px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;display:flex;align-items:center;gap:7px;margin-bottom:16px;}
+.btn-back:hover{background:var(--pink-mid);}
+.ship-fields{margin-top:12px;display:none;}
+.ship-fields.visible{display:block;}
 
 /* STEPS */
 .steps-bar{background:var(--white);border-bottom:1.5px solid var(--border);padding:16px 2rem;}
@@ -213,7 +220,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <nav class="nav-bar">
   <div class="nav-ann" id="nav-ann">🎀 Patrones digitales al instante · Pago 100% seguro</div>
   <div class="nav-inner">
-    <a href="krosha-opcion-B.html" class="logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="logo">🎀 KroshaPatterns</a>
     <div class="nav-right">
       <div class="lang-toggle">
         <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
@@ -239,6 +246,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
+      <button class="btn-cart-nav" onclick="showCartPage()">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="nav-cn">0</span></button>
     </div>
   </div>
 </nav>
@@ -296,6 +304,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <div class="page" id="page-checkout">
   <div class="checkout-layout">
     <div>
+      <button class="btn-back" onclick="goBackToCart()">← <span data-es="Regresar al carrito" data-en="Back to cart">Regresar al carrito</span></button>
       <div class="checkout-form">
 
         <!-- Contact -->
@@ -359,6 +368,38 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
                 <option value="GB">🇬🇧 Reino Unido</option>
                 <option value="OTHER">🌍 Otro país</option>
               </select>
+            </div>
+          </div>
+          <!-- ADDRESS FIELDS — shown only for physical items -->
+          <div id="ship-fields" class="ship-fields">
+            <div style="background:var(--blush);border-radius:12px;padding:13px 15px;border:1px solid var(--border);margin-bottom:12px;font-size:12.5px;color:var(--text-mid);">
+              📦 <strong>Envío físico detectado</strong> — Por favor ingresa tu dirección de entrega.
+            </div>
+            <div class="form-grid full" style="margin-bottom:12px;">
+              <div class="field">
+                <label data-es="CALLE Y NÚMERO" data-en="STREET & NUMBER">CALLE Y NÚMERO</label>
+                <input type="text" id="ship-street" placeholder="Av. Reforma 123">
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="field">
+                <label data-es="COLONIA / BARRIO" data-en="NEIGHBORHOOD">COLONIA / BARRIO</label>
+                <input type="text" id="ship-colonia" placeholder="Centro">
+              </div>
+              <div class="field">
+                <label data-es="CIUDAD" data-en="CITY">CIUDAD</label>
+                <input type="text" id="ship-city" placeholder="Ciudad de México">
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label data-es="ESTADO / PROVINCIA" data-en="STATE / PROVINCE">ESTADO / PROVINCIA</label>
+                <input type="text" id="ship-state" placeholder="CDMX">
+              </div>
+              <div class="field">
+                <label data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
+                <input type="text" id="ship-zip" placeholder="06600" maxlength="10">
+              </div>
             </div>
           </div>
           <!-- SHIPPING INFO — shown only for physical items -->
@@ -628,12 +669,12 @@ function chQty(btn,d,id){
   const item=cart.find(i=>i.id===id);
   if(!item)return;
   item.qty=Math.max(1,item.qty+d);
-  saveCart(cart);renderCart();
+  saveCart(cart);renderCart();updateNavCart();
 }
 
 function removeItem(id){
   const cart=getCartItems().filter(i=>i.id!==id);
-  saveCart(cart);renderCart();
+  saveCart(cart);renderCart();updateNavCart();
   showToast(lang==='es'?'🗑 Eliminado':'🗑 Removed');
 }
 
@@ -651,7 +692,29 @@ function goToCheckout(){
   setStep(2);
   document.getElementById('page-cart').classList.remove('active');
   document.getElementById('page-checkout').classList.add('active');
+  updateShipping();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBackToCart(){
+  setStep(1);
+  document.getElementById('page-checkout').classList.remove('active');
+  document.getElementById('page-cart').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showCartPage(){
+  // If on checkout or confirm page, go back to cart
+  if(!document.getElementById('page-cart').classList.contains('active')){
+    goBackToCart();
+  }
+}
+
+function updateNavCart(){
+  const cart=getCartItems();
+  const count=cart.reduce((a,i)=>a+i.qty,0);
+  const el=document.getElementById('nav-cn');
+  if(el)el.textContent=count;
 }
 
 function selPay(el,method){
@@ -987,6 +1050,18 @@ async function confirmOrder(){
   const name=document.getElementById('fname').value||'Cliente';
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
 
+  // Validate shipping address if physical items
+  if(hasPhysicalItems()){
+    const street=document.getElementById('ship-street')?.value?.trim();
+    const city=document.getElementById('ship-city')?.value?.trim();
+    const zip=document.getElementById('ship-zip')?.value?.trim();
+    if(!street||!city||!zip){
+      showToast(lang==='es'?'⚠️ Ingresa tu dirección de envío':'⚠️ Enter your shipping address');
+      document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
+
   const btn=document.getElementById('confirm-btn');
   btn.textContent=lang==='es'?'Procesando...':'Processing...';
   btn.disabled=true;btn.style.opacity='.7';
@@ -1046,8 +1121,11 @@ function hasPhysicalItems(){
 }
 function updateShipping(){
   const box=document.getElementById('shipping-info-box');
+  const shipFields=document.getElementById('ship-fields');
+  const isPhysical=hasPhysicalItems();
+  if(shipFields)shipFields.classList.toggle('visible',isPhysical);
   if(!box)return;
-  if(!hasPhysicalItems()){box.style.display='none';return;}
+  if(!isPhysical){box.style.display='none';return;}
   const country=document.getElementById('country-sel')?.value||'MX';
   const isMX=country==='MX';
   const isCentroAm=['GT','HN','SV','NI','CR','PA','CU'].includes(country);
@@ -1104,8 +1182,9 @@ async function detectCurrencyFromIP(){
 }
 
 // init
-setStep(2);
+setStep(1);
 renderCart();
+updateNavCart();
 checkReturnStatus();
 detectCurrencyFromIP();
 </script>
