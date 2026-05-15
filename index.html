@@ -53,7 +53,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .hc-img{overflow:hidden;}
 .hc:nth-child(1) .hc-img{height:280px;}
 .hc:nth-child(2) .hc-img,.hc:nth-child(3) .hc-img{height:130px;}
-.hc-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
+.hc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .hc:hover .hc-img img{transform:scale(1.05);}
 .hc-body{padding:10px 14px 14px;}
 .hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
@@ -81,7 +81,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .pcard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
 .pcard.hidden{display:none;}
 .pcard-img{height:200px;overflow:hidden;position:relative;background:var(--pink-mid);}
-.pcard-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
+.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .pcard:hover .pcard-img img{transform:scale(1.06);}
 .pbadge{position:absolute;top:10px;left:10px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
 .pbadge.kit{background:#60A090;}
@@ -104,7 +104,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;}
 .modal-gallery{background:var(--pink-mid);border-radius:24px 0 0 24px;overflow:hidden;min-height:360px;display:flex;flex-direction:column;}
 .mgallery-main{flex:1;overflow:hidden;}
-.mgallery-main img{width:100%;height:100%;object-fit:cover;object-position:top center;min-height:300px;}
+.mgallery-main img{width:100%;height:100%;object-fit:cover;min-height:300px;}
 .mgallery-thumbs{display:flex;gap:6px;padding:8px;background:rgba(255,255,255,.5);}
 .mthumb{width:52px;height:52px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0;}
 .mthumb.active{border-color:var(--pink-dark);}
@@ -426,12 +426,12 @@ function getProducts(){
       images:p.images||[],
       desc:p.descEs||p.desc||'',
       descEn:p.descEn||'',
-      yarnColors:p.yarnColors||null,
+      yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
     }));
   }
-  return defaultProducts;
+  return defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
 }
 
 // ── LOAD HERO from localStorage ──
@@ -497,6 +497,39 @@ const defaultProducts=[
   {id:38,handle:'bunny-pattern',title:'Bunny Crochet Pattern',titleEn:'Bunny Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/5a2a6f3d-0151-4168-8cde-d86e39a8e914.jpg?v=1700528072'],desc:'Patrón de crochet PDF. Conejito. Disponible en español e inglés. 35cm.'},
   {id:39,handle:'toby-puppy',title:'Toby Puppy Crochet Pattern',titleEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061'],desc:'Patrón de crochet PDF. Perrito Toby. Disponible en español e inglés. 35cm.'},
 ];
+
+// Colores detectados por personaje (Premier Yarns Basix)
+// Pendientes de confirmar marcados con '' — se asignan desde admin
+const defaultYarnColors={
+  1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},       // Candy
+  3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},           // Graduadita 35cm
+  4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Mini Rapunzel
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lavender',rosas:'Coral',detalles:'Gold'},     // Sirenita
+  9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Rapunzel 35cm
+  10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},         // Maléfica
+  11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},             // Reina
+  13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},           // Mini Ramo 25cm
+  14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},          // Valiente/Mérida
+  15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},          // Bella/Belle
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lavender',rosas:'',detalles:'Blue'},  // Emily (pendiente confirmar)
+  18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},      // Sally
+  19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca Ramo 35cm
+  21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},                // Stitch
+  22:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},          // Graduación 45cm
+  23:{piel:'Almond',cabello:'Black',vestido:'Coral',forro:'White',rosas:'Rose',detalles:'Gold'},          // Frida Kahlo
+  24:{piel:'Almond',cabello:'Gold',vestido:'White',forro:'Sky Blue',rosas:'Rose',detalles:'Gold'},        // Sailor Moon
+  26:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Black'},           // Gatita (pendiente confirmar)
+  27:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca 65cm
+  28:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'',detalles:'Gold'},               // Virgen
+  31:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},         // Ramo Rapunzel
+  32:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Blush',detalles:'Hot Pink'},       // Conejita Mia XL
+  33:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Princesa
+  35:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Black'},                        // Panda
+  36:{piel:'Coral',cabello:'Coral',vestido:'',forro:'White',rosas:'',detalles:'Black'},                   // Loki Fox
+  37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},                        // Jirafa
+  38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},                        // Conejito
+  39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},                        // Toby Puppy
+};
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Hilo / Estambre':t==='amigurumis'?'Amigurumi':'Patrón Digital';}
