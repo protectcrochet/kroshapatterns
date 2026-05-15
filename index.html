@@ -53,7 +53,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .hc-img{overflow:hidden;}
 .hc:nth-child(1) .hc-img{height:280px;}
 .hc:nth-child(2) .hc-img,.hc:nth-child(3) .hc-img{height:130px;}
-.hc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.hc-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
 .hc:hover .hc-img img{transform:scale(1.05);}
 .hc-body{padding:10px 14px 14px;}
 .hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
@@ -81,7 +81,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .pcard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
 .pcard.hidden{display:none;}
 .pcard-img{height:200px;overflow:hidden;position:relative;background:var(--pink-mid);}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.pcard-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
 .pcard:hover .pcard-img img{transform:scale(1.06);}
 .pbadge{position:absolute;top:10px;left:10px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
 .pbadge.kit{background:#60A090;}
@@ -104,7 +104,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;}
 .modal-gallery{background:var(--pink-mid);border-radius:24px 0 0 24px;overflow:hidden;min-height:360px;display:flex;flex-direction:column;}
 .mgallery-main{flex:1;overflow:hidden;}
-.mgallery-main img{width:100%;height:100%;object-fit:cover;min-height:300px;}
+.mgallery-main img{width:100%;height:100%;object-fit:cover;object-position:top center;min-height:300px;}
 .mgallery-thumbs{display:flex;gap:6px;padding:8px;background:rgba(255,255,255,.5);}
 .mthumb{width:52px;height:52px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0;}
 .mthumb.active{border-color:var(--pink-dark);}
@@ -122,8 +122,31 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .btn-buy:hover{background:var(--pink-text);}
 .btn-add-m{width:100%;background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:13px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;margin-bottom:10px;}
 .btn-add-m:hover{background:var(--pink-mid);}
-.pay-pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
-.ppill{background:var(--pink-bg);border:1.5px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--text-mid);font-weight:600;}
+.pay-pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.ppill{display:inline-flex;align-items:center;gap:5px;background:var(--pink-bg);border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--text-mid);font-weight:600;}
+.ppill-stripe{background:#635BFF;color:#fff;border-color:#635BFF;font-weight:800;font-family:system-ui,sans-serif;letter-spacing:-.3px;}
+.ppill-paypal{background:#fff;border:1.5px solid #dde;font-weight:900;font-family:system-ui,sans-serif;}
+.ppill-mp{background:#009EE3;color:#fff;border-color:#009EE3;font-size:10px;font-weight:700;}
+/* YARN COLORS */
+.yarn-section{background:var(--pink-bg);border-radius:12px;padding:12px 14px;border:1px solid var(--border);margin-bottom:14px;}
+.yarn-section-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--pink-dark);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.yarn-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.yarn-chip{display:flex;align-items:center;gap:8px;background:var(--white);border-radius:8px;padding:7px 9px;border:1px solid var(--border);}
+.yarn-swatch{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;}
+.yarn-chip-label{font-size:10px;color:var(--text-light);font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.yarn-chip-name{font-size:12.5px;font-weight:700;color:var(--text);}
+/* COMBO ADD-ONS */
+.addon-section{margin-bottom:14px;}
+.addon-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:8px;}
+.addon-row{display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color .2s;margin-bottom:6px;}
+.addon-row:hover{border-color:var(--pink-deep);}
+.addon-row.checked{border-color:var(--pink-dark);background:var(--blush);}
+.addon-cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;}
+.addon-row.checked .addon-cb{background:var(--pink-dark);border-color:var(--pink-dark);color:#fff;font-size:11px;}
+.addon-info{flex:1;}
+.addon-info strong{font-size:13px;color:var(--text);display:block;}
+.addon-info span{font-size:11px;color:var(--text-light);}
+.addon-price{font-size:13px;font-weight:700;color:var(--pink-dark);}
 
 /* FOOTER */
 footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
@@ -178,14 +201,18 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
           <div class="detail-chip"><div class="dl" data-es="NIVEL" data-en="LEVEL">NIVEL</div><div class="dv" id="md-level"></div></div>
           <div class="detail-chip"><div class="dl" data-es="ENTREGA" data-en="ACCESS">ENTREGA</div><div class="dv" data-es="ProtectCrochet" data-en="ProtectCrochet">ProtectCrochet</div></div>
         </div>
+        <!-- YARN COLORS -->
+        <div id="m-yarn-section" style="display:none;"></div>
+        <!-- ADDONS / COMBO -->
+        <div id="m-addon-section" style="display:none;"></div>
         <div class="buy-price" id="mbuy-price"></div>
         <div class="buy-price-sub" data-es="Precio en tu moneda · Acceso vía ProtectCrochet" data-en="Price in your currency · Access via ProtectCrochet">Precio en tu moneda · Acceso vía ProtectCrochet</div>
         <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
         <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
         <div class="pay-pills">
-          <span class="ppill">💳 Stripe</span>
-          <span class="ppill">🅿️ PayPal</span>
-          <span class="ppill">🏪 Mercado Pago</span>
+          <span class="ppill ppill-stripe">stripe</span>
+          <span class="ppill ppill-paypal"><span style="color:#003087">Pay</span><span style="color:#009cde">Pal</span></span>
+          <span class="ppill ppill-mp">Mercado Pago</span>
         </div>
       </div>
     </div>
@@ -215,6 +242,18 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
         <option value="DOP">🇩🇴 DOP</option>
         <option value="CAD">🇨🇦 CAD</option>
         <option value="GBP">🇬🇧 GBP</option>
+        <option value="COP">🇨🇴 COP</option>
+        <option value="ARS">🇦🇷 ARS</option>
+        <option value="BRL">🇧🇷 BRL</option>
+        <option value="CLP">🇨🇱 CLP</option>
+        <option value="PEN">🇵🇪 PEN</option>
+        <option value="UYU">🇺🇾 UYU</option>
+        <option value="BOB">🇧🇴 BOB</option>
+        <option value="PYG">🇵🇾 PYG</option>
+        <option value="GTQ">🇬🇹 GTQ</option>
+        <option value="HNL">🇭🇳 HNL</option>
+        <option value="NIO">🇳🇮 NIO</option>
+        <option value="CRC">🇨🇷 CRC</option>
       </select>
       <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
     </div>
@@ -313,7 +352,11 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
   </div>
   <div class="foot-bottom">
     <span>© 2026 KroshaPatterns · kroshapatterns.com</span>
-    <span>Stripe · PayPal · Mercado Pago</span>
+    <span style="display:flex;gap:8px;align-items:center;">
+      <span style="background:#635BFF;color:#fff;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:800;font-family:system-ui,sans-serif;">stripe</span>
+      <span style="background:#fff;border:1px solid #dde;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:900;font-family:system-ui,sans-serif;"><span style="color:#003087">Pay</span><span style="color:#009cde">Pal</span></span>
+      <span style="background:#009EE3;color:#fff;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:700;">Mercado Pago</span>
+    </span>
   </div>
 </footer>
 
@@ -323,9 +366,42 @@ const PRODS_KEY='krosha_products';
 const HERO_KEY='krosha_hero';
 const CART_KEY='krosha_cart';
 
-const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041};
-const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
+const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,
+  COP:210,ARS:49,BRL:0.27,CLP:49,PEN:0.19,UYU:2.05,BOB:0.36,
+  PYG:385,GTQ:0.40,HNL:1.28,NIO:1.90,CRC:26.9};
+const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
+  COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
+  BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
+const countryToCurrency={
+  MX:'MXN',DO:'DOP',US:'USD',CA:'CAD',GB:'GBP',
+  ES:'EUR',DE:'EUR',FR:'EUR',IT:'EUR',NL:'EUR',PT:'EUR',
+  CO:'COP',AR:'ARS',BR:'BRL',CL:'CLP',PE:'PEN',
+  UY:'UYU',BO:'BOB',PY:'PYG',GT:'GTQ',HN:'HNL',
+  NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
+};
+const YARN_COLORS=[
+  {name:'White',hex:'#FFFFFF'},{name:'Cream',hex:'#FFF8DC'},{name:'Ecru',hex:'#F5F0E8'},
+  {name:'Almond',hex:'#DEB887'},{name:'Sand',hex:'#E8D5B0'},{name:'Wheat',hex:'#F5DEB3'},
+  {name:'Camel',hex:'#C19A6B'},{name:'Gold',hex:'#FFD700'},{name:'Mustard',hex:'#FFDB58'},
+  {name:'Yellow',hex:'#FFF176'},{name:'Sunshine',hex:'#FFE600'},{name:'Orange',hex:'#FF8C00'},
+  {name:'Coral',hex:'#FF7F50'},{name:'Peach',hex:'#FFDAB9'},{name:'Salmon',hex:'#FA8072'},
+  {name:'Red',hex:'#DC143C'},{name:'Crimson',hex:'#B22222'},{name:'Burgundy',hex:'#800020'},
+  {name:'Blush',hex:'#FFB6C1'},{name:'Pink',hex:'#FFC0CB'},{name:'Hot Pink',hex:'#FF69B4'},
+  {name:'Rose',hex:'#FF007F'},{name:'Fuchsia',hex:'#FF00FF'},{name:'Mauve',hex:'#D4869E'},
+  {name:'Lilac',hex:'#C8A2C8'},{name:'Lavender',hex:'#E6E6FA'},{name:'Purple',hex:'#800080'},
+  {name:'Violet',hex:'#8B00FF'},{name:'Plum',hex:'#DDA0DD'},{name:'Navy',hex:'#001F5B'},
+  {name:'Royal Blue',hex:'#4169E1'},{name:'Blue',hex:'#2962FF'},{name:'Sky Blue',hex:'#87CEEB'},
+  {name:'Powder Blue',hex:'#B0E0E6'},{name:'Denim',hex:'#1560BD'},{name:'Teal',hex:'#008080'},
+  {name:'Turquoise',hex:'#40E0D0'},{name:'Aqua',hex:'#00CED1'},{name:'Mint',hex:'#98FF98'},
+  {name:'Sage',hex:'#BCB88A'},{name:'Olive',hex:'#808000'},{name:'Lime',hex:'#32CD32'},
+  {name:'Green',hex:'#008000'},{name:'Emerald',hex:'#50C878'},{name:'Forest',hex:'#228B22'},
+  {name:'Tan',hex:'#D2B48C'},{name:'Brown',hex:'#8B4513'},{name:'Chocolate',hex:'#7B3F00'},
+  {name:'Espresso',hex:'#3C2005'},{name:'Charcoal',hex:'#36454F'},{name:'Grey',hex:'#9E9E9E'},
+  {name:'Silver',hex:'#C0C0C0'},{name:'Black',hex:'#1A1A1A'},
+];
+function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 let cur='MXN', lang='es', curProd=null;
+let addonKit=false, addonEyes=false;
 
 // ── CART (persists across pages) ──
 function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
@@ -350,6 +426,9 @@ function getProducts(){
       images:p.images||[],
       desc:p.descEs||p.desc||'',
       descEn:p.descEn||'',
+      yarnColors:p.yarnColors||null,
+      kitPrice:p.kitPrice||0,
+      eyesPrice:p.eyesPrice||0,
     }));
   }
   return defaultProducts;
@@ -459,6 +538,7 @@ function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
+  addonKit=false; addonEyes=false;
   document.getElementById('mimg-main').src=curProd.images[0]||'';
   document.getElementById('mimg-main').alt=curProd.title;
   document.getElementById('mimg-thumbs').innerHTML=(curProd.images||[]).map((img,i)=>
@@ -469,10 +549,85 @@ function openM(id){
   document.getElementById('mdesc').textContent=lang==='en'&&curProd.descEn?curProd.descEn:curProd.desc;
   document.getElementById('md-price').textContent=f(curProd.price);
   document.getElementById('md-level').textContent=curProd.skill||'—';
-  document.getElementById('mbuy-price').textContent=f(curProd.price);
-  document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(curProd.price)}`;
+
+  // Yarn colors section
+  const yarnSec=document.getElementById('m-yarn-section');
+  const yc=curProd.yarnColors;
+  if(yarnSec&&yc&&Object.values(yc).some(v=>v)){
+    const parts=[
+      {key:'piel',label:lang==='es'?'Piel':'Skin'},
+      {key:'cabello',label:lang==='es'?'Cabello':'Hair'},
+      {key:'vestido',label:lang==='es'?'Vestido':'Dress'},
+      {key:'forro',label:lang==='es'?'Forro':'Lining'},
+      {key:'rosas',label:lang==='es'?'Rosas':'Roses'},
+      {key:'detalles',label:lang==='es'?'Detalles':'Details'},
+    ];
+    const chips=parts.filter(p=>yc[p.key]).map(p=>`
+      <div class="yarn-chip">
+        <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
+        <div><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
+      </div>`).join('');
+    yarnSec.innerHTML=`<div class="yarn-section">
+      <div class="yarn-section-title">🧶 ${lang==='es'?'Colores Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
+      <div class="yarn-grid">${chips}</div>
+    </div>`;
+    yarnSec.style.display='block';
+  } else if(yarnSec){yarnSec.style.display='none';}
+
+  // Add-on / combo section
+  const addonSec=document.getElementById('m-addon-section');
+  if(addonSec&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
+    let html=`<div class="addon-section"><div class="addon-title">🎁 ${lang==='es'?'Completa tu kit':'Build your kit'}</div>`;
+    if(curProd.kitPrice>0){
+      html+=`<div class="addon-row" id="addon-kit" onclick="toggleAddon('kit')">
+        <div class="addon-cb" id="cb-kit"></div>
+        <div class="addon-info">
+          <strong>🧶 ${lang==='es'?'Kit de estambres':'Yarn Kit'}</strong>
+          <span>${lang==='es'?'Colores Premier Yarns para este patrón':'Premier Yarns colors for this pattern'}</span>
+        </div>
+        <span class="addon-price">+${f(curProd.kitPrice)}</span>
+      </div>`;
+    }
+    if(curProd.eyesPrice>0){
+      html+=`<div class="addon-row" id="addon-eyes" onclick="toggleAddon('eyes')">
+        <div class="addon-cb" id="cb-eyes"></div>
+        <div class="addon-info">
+          <strong>👀 ${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
+          <span>10mm · ${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
+        </div>
+        <span class="addon-price">+${f(curProd.eyesPrice)}</span>
+      </div>`;
+    }
+    html+='</div>';
+    addonSec.innerHTML=html;
+    addonSec.style.display='block';
+  } else if(addonSec){addonSec.style.display='none';}
+
+  updateModalPrice();
   document.getElementById('mbtn-add').textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   document.getElementById('ov').classList.add('open');
+}
+
+function toggleAddon(type){
+  if(type==='kit'){
+    addonKit=!addonKit;
+    document.getElementById('addon-kit').classList.toggle('checked',addonKit);
+    document.getElementById('cb-kit').textContent=addonKit?'✓':'';
+  } else {
+    addonEyes=!addonEyes;
+    document.getElementById('addon-eyes').classList.toggle('checked',addonEyes);
+    document.getElementById('cb-eyes').textContent=addonEyes?'✓':'';
+  }
+  updateModalPrice();
+}
+
+function updateModalPrice(){
+  if(!curProd)return;
+  let total=curProd.price;
+  if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
+  if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
+  document.getElementById('mbuy-price').textContent=f(total);
+  document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(total)}`;
 }
 
 function switchImg(el,src){
@@ -499,6 +654,16 @@ function addToCart(){
   const cart=getCart();
   const existing=cart.find(i=>i.id===curProd.id);
   if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1});
+  if(addonKit&&curProd.kitPrice){
+    const kitId=`${curProd.id}-kit`;
+    const ekit=cart.find(i=>i.id===kitId);
+    if(ekit)ekit.qty++;else cart.push({id:kitId,title:`Kit Estambres — ${curProd.title}`,price:curProd.kitPrice,img:curProd.images[0]||'',qty:1});
+  }
+  if(addonEyes&&curProd.eyesPrice){
+    const eyesId=`${curProd.id}-eyes`;
+    const eeyes=cart.find(i=>i.id===eyesId);
+    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad 10mm`,price:curProd.eyesPrice,img:'',qty:1});
+  }
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
 }
@@ -542,10 +707,28 @@ function setLang(l){
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2700);}
 
+// ── IP CURRENCY DETECTION ──
+async function detectCurrencyFromIP(){
+  try{
+    const r=await fetch('https://ip-api.com/json/?fields=countryCode');
+    const d=await r.json();
+    if(d.countryCode&&countryToCurrency[d.countryCode]){
+      const detected=countryToCurrency[d.countryCode];
+      if(rates[detected]){
+        cur=detected;
+        const sel=document.getElementById('cur');
+        if(sel)sel.value=cur;
+        renderGrid();setC();
+      }
+    }
+  }catch(e){}
+}
+
 // ── INIT ──
 applyHero();
 renderGrid();
 updateCartBadge();
+detectCurrencyFromIP();
 
 // Listen for changes from admin (same tab via storage events won't fire, but cross-tab will)
 window.addEventListener('storage', e=>{

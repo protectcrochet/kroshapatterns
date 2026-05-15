@@ -542,6 +542,46 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
     </div>
+    <!-- YARN COLORS SECTION -->
+    <div style="margin-top:18px;background:var(--pink-bg);border-radius:12px;padding:16px;border:1px solid var(--border);">
+      <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:14px;">🧶 Colores de Estambre — Premier Yarns Basix</div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Piel / Skin</label>
+          <select id="pf-yarn-piel"><option value="">— Sin color —</option></select>
+        </div>
+        <div class="field">
+          <label>Cabello / Hair</label>
+          <select id="pf-yarn-cabello"><option value="">— Sin color —</option></select>
+        </div>
+        <div class="field">
+          <label>Vestido / Dress</label>
+          <select id="pf-yarn-vestido"><option value="">— Sin color —</option></select>
+        </div>
+        <div class="field">
+          <label>Forro / Lining</label>
+          <select id="pf-yarn-forro"><option value="">— Sin color —</option></select>
+        </div>
+        <div class="field">
+          <label>Rosas / Roses</label>
+          <select id="pf-yarn-rosas"><option value="">— Sin color —</option></select>
+        </div>
+        <div class="field">
+          <label>Detalles / Details</label>
+          <select id="pf-yarn-detalles"><option value="">— Sin color —</option></select>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:12px;">
+        <div class="field">
+          <label>Precio Kit Estambres (MXN) <span style="font-weight:400;color:var(--text-light);">— agregar al carrito</span></label>
+          <input type="number" id="pf-kit-price" placeholder="0 = sin kit">
+        </div>
+        <div class="field">
+          <label>Precio Ojos Seguridad (MXN) <span style="font-weight:400;color:var(--text-light);">— par 10mm</span></label>
+          <input type="number" id="pf-eyes-price" placeholder="0 = sin ojos">
+        </div>
+      </div>
+    </div>
     <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
       <button class="btn btn-outline" onclick="closeProdModal()">Cancelar</button>
       <button class="btn btn-pink" onclick="saveProd()">💾 Guardar producto</button>
@@ -650,6 +690,26 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 </div>
 
 <script>
+// ── YARN COLORS ──
+const YARN_COLORS=[
+  'White','Cream','Ecru','Almond','Sand','Wheat','Camel',
+  'Gold','Mustard','Yellow','Sunshine','Orange','Coral','Peach','Salmon',
+  'Red','Crimson','Burgundy','Wine','Blush','Pink','Hot Pink','Rose',
+  'Fuchsia','Mauve','Lilac','Lavender','Purple','Violet','Plum',
+  'Navy','Royal Blue','Blue','Sky Blue','Powder Blue','Denim',
+  'Teal','Turquoise','Aqua','Mint','Sage','Olive','Lime',
+  'Green','Emerald','Forest','Hunter',
+  'Tan','Brown','Chocolate','Espresso',
+  'Charcoal','Grey','Silver','Black',
+];
+const YARN_COLOR_OPT=YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
+function fillYarnSelects(){
+  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.options.length<=1) el.insertAdjacentHTML('beforeend',YARN_COLOR_OPT);
+  });
+}
+
 // ── CONSTANTS ──
 const ADMIN_PWD_KEY='krosha_admin_pwd';
 const PRODS_KEY='krosha_products';
@@ -799,16 +859,19 @@ function filterProdsTable(search,type){
 function typeLabel(t){return t==='patrones'?'Patrón':t==='kits'?'Kit':t==='hilo'?'Hilo':'Amigurumi';}
 
 function openProdModal(id){
+  fillYarnSelects();
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
+  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
   document.getElementById('prod-modal').classList.add('open');
 }
 function editProd(id){
+  fillYarnSelects();
   const p=getProds().find(x=>x.id===id);if(!p)return;
   document.getElementById('prod-edit-id').value=id;
   document.getElementById('prod-modal-title').textContent='Editar producto';
@@ -820,6 +883,12 @@ function editProd(id){
   document.getElementById('pf-status').value=p.status||'active';
   document.getElementById('pf-desc-es').value=p.descEs||'';
   document.getElementById('pf-desc-en').value=p.descEn||'';
+  document.getElementById('pf-kit-price').value=p.kitPrice||'';
+  document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
+  const yc=p.yarnColors||{};
+  ['piel','cabello','vestido','forro','rosas','detalles'].forEach(k=>{
+    const el=document.getElementById(`pf-yarn-${k}`);if(el)el.value=yc[k]||'';
+  });
   (p.images||[]).forEach((url,i)=>{
     const inp=document.getElementById(`pf-img${i+1}`);
     const prev=document.getElementById(`img-prev-${i+1}`);
@@ -831,6 +900,7 @@ function closeProdModal(){document.getElementById('prod-modal').classList.remove
 function saveProd(){
   const editId=document.getElementById('prod-edit-id').value;
   const imgs=[document.getElementById('pf-img1').value,document.getElementById('pf-img2').value,document.getElementById('pf-img3').value,document.getElementById('pf-img4').value].filter(Boolean);
+  const getYarn=k=>{const el=document.getElementById(`pf-yarn-${k}`);return el?el.value:'';};
   const prod={
     id:editId?parseInt(editId):Date.now(),
     nameEs:document.getElementById('pf-name-es').value,
@@ -842,6 +912,12 @@ function saveProd(){
     descEs:document.getElementById('pf-desc-es').value,
     descEn:document.getElementById('pf-desc-en').value,
     images:imgs,
+    kitPrice:parseFloat(document.getElementById('pf-kit-price').value)||0,
+    eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
+    yarnColors:{
+      piel:getYarn('piel'),cabello:getYarn('cabello'),vestido:getYarn('vestido'),
+      forro:getYarn('forro'),rosas:getYarn('rosas'),detalles:getYarn('detalles'),
+    },
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
   let prods=getProds();
