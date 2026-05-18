@@ -475,15 +475,15 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <h3 data-es="Detalles del pedido" data-en="Order details">Detalles del pedido</h3>
       <div class="confirm-row">
         <span class="label" data-es="Número de pedido" data-en="Order number">Número de pedido</span>
-        <span class="val">#KP-2026-0842</span>
+        <span class="val" id="confirm-order-ref">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Productos" data-en="Products">Productos</span>
-        <span class="val" data-es="3 patrones + estambres" data-en="3 patterns + yarns">3 patrones + estambres</span>
+        <span class="val" id="confirm-items-label">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Total pagado" data-en="Total paid">Total pagado</span>
-        <span class="val" id="confirm-total" style="color:var(--pink-dark);">$870 MXN</span>
+        <span class="val" id="confirm-total" style="color:var(--pink-dark);">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Método de pago" data-en="Payment method">Método de pago</span>
@@ -515,7 +515,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 
 <footer>
   <div class="foot-inner">
-    <a href="krosha-opcion-B.html" class="foot-logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="foot-logo">🎀 KroshaPatterns</a>
     <div class="foot-copy" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       © 2026 kroshapatterns.com ·
       <span style="background:#635BFF;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:800;font-family:system-ui,sans-serif;">stripe</span>
@@ -778,8 +778,11 @@ function mountStripeElement(){
 function loadPayPalBtn(){
   const existing=document.querySelector('script[src*="paypal.com/sdk"]');
   if(existing)existing.remove();
+  // PayPal only supports certain currencies; fall back to USD for unsupported ones
+  const ppSupported=['AUD','BRL','CAD','CZK','DKK','EUR','HKD','HUF','ILS','JPY','MYR','MXN','TWD','NZD','NOK','PHP','PLN','GBP','SGD','SEK','CHF','THB','USD'];
+  const ppCur=ppSupported.includes(cur)?cur:'USD';
   const s=document.createElement('script');
-  s.src=`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=MXN&locale=${lang==='es'?'es_MX':'en_US'}`;
+  s.src=`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${ppCur}&locale=${lang==='es'?'es_MX':'en_US'}`;
   s.onload=()=>renderPayPalBtn();
   document.head.appendChild(s);
 }
@@ -892,8 +895,8 @@ async function processStripe(email,name,btn){
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
     } else if(paymentIntent&&paymentIntent.status==='succeeded'){
-      await sendConfirmationEmail(email,name,items,total,'Stripe');
-      showSuccess('💳 Stripe');
+      const ref=await sendConfirmationEmail(email,name,items,total,'Stripe');
+      showSuccess('💳 Stripe',ref,items,total);
     }
   }catch(e){
     const errEl=document.getElementById('stripe-error');
@@ -921,15 +924,17 @@ async function processMercadoPago(email,name,btn){
     const res=await fetch('/api/create-mp-preference',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:'MXN'}),
+      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:cur}),
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error con Mercado Pago');
 
-    // Store email for return
+    // Store data for return — cart items also saved so they survive redirect
     localStorage.setItem('krosha_pending_email',email);
     localStorage.setItem('krosha_pending_name',name);
     localStorage.setItem('krosha_pending_total',total);
+    localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
+    localStorage.setItem('krosha_pending_cur',cur);
 
     // Redirect to MP Checkout Pro — real payment page
     btn.textContent=lang==='es'?'Redirigiendo a Mercado Pago...':'Redirecting to Mercado Pago...';
@@ -945,21 +950,35 @@ async function processMercadoPago(email,name,btn){
 // ── SEND EMAIL ──
 async function sendConfirmationEmail(email,name,items,total,payMethod){
   try{
-    await fetch('/api/send-confirmation',{
+    const ref=`KP-${Date.now().toString().slice(-6)}`;
+    const r=await fetch('/api/send-confirmation',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         customerEmail:email,customerName:name,
         items,total,currency:cur,payMethod,
-        orderRef:`KP-${Date.now().toString().slice(-6)}`,
+        orderRef:ref,
       }),
     });
-  }catch(e){console.log('Email error (non-blocking):',e);}
+    const d=await r.json().catch(()=>({}));
+    return d.orderRef||ref;
+  }catch(e){
+    console.log('Email error:',e);
+    return `KP-${Date.now().toString().slice(-6)}`;
+  }
 }
 
 // ── SUCCESS ──
-function showSuccess(payMethod){
+function showSuccess(payMethod,orderRef,items,total){
   localStorage.removeItem(CART_KEY);
+  updateNavCart();
+  // Populate real confirmation data
+  const refEl=document.getElementById('confirm-order-ref');
+  if(refEl)refEl.textContent='#'+(orderRef||'—');
+  const itemsEl=document.getElementById('confirm-items-label');
+  if(itemsEl&&items)itemsEl.textContent=items.length===1?items[0].title:`${items.length} producto${items.length>1?'s':''}`;
+  const totalEl=document.getElementById('confirm-total');
+  if(totalEl&&total)totalEl.textContent=f(total);
   document.getElementById('confirm-pay').textContent=payMethod;
   setStep(3);
   document.getElementById('page-checkout').classList.remove('active');
@@ -973,21 +992,20 @@ async function checkReturnStatus(){
   const status=params.get('status');
   const method=params.get('method');
   if(status==='success'||status==='approved'){
-    // Send confirmation email with stored data
     const email=localStorage.getItem('krosha_pending_email')||'';
     const name=localStorage.getItem('krosha_pending_name')||'Cliente';
     const total=parseFloat(localStorage.getItem('krosha_pending_total')||'0');
-    const items=getCartItems();
-    if(email) await sendConfirmationEmail(email,name,items,total,method==='mp'?'Mercado Pago':'PayPal');
-    // Clear pending data
-    ['krosha_pending_email','krosha_pending_name','krosha_pending_total'].forEach(k=>localStorage.removeItem(k));
+    const savedCur=localStorage.getItem('krosha_pending_cur')||'MXN';
+    // Use saved items (cart may already be cleared after redirect)
+    const savedItems=JSON.parse(localStorage.getItem('krosha_pending_items')||'[]');
+    const items=savedItems.length?savedItems:getCartItems();
+    cur=savedCur;
+    const payLabel=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
+    let ref='';
+    if(email) ref=await sendConfirmationEmail(email,name,items,total,payLabel);
+    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur'].forEach(k=>localStorage.removeItem(k));
     setTimeout(()=>{
-      setStep(3);
-      document.getElementById('page-cart').classList.remove('active');
-      document.getElementById('page-checkout').classList.remove('active');
-      document.getElementById('page-confirm').classList.add('active');
-      document.getElementById('confirm-pay').textContent=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
-      localStorage.removeItem(CART_KEY);
+      showSuccess(payLabel,ref,items,total);
     },300);
   }
 }

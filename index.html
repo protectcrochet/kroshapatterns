@@ -230,9 +230,9 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
   <div class="nav-inner">
     <a href="#" class="logo">🎀 KroshaPatterns</a>
     <ul class="nav-links">
-      <li><a href="#patrones" data-es="Patrones" data-en="Patterns">Patrones</a></li>
-      <li><a href="#kits" data-es="Kits" data-en="Kits">Kits</a></li>
-      <li><a href="#estambres" data-es="Estambres" data-en="Yarns">Estambres</a></li>
+      <li><a href="#productos" onclick="navFilter('patrones')" data-es="Patrones" data-en="Patterns">Patrones</a></li>
+      <li><a href="#productos" onclick="navFilter('kits')" data-es="Kits" data-en="Kits">Kits</a></li>
+      <li><a href="#productos" onclick="navFilter('hilo')" data-es="Estambres" data-en="Yarns">Estambres</a></li>
       <li><a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a></li>
     </ul>
     <div class="nav-right">
@@ -273,8 +273,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
       <h1><span id="hero-t1" data-es="Tu crochet," data-en="Your crochet,">Tu crochet,</span><br><em id="hero-t2" data-es="más bonito" data-en="more beautiful" style="color:var(--pink-dark);">más bonito</em></h1>
       <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Jennyfer.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.</p>
       <div class="hero-btns">
-        <a href="#patrones" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
-        <a href="#kits" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
+        <a href="#productos" onclick="navFilter('patrones')" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
+        <a href="#productos" onclick="navFilter('kits')" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
       </div>
     </div>
     <div class="hero-imgs">
@@ -305,7 +305,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
 </div>
 
 <!-- FILTER + PRODUCTS -->
-<div id="estambres" class="filter-wrap">
+<div id="productos" class="filter-wrap">
   <h2 class="filter-title" data-es="Todos los <em>productos</em>" data-en="All <em>products</em>">Todos los <em>productos</em></h2>
   <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
   <div class="filter-tabs">
@@ -596,6 +596,17 @@ function renderGrid(filter){
 function filterProds(type,btn){
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
+  renderGrid(type);
+}
+
+function navFilter(type){
+  // Activate the matching tab and filter
+  const tabs=document.querySelectorAll('.ftab');
+  tabs.forEach(t=>{
+    t.classList.remove('active');
+    if((type==='all'&&t.textContent.trim()==='Todos')||(t.getAttribute('onclick')||'').includes(`'${type}'`))
+      t.classList.add('active');
+  });
   renderGrid(type);
 }
 
