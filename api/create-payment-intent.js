@@ -19,15 +19,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    // Supported currencies
-    const supportedCurrencies = ['mxn', 'usd', 'eur', 'dop', 'cad', 'gbp', 'ars'];
-    const cur = currency.toLowerCase();
-    if (!supportedCurrencies.includes(cur)) {
-      return res.status(400).json({ error: 'Moneda no soportada' });
-    }
+    // Currencies supported by Stripe (zero-decimal currencies need no *100)
+    const stripeSupported = ['mxn','usd','eur','dop','cad','gbp','ars','brl','cop','clp','pen','uyu','gtq','hnl','nio','crc'];
+    const zeroDecimal = ['clp','jpy','krw','pyg'];
+    let cur = currency.toLowerCase();
+    // Fall back to MXN for unsupported currencies — prices are stored in MXN
+    if (!stripeSupported.includes(cur)) cur = 'mxn';
 
-    // Amount in cents/smallest unit
-    const amountInCents = Math.round(amount * 100);
+    // Amount in smallest unit (cents), zero-decimal currencies stay as-is
+    const amountInCents = zeroDecimal.includes(cur) ? Math.round(amount) : Math.round(amount * 100);
 
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({

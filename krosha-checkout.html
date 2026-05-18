@@ -442,27 +442,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
             </div>
           </div>
 
-          <!-- Card fields -->
-          <div class="card-fields" id="card-fields">
-            <div class="field" style="margin-bottom:12px;">
-              <label data-es="NÚMERO DE TARJETA" data-en="CARD NUMBER">NÚMERO DE TARJETA</label>
-              <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)">
-            </div>
-            <div class="card-row">
-              <div class="field">
-                <label data-es="NOMBRE EN TARJETA" data-en="NAME ON CARD">NOMBRE EN TARJETA</label>
-                <input type="text" placeholder="Jennyfer García">
-              </div>
-              <div class="field">
-                <label data-es="VENCIMIENTO" data-en="EXPIRY">VENCIMIENTO</label>
-                <input type="text" placeholder="MM/AA" maxlength="5" oninput="fmtExp(this)">
-              </div>
-              <div class="field">
-                <label>CVC</label>
-                <input type="text" placeholder="123" maxlength="4">
-              </div>
-            </div>
-          </div>
+          <!-- Card fields — populated dynamically by selPay() -->
+          <div class="card-fields" id="card-fields"></div>
         </div>
 
         <button class="btn-checkout" onclick="confirmOrder()" id="confirm-btn" data-es="Confirmar y pagar" data-en="Confirm & pay">Confirmar y pagar</button>
@@ -559,6 +540,7 @@ const countryToCurrency={
   NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
 };
 let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
+let stripeInst=null, stripeCard=null;
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
@@ -739,34 +721,22 @@ function selPay(el,method){
   document.getElementById('confirm-pay').textContent=payNames[method];
 
   if(method==='stripe'){
+    // Stripe Elements — PCI-compliant, required by Stripe
     container.innerHTML=`
       <div style="padding:16px;background:var(--pink-bg);border-radius:12px;border:1.5px solid var(--border);">
         <div class="field" style="margin-bottom:12px;">
-          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NÚMERO DE TARJETA':'CARD NUMBER'}</label>
-          <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" 
-            style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
-            oninput="let v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim()">
+          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE EN TARJETA':'NAME ON CARD'}</label>
+          <input type="text" id="card-name" placeholder="${lang==='es'?'Jennyfer García':'Jennyfer García'}"
+            style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;">
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE':'NAME'}</label>
-            <input type="text" id="card-name" placeholder="${lang==='es'?'Nombre en tarjeta':'Name on card'}"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
-          </div>
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'VENCIMIENTO':'EXPIRY'}</label>
-            <input type="text" id="card-exp" placeholder="MM/AA" maxlength="5"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
-              oninput="let v=this.value.replace(/\D/g,'').substring(0,4);if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2);this.value=v;">
-          </div>
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">CVC</label>
-            <input type="text" id="card-cvc" placeholder="123" maxlength="4"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
-          </div>
+        <div class="field">
+          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'DATOS DE TARJETA':'CARD DETAILS'}</label>
+          <div id="stripe-card-el" style="border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;background:#fff;margin-top:5px;"></div>
         </div>
         <div id="stripe-error" style="color:#C0392B;font-size:12px;margin-top:8px;min-height:16px;"></div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:6px;display:flex;align-items:center;gap:5px;">🔒 ${lang==='es'?'Datos encriptados por Stripe — nunca vemos tu tarjeta':'Card data encrypted by Stripe — we never see it'}</div>
       </div>`;
+    mountStripeElement();
   } else if(method==='paypal'){
     container.innerHTML='<div id="paypal-btn-container" style="margin-top:4px;"></div>';
     btn.style.display='none';
@@ -781,6 +751,28 @@ function selPay(el,method){
         </div>
       </div>`;
   }
+}
+
+function mountStripeElement(){
+  const doMount=()=>{
+    stripeInst=Stripe(STRIPE_PK);
+    const els=stripeInst.elements({locale:lang==='es'?'es':'en'});
+    stripeCard=els.create('card',{
+      style:{
+        base:{fontFamily:'Nunito, sans-serif',fontSize:'15px',color:'#3A1E2E','::placeholder':{color:'#B48EA8'}},
+        invalid:{color:'#C0392B'},
+      },
+      hidePostalCode:true,
+    });
+    const el=document.getElementById('stripe-card-el');
+    if(el)stripeCard.mount('#stripe-card-el');
+    stripeCard.on('change',e=>{
+      const err=document.getElementById('stripe-error');
+      if(err)err.textContent=e.error?e.error.message:'';
+    });
+  };
+  if(window.Stripe){doMount();}
+  else{const s=document.createElement('script');s.src='https://js.stripe.com/v3/';s.onload=doMount;document.head.appendChild(s);}
 }
 
 function loadPayPalBtn(){
@@ -832,7 +824,6 @@ const CART_KEY='krosha_cart';
 function getCartItems(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
 function getCartTotal(){
   const cart=getCartItems();
-  const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,ARS:53};
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
   return Math.round((sub-disc)*(rates[cur]||1)*100)/100;
@@ -867,22 +858,18 @@ async function confirmOrder(){
 // ── STRIPE ──
 async function processStripe(email,name,btn){
   try{
-    const cardNumber=document.getElementById('card-number')?.value?.replace(/\s/g,'')||'';
-    const cardExp=document.getElementById('card-exp')?.value||'';
-    const cardCvc=document.getElementById('card-cvc')?.value||'';
-    const cardName=document.getElementById('card-name')?.value||name;
-
-    if(!cardNumber||!cardExp||!cardCvc){
-      document.getElementById('stripe-error').textContent=lang==='es'?'Por favor completa los datos de tu tarjeta':'Please complete your card details';
+    if(!stripeInst||!stripeCard){
+      showToast(lang==='es'?'⚠️ El formulario de pago no está listo, intenta de nuevo':'⚠️ Payment form not ready, try again');
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
       return;
     }
 
+    const cardName=document.getElementById('card-name')?.value?.trim()||name;
     const total=getCartTotal();
     const items=getCartItems();
 
-    // Call backend
+    // 1. Create PaymentIntent on backend
     const res=await fetch('/api/create-payment-intent',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -891,30 +878,20 @@ async function processStripe(email,name,btn){
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error procesando pago');
 
-    // Use Stripe.js to confirm
-    if(!window.Stripe){
-      await new Promise(r=>{const s=document.createElement('script');s.src='https://js.stripe.com/v3/';s.onload=r;document.head.appendChild(s);});
-    }
-    const stripe=Stripe(STRIPE_PK);
-    const[expMonth,expYear]=cardExp.split('/');
-
-    const{paymentIntent,error}=await stripe.confirmCardPayment(data.clientSecret,{
+    // 2. Confirm with Stripe CardElement (PCI-compliant — never touches raw card data)
+    const{paymentIntent,error}=await stripeInst.confirmCardPayment(data.clientSecret,{
       payment_method:{
-        card:{
-          number:cardNumber,
-          exp_month:parseInt(expMonth),
-          exp_year:parseInt('20'+expYear),
-          cvc:cardCvc,
-        },
+        card:stripeCard,
         billing_details:{name:cardName,email},
-      }
+      },
     });
 
     if(error){
-      document.getElementById('stripe-error').textContent=error.message;
+      const errEl=document.getElementById('stripe-error');
+      if(errEl)errEl.textContent=error.message;
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
-    } else if(paymentIntent.status==='succeeded'){
+    } else if(paymentIntent&&paymentIntent.status==='succeeded'){
       await sendConfirmationEmail(email,name,items,total,'Stripe');
       showSuccess('💳 Stripe');
     }
