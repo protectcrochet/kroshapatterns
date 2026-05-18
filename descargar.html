@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mis Patrones — KroshaPatterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fraunces:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --pink-bg:#FDF0F5;--pink-mid:#F5D0E0;--pink-deep:#E8A8C4;
+  --pink-dark:#C06090;--pink-text:#8B3565;
+  --blush:#FFF0F5;--border:#F0C8DC;--white:#FFFBFD;
+  --text:#3A1E2E;--text-mid:#7A4D65;--text-light:#B48EA8;
+  --green:#2E7D52;--green-light:#D4EFE3;
+}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--pink-bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:40px 20px;
+}
+.logo-wrap{
+  text-align:center;
+  margin-bottom:32px;
+}
+.logo{
+  font-family:'Fraunces',serif;
+  font-size:28px;
+  font-style:italic;
+  color:var(--pink-text);
+  text-decoration:none;
+}
+.logo span{font-size:22px;margin-right:6px;}
+.card{
+  background:var(--white);
+  border-radius:24px;
+  border:1.5px solid var(--border);
+  box-shadow:0 20px 60px rgba(192,96,144,.12);
+  padding:40px;
+  width:100%;
+  max-width:520px;
+}
+.state-loading{text-align:center;}
+.spinner{
+  width:48px;height:48px;
+  border:4px solid var(--border);
+  border-top-color:var(--pink-dark);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  margin:0 auto 20px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.state-title{
+  font-family:'Fraunces',serif;
+  font-size:22px;
+  font-style:italic;
+  color:var(--text);
+  margin-bottom:6px;
+}
+.state-sub{
+  font-size:13px;
+  color:var(--text-light);
+  line-height:1.6;
+}
+.order-badge{
+  background:var(--blush);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 16px;
+  margin:20px 0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.order-badge-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;}
+.order-badge-ref{font-size:18px;font-weight:800;color:var(--pink-dark);}
+.items-label{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--text-light);
+  font-weight:700;
+  margin-bottom:12px;
+}
+.item-row{
+  background:var(--pink-bg);
+  border-radius:14px;
+  border:1px solid var(--border);
+  padding:16px;
+  margin-bottom:10px;
+}
+.item-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:10px;
+}
+.btn-download{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:var(--pink-dark);
+  color:#fff;
+  text-decoration:none;
+  padding:11px 22px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:700;
+  font-family:'Nunito',sans-serif;
+  transition:background .2s,transform .15s;
+}
+.btn-download:hover{background:var(--pink-text);transform:translateY(-1px);}
+.btn-download.pdf{background:var(--green);}
+.btn-download.pdf:hover{background:#1f5c3a;}
+.accesses-note{
+  font-size:11px;
+  color:var(--text-light);
+  margin-top:16px;
+  text-align:center;
+}
+.error-icon{font-size:48px;text-align:center;margin-bottom:16px;}
+.error-title{
+  font-family:'Fraunces',serif;
+  font-size:20px;
+  color:var(--text);
+  margin-bottom:8px;
+  text-align:center;
+}
+.error-msg{
+  font-size:13px;
+  color:var(--text-mid);
+  text-align:center;
+  line-height:1.6;
+}
+.contact-link{
+  display:inline-block;
+  margin-top:20px;
+  color:var(--pink-dark);
+  font-weight:700;
+  font-size:13px;
+  text-decoration:none;
+}
+.contact-link:hover{text-decoration:underline;}
+footer{
+  margin-top:32px;
+  text-align:center;
+  font-size:12px;
+  color:var(--text-light);
+}
+</style>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <a href="index.html" class="logo"><span>🎀</span>KroshaPatterns</a>
+</div>
+
+<div class="card" id="card">
+  <div class="state-loading" id="state-loading">
+    <div class="spinner"></div>
+    <div class="state-title">Verificando tu enlace…</div>
+    <div class="state-sub">Un momento, estamos cargando tus patrones.</div>
+  </div>
+
+  <div style="display:none;" id="state-success">
+    <div class="state-title">¡Tus patrones están listos! 🎀</div>
+    <div class="state-sub">Haz clic en cada patrón para acceder o descargar.</div>
+    <div class="order-badge">
+      <div>
+        <div class="order-badge-label">Número de pedido</div>
+        <div class="order-badge-ref" id="order-ref">—</div>
+      </div>
+    </div>
+    <div class="items-label">Mis patrones</div>
+    <div id="items-list"></div>
+    <p class="accesses-note" id="accesses-note"></p>
+  </div>
+
+  <div style="display:none;" id="state-error">
+    <div class="error-icon" id="error-icon">🔒</div>
+    <div class="error-title" id="error-title">Enlace no disponible</div>
+    <div class="error-msg" id="error-msg">Este enlace no es válido o ya expiró.</div>
+    <div style="text-align:center;">
+      <a href="mailto:hola@kroshapatterns.com" class="contact-link">✉️ Escríbenos a hola@kroshapatterns.com</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 KroshaPatterns · kroshapatterns.com</p>
+  <p style="margin-top:4px;">Patrones de crochet con amor, diseñados por Jennyfer 🎀</p>
+</footer>
+
+<script>
+(async function(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+
+  function showError(icon, title, msg) {
+    document.getElementById('state-loading').style.display = 'none';
+    document.getElementById('state-success').style.display = 'none';
+    const errEl = document.getElementById('state-error');
+    errEl.style.display = 'block';
+    document.getElementById('error-icon').textContent = icon;
+    document.getElementById('error-title').textContent = title;
+    document.getElementById('error-msg').textContent = msg;
+  }
+
+  if (!token) {
+    showError('🔗', 'Enlace incompleto', 'No se encontró el token en la URL. Usa el enlace que llegó a tu correo.');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/validate-download-token?token=${encodeURIComponent(token)}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+      const icons = { 404: '🔍', 410: '⏰', 429: '🚫' };
+      showError(icons[res.status] || '⚠️', 'No se puede acceder', data.error || 'Error desconocido');
+      return;
+    }
+
+    document.getElementById('state-loading').style.display = 'none';
+    document.getElementById('state-success').style.display = 'block';
+    document.getElementById('order-ref').textContent = '#' + (data.orderRef || '—');
+
+    const list = document.getElementById('items-list');
+    list.innerHTML = data.items.map(item => {
+      const isPdf = item.type === 'pdf';
+      return `<div class="item-row">
+        <div class="item-title">${item.title}</div>
+        <a href="${item.url}" target="_blank" rel="noopener" class="btn-download${isPdf ? ' pdf' : ''}">
+          ${isPdf ? '📥 Descargar PDF' : '🔐 Acceder al patrón'}
+        </a>
+      </div>`;
+    }).join('');
+
+    if (data.accessesLeft !== undefined) {
+      const note = document.getElementById('accesses-note');
+      note.textContent = data.accessesLeft > 0
+        ? `Puedes acceder ${data.accessesLeft} ${data.accessesLeft === 1 ? 'vez más' : 'veces más'} con este enlace.`
+        : 'Has usado todos los accesos de este enlace. ¿Problemas? Escríbenos a hola@kroshapatterns.com';
+    }
+
+  } catch (e) {
+    showError('⚠️', 'Error de conexión', 'No pudimos verificar tu enlace. Intenta de nuevo o escríbenos a hola@kroshapatterns.com');
+  }
+})();
+</script>
+</body>
+</html>

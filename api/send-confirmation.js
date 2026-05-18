@@ -1,5 +1,5 @@
 // api/send-confirmation.js
-// Vercel Serverless Function — Email confirmación con Resend
+// Vercel Serverless Function — Email confirmación con Resend + token de descarga vía KV
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://kroshapatterns.com');
@@ -19,6 +19,39 @@ export default async function handler(req, res) {
     }
 
     const ref = orderRef || `KP-${Date.now().toString().slice(-6)}`;
+
+    // ── Generate download token for digital items ──
+    let downloadToken = null;
+    let downloadPageUrl = null;
+    const digitalItems = items.filter(i => i.protectUrl || i.pdfUrl);
+
+    if (digitalItems.length > 0) {
+      try {
+        const { kv } = await import('@vercel/kv');
+        const { randomBytes } = await import('crypto');
+        downloadToken = 'kp_' + randomBytes(16).toString('hex');
+        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+
+        await kv.set(`dl:${downloadToken}`, {
+          email: customerEmail,
+          orderRef: ref,
+          items: digitalItems.map(i => ({
+            title: i.title,
+            url: i.protectUrl || i.pdfUrl,
+            type: i.protectUrl ? 'protect' : 'pdf',
+          })),
+          downloads: 0,
+          maxDownloads: 15,
+          expiresAt,
+        }, { exat: Math.floor(expiresAt / 1000) });
+
+        downloadPageUrl = `https://kroshapatterns.com/descargar.html?token=${downloadToken}`;
+      } catch (kvErr) {
+        console.error('KV token error (non-fatal):', kvErr);
+      }
+    }
+
+    // ── Build items table for email ──
     const itemsHtml = items.map(i => `
       <tr>
         <td style="padding:10px 0;border-bottom:1px solid #F0C8DC;font-family:'Arial',sans-serif;font-size:14px;color:#3A1E2E;">
@@ -29,6 +62,41 @@ export default async function handler(req, res) {
         </td>
       </tr>`).join('');
 
+    // ── Download section for email ──
+    let deliverySection = '';
+    if (downloadPageUrl) {
+      deliverySection = `
+        <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
+          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Accede a tus patrones</div>
+          <p style="font-size:13px;color:#7A4D65;margin:0 0 16px;">Tu enlace personal de descarga (válido 7 días):</p>
+          <a href="${downloadPageUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:14px 28px;border-radius:24px;font-size:14px;font-weight:bold;">
+            🔐 Acceder a mis patrones
+          </a>
+          <p style="font-size:11px;color:#B48EA8;margin:12px 0 0;">¿No funciona el enlace? Escríbenos a hola@kroshapatterns.com 🎀</p>
+        </div>`;
+    } else if (digitalItems.length > 0) {
+      // Fallback: show direct links if KV failed
+      deliverySection = `
+        <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;">
+          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">📦 Accede a tus patrones</div>
+          ${digitalItems.map(i => {
+            const url = i.protectUrl || i.pdfUrl;
+            const label = i.protectUrl ? '🔐 Acceder en ProtectCrochet' : '📥 Descargar PDF';
+            return `<div style="margin-bottom:10px;">
+              <div style="font-size:12px;color:#B48EA8;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${i.title}</div>
+              <a href="${url}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;">${label}</a>
+            </div>`;
+          }).join('')}
+          <p style="font-size:12px;color:#B48EA8;margin:12px 0 0;">¿No puedes acceder? Escríbenos a hola@kroshapatterns.com 🎀</p>
+        </div>`;
+    } else {
+      deliverySection = `
+        <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;">
+          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:6px;">📦 Entrega de tu pedido</div>
+          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás instrucciones de envío por este correo en breve.</p>
+        </div>`;
+    }
+
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -37,7 +105,7 @@ export default async function handler(req, res) {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#FDF0F5;padding:40px 20px;">
     <tr><td>
       <table width="100%" maxwidth="580" style="max-width:580px;margin:0 auto;background:#FFFBFD;border-radius:24px;overflow:hidden;border:1.5px solid #F0C8DC;">
-        
+
         <!-- HEADER -->
         <tr>
           <td style="background:#C06090;padding:32px;text-align:center;">
@@ -54,7 +122,7 @@ export default async function handler(req, res) {
               ¡Gracias por tu compra, ${customerName || 'amiga'}! 🎀
             </h2>
             <p style="font-size:14px;color:#7A4D65;line-height:1.7;margin:0 0 24px;">
-              Tu pedido ha sido confirmado y procesado exitosamente. 
+              Tu pedido ha sido confirmado y procesado exitosamente.
               A continuación encontrarás los detalles de tu compra.
             </p>
 
@@ -83,23 +151,7 @@ export default async function handler(req, res) {
             </div>
 
             <!-- DELIVERY -->
-            <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;">
-              <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">📦 Accede a tus patrones</div>
-              ${items.map(i=>{
-                if(i.protectUrl) return `
-                  <div style="margin-bottom:10px;">
-                    <div style="font-size:12px;color:#B48EA8;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${i.title}</div>
-                    <a href="${i.protectUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;">🔐 Acceder en ProtectCrochet</a>
-                  </div>`;
-                if(i.pdfUrl) return `
-                  <div style="margin-bottom:10px;">
-                    <div style="font-size:12px;color:#B48EA8;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${i.title}</div>
-                    <a href="${i.pdfUrl}" style="display:inline-block;background:#2E7D52;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;">📥 Descargar PDF</a>
-                  </div>`;
-                return `<div style="font-size:13px;color:#7A4D65;margin-bottom:6px;">• ${i.title} — recibirás acceso en breve</div>`;
-              }).join('')}
-              <p style="font-size:12px;color:#B48EA8;margin:12px 0 0;">¿No puedes acceder? Escríbeme a hola@kroshapatterns.com 🎀</p>
-            </div>
+            ${deliverySection}
 
             <!-- SUPPORT -->
             <div style="text-align:center;padding:20px 0;">
@@ -132,8 +184,8 @@ export default async function handler(req, res) {
       html: emailHtml,
     });
 
-    // Send copy to Jennyfer — flag items that need manual delivery
-    const needsManual=items.filter(i=>!i.protectUrl&&!i.pdfUrl);
+    // Send copy to Jennyfer
+    const needsManual = items.filter(i => !i.protectUrl && !i.pdfUrl);
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: 'hola@kroshapatterns.com',
@@ -142,12 +194,13 @@ export default async function handler(req, res) {
         <p>Cliente: ${customerName} (${customerEmail})</p>
         <p>Total: $${total} ${currency}</p>
         <p>Método: ${payMethod}</p>
-        <p>Productos: ${items.map(i=>`${i.title}${i.protectUrl?' ✅ ProtectCrochet':i.pdfUrl?' ✅ PDF':' ⚠️ SIN LINK'}`).join('<br>')}</p>
-        ${needsManual.length?`<p style="color:red;font-weight:bold;">⚠️ ESTOS PRODUCTOS NECESITAN ENTREGA MANUAL:<br>${needsManual.map(i=>i.title).join('<br>')}</p>`:''}
+        <p>Productos: ${items.map(i => `${i.title}${i.protectUrl ? ' ✅ ProtectCrochet' : i.pdfUrl ? ' ✅ PDF' : ' ⚠️ SIN LINK'}`).join('<br>')}</p>
+        ${needsManual.length ? `<p style="color:red;font-weight:bold;">⚠️ ESTOS PRODUCTOS NECESITAN ENTREGA MANUAL:<br>${needsManual.map(i => i.title).join('<br>')}</p>` : ''}
+        ${downloadPageUrl ? `<p>🔐 Token de descarga: <a href="${downloadPageUrl}">${downloadPageUrl}</a></p>` : ''}
         <p>Ref: #${ref}</p>`,
     });
 
-    return res.status(200).json({ success: true, orderRef: ref });
+    return res.status(200).json({ success: true, orderRef: ref, downloadToken });
 
   } catch (err) {
     console.error('Email error:', err);
