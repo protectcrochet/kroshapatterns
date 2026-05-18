@@ -1002,7 +1002,7 @@ function showSuccess(payMethod,orderRef,items,total,downloadToken){
         🔐 Acceder a mis patrones
       </a>
       <p style="text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;">
-        También te enviamos este enlace por correo (válido 7 días).
+        También te enviamos este enlace por correo. Es tuyo para siempre.
       </p>`;
     } else if(items&&items.some(i=>i.protectUrl||i.pdfUrl)){
       const btns=items.filter(i=>i.protectUrl||i.pdfUrl).map(i=>{

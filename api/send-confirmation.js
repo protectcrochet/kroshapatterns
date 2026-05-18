@@ -34,7 +34,6 @@ export default async function handler(req, res) {
         });
         const { randomBytes } = await import('crypto');
         downloadToken = 'kp_' + randomBytes(16).toString('hex');
-        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
         await redis.set(`dl:${downloadToken}`, {
           email: customerEmail,
@@ -44,10 +43,7 @@ export default async function handler(req, res) {
             url: i.protectUrl || i.pdfUrl,
             type: i.protectUrl ? 'protect' : 'pdf',
           })),
-          downloads: 0,
-          maxDownloads: 15,
-          expiresAt,
-        }, { exat: Math.floor(expiresAt / 1000) });
+        });
 
         downloadPageUrl = `https://kroshapatterns.com/descargar.html?token=${downloadToken}`;
       } catch (kvErr) {
@@ -72,7 +68,7 @@ export default async function handler(req, res) {
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Accede a tus patrones</div>
-          <p style="font-size:13px;color:#7A4D65;margin:0 0 16px;">Tu enlace personal de descarga (válido 7 días):</p>
+          <p style="font-size:13px;color:#7A4D65;margin:0 0 16px;">Tu enlace personal de descarga (guárdalo, es tuyo para siempre):</p>
           <a href="${downloadPageUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:14px 28px;border-radius:24px;font-size:14px;font-weight:bold;">
             🔐 Acceder a mis patrones
           </a>

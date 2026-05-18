@@ -169,7 +169,7 @@ footer{
 
   <div style="display:none;" id="state-success">
     <div class="state-title">¡Tus patrones están listos! 🎀</div>
-    <div class="state-sub">Haz clic en cada patrón para acceder o descargar.</div>
+    <div class="state-sub">Haz clic en cada patrón para acceder o descargar. Este enlace es tuyo para siempre.</div>
     <div class="order-badge">
       <div>
         <div class="order-badge-label">Número de pedido</div>
@@ -241,12 +241,6 @@ footer{
       </div>`;
     }).join('');
 
-    if (data.accessesLeft !== undefined) {
-      const note = document.getElementById('accesses-note');
-      note.textContent = data.accessesLeft > 0
-        ? `Puedes acceder ${data.accessesLeft} ${data.accessesLeft === 1 ? 'vez más' : 'veces más'} con este enlace.`
-        : 'Has usado todos los accesos de este enlace. ¿Problemas? Escríbenos a hola@kroshapatterns.com';
-    }
 
   } catch (e) {
     showError('⚠️', 'Error de conexión', 'No pudimos verificar tu enlace. Intenta de nuevo o escríbenos a hola@kroshapatterns.com');
