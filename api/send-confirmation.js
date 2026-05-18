@@ -84,13 +84,21 @@ export default async function handler(req, res) {
 
             <!-- DELIVERY -->
             <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;">
-              <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 ¿Cómo accedo a mi patrón?</div>
-              <p style="font-size:13px;color:#7A4D65;line-height:1.7;margin:0 0 8px;">
-                <strong>Patrones digitales (PDF):</strong> Recibirás un email separado con el enlace de descarga en los próximos minutos.
-              </p>
-              <p style="font-size:13px;color:#7A4D65;line-height:1.7;margin:0;">
-                <strong>Patrones vía ProtectCrochet:</strong> Recibirás las instrucciones de acceso por separado. Si no ves el email, revisa tu carpeta de spam.
-              </p>
+              <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">📦 Accede a tus patrones</div>
+              ${items.map(i=>{
+                if(i.protectUrl) return `
+                  <div style="margin-bottom:10px;">
+                    <div style="font-size:12px;color:#B48EA8;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${i.title}</div>
+                    <a href="${i.protectUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;">🔐 Acceder en ProtectCrochet</a>
+                  </div>`;
+                if(i.pdfUrl) return `
+                  <div style="margin-bottom:10px;">
+                    <div style="font-size:12px;color:#B48EA8;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">${i.title}</div>
+                    <a href="${i.pdfUrl}" style="display:inline-block;background:#2E7D52;color:#fff;text-decoration:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:bold;">📥 Descargar PDF</a>
+                  </div>`;
+                return `<div style="font-size:13px;color:#7A4D65;margin-bottom:6px;">• ${i.title} — recibirás acceso en breve</div>`;
+              }).join('')}
+              <p style="font-size:12px;color:#B48EA8;margin:12px 0 0;">¿No puedes acceder? Escríbeme a hola@kroshapatterns.com 🎀</p>
             </div>
 
             <!-- SUPPORT -->
@@ -124,7 +132,8 @@ export default async function handler(req, res) {
       html: emailHtml,
     });
 
-    // Send copy to Jennyfer
+    // Send copy to Jennyfer — flag items that need manual delivery
+    const needsManual=items.filter(i=>!i.protectUrl&&!i.pdfUrl);
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: 'hola@kroshapatterns.com',
@@ -133,7 +142,8 @@ export default async function handler(req, res) {
         <p>Cliente: ${customerName} (${customerEmail})</p>
         <p>Total: $${total} ${currency}</p>
         <p>Método: ${payMethod}</p>
-        <p>Productos: ${items.map(i=>i.title).join(', ')}</p>
+        <p>Productos: ${items.map(i=>`${i.title}${i.protectUrl?' ✅ ProtectCrochet':i.pdfUrl?' ✅ PDF':' ⚠️ SIN LINK'}`).join('<br>')}</p>
+        ${needsManual.length?`<p style="color:red;font-weight:bold;">⚠️ ESTOS PRODUCTOS NECESITAN ENTREGA MANUAL:<br>${needsManual.map(i=>i.title).join('<br>')}</p>`:''}
         <p>Ref: #${ref}</p>`,
     });
 

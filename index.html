@@ -434,6 +434,8 @@ function getProducts(){
       yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
+      protectUrl:p.protectUrl||'',
+      pdfUrl:p.pdfUrl||'',
     }));
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
