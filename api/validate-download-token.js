@@ -13,15 +13,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { kv } = await import('@vercel/kv');
-    const data = await kv.get(`dl:${token}`);
+    const { Redis } = await import('@upstash/redis');
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+    const data = await redis.get(`dl:${token}`);
 
     if (!data) {
       return res.status(404).json({ error: 'Enlace no encontrado o expirado' });
     }
 
     if (Date.now() > data.expiresAt) {
-      await kv.del(`dl:${token}`);
+      await redis.del(`dl:${token}`);
       return res.status(410).json({ error: 'Este enlace ha expirado (7 días)' });
     }
 
@@ -31,7 +35,7 @@ export default async function handler(req, res) {
 
     // Increment access count
     const updated = { ...data, downloads: data.downloads + 1 };
-    await kv.set(`dl:${token}`, updated, {
+    await redis.set(`dl:${token}`, updated, {
       exat: Math.floor(data.expiresAt / 1000),
     });
 

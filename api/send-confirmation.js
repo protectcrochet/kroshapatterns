@@ -27,12 +27,16 @@ export default async function handler(req, res) {
 
     if (digitalItems.length > 0) {
       try {
-        const { kv } = await import('@vercel/kv');
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({
+          url: process.env.UPSTASH_REDIS_REST_URL,
+          token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        });
         const { randomBytes } = await import('crypto');
         downloadToken = 'kp_' + randomBytes(16).toString('hex');
         const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
 
-        await kv.set(`dl:${downloadToken}`, {
+        await redis.set(`dl:${downloadToken}`, {
           email: customerEmail,
           orderRef: ref,
           items: digitalItems.map(i => ({
