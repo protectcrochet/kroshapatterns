@@ -388,7 +388,7 @@ const YARN_COLORS=[
   {name:'White',hex:'#FFFFFF',img:'blanco.jpg'},
   {name:'Cream',hex:'#FFF8DC',img:'crema.jpg'},
   {name:'Ecru',hex:'#F5F0E8',img:'crema.jpg'},
-  {name:'Arena S',hex:'#F2DFC0',img:'arena-sinf.jpg',imgFull:'arena-sinf-ball.jpg'},
+  {name:'Arena S',hex:'#F2DFC0',img:'arena-sinf.jpg'},
   {name:'Almond',hex:'#DEB887',img:'arena.jpg'},
   {name:'Sand',hex:'#E8D5B0',img:'arena.jpg'},
   {name:'Wheat',hex:'#F5DEB3',img:'beige-calido.jpg'},
@@ -634,7 +634,7 @@ const yarnProducts=YARN_COLORS.map((c,i)=>({
   price:150,
   type:'hilo',
   skill:'',
-  images:c.imgFull?[`images/colores/${c.imgFull}`]:[],
+  images:[],
   desc:`Estambre Premier Yarns Basix color ${c.name}. Presentación 200g. Acrílico suave de alta calidad.`,
   descEn:`Premier Yarns Basix ${c.name}. 200g. High-quality soft acrylic yarn.`,
   yarnColors:null,
@@ -709,15 +709,9 @@ function openM(id){
   if(curProd.yarnColorName){
     const hex=getYarnHex(curProd.yarnColorName);
     const yimg=getYarnImg(curProd.yarnColorName);
-    const ballImg=curProd.images&&curProd.images[0]?curProd.images[0]:null;
-    const mainSrc=ballImg||yimg||null;
-    if(mainSrc){
-      const thumbs=[ballImg,yimg].filter(Boolean);
-      gallery.innerHTML=`<div class="mgallery-main"><img id="mimg-main" src="${mainSrc}" alt="${curProd.yarnColorName}" style="object-fit:cover;"></div>
-      <div class="mgallery-thumbs" id="mimg-thumbs">${thumbs.map((s,i)=>`<div class="mthumb ${i===0?'active':''}" onclick="switchImg(this,'${s}')"><img src="${s}" alt=""></div>`).join('')}</div>`;
-    } else {
-      gallery.innerHTML=`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div></div>`;
-    }
+    gallery.innerHTML=yimg
+      ?`<div style="width:100%;flex:1;min-height:360px;overflow:hidden;"><img src="${yimg}" alt="${curProd.yarnColorName}" style="width:100%;height:100%;min-height:360px;object-fit:cover;"></div>`
+      :`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div></div>`;
   } else {
     gallery.innerHTML=`<div class="mgallery-main"><img id="mimg-main" src="${curProd.images[0]||''}" alt="${curProd.title}"></div>
     <div class="mgallery-thumbs" id="mimg-thumbs">${(curProd.images||[]).map((img,i)=>
