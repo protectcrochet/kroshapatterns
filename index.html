@@ -441,6 +441,15 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
+function yarnColorsToList(yc){
+  const counts={},order=[];
+  Object.values(yc).forEach(color=>{
+    if(!color)return;
+    if(counts[color])counts[color]++;
+    else{counts[color]=1;order.push(color);}
+  });
+  return order.map(color=>({color,qty:counts[color]}));
+}
 let cur='MXN', lang='es', curProd=null;
 let addonKit=false, addonEyes=false;
 
@@ -680,20 +689,16 @@ function openM(id){
   // Yarn colors section (only for pattern products)
   const yarnSec=document.getElementById('m-yarn-section');
   const yc=curProd.yarnColors;
-  if(yarnSec&&!curProd.yarnColorName&&yc&&Object.values(yc).some(v=>v)){
-    const parts=[
-      {key:'piel',label:lang==='es'?'Piel':'Skin'},
-      {key:'cabello',label:lang==='es'?'Cabello':'Hair'},
-      {key:'vestido',label:lang==='es'?'Vestido':'Dress'},
-      {key:'forro',label:lang==='es'?'Forro':'Lining'},
-      {key:'rosas',label:lang==='es'?'Rosas':'Roses'},
-      {key:'detalles',label:lang==='es'?'Detalles':'Details'},
-    ];
-    const chips=parts.filter(p=>yc[p.key]).map(p=>`
+  const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+  if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
+    const chips=yl.map(item=>`
       <div class="yarn-chip">
-        ${getYarnImg(yc[p.key])?`<img class="yarn-swatch" src="${getYarnImg(yc[p.key])}" alt="${yc[p.key]}" style="object-fit:cover;">`:`<div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>`}
-        <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
-        <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
+        ${getYarnImg(item.color)?`<img class="yarn-swatch" src="${getYarnImg(item.color)}" alt="${item.color}" style="object-fit:cover;">`:`<div class="yarn-swatch" style="background:${getYarnHex(item.color)}"></div>`}
+        <div style="flex:1">
+          <div class="yarn-chip-name">${item.color}</div>
+          <div class="yarn-chip-label">×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?lang==='es'?'s':'s':''}</div>
+        </div>
+        <button class="yarn-chip-add" onclick="addYarnQtyToCart('${item.color}',${item.qty})" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
       </div>`).join('');
     yarnSec.innerHTML=`<div class="yarn-section">
       <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
@@ -720,8 +725,8 @@ function openM(id){
       html+=`<div class="addon-row" id="addon-eyes" onclick="toggleAddon('eyes')">
         <div class="addon-cb" id="cb-eyes"></div>
         <div class="addon-info">
-          <strong>👀 ${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
-          <span>10mm · ${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
+          <strong>${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
+          <span>${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
         </div>
         <span class="addon-price">+${f(curProd.eyesPrice)}</span>
       </div>`;
@@ -779,16 +784,16 @@ function qAdd(id){
   showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
 }
 
-function addYarnToCart(colorName){
+function addYarnToCart(colorName){addYarnQtyToCart(colorName,1);}
+function addYarnQtyToCart(colorName,qty){
   const yp=yarnProducts.find(p=>p.yarnColorName===colorName);
   if(!yp)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===yp.id);
-  const hex=getYarnHex(colorName);
-  if(existing)existing.qty++;
-  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${hex}`,qty:1});
+  if(existing)existing.qty+=qty;
+  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty});
   saveCart(cart);updateCartBadge();
-  showToast(`🧶 ${colorName} ${lang==='es'?'agregado al carrito':'added to cart'}`);
+  showToast(`🧶 ${colorName} ×${qty} ${lang==='es'?'agregado':'added'}`);
 }
 
 function addToCart(){
@@ -804,7 +809,7 @@ function addToCart(){
   if(addonEyes&&curProd.eyesPrice){
     const eyesId=`${curProd.id}-eyes`;
     const eeyes=cart.find(i=>i.id===eyesId);
-    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad 10mm`,price:curProd.eyesPrice,img:'',qty:1});
+    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:'',qty:1});
   }
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
