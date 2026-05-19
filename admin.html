@@ -188,6 +188,16 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .confirm-box h3{font-size:18px;font-weight:700;margin-bottom:8px;}
 .confirm-box p{font-size:13.5px;color:var(--text-mid);margin-bottom:20px;}
 .confirm-btns{display:flex;gap:10px;justify-content:center;}
+.color-pick-btn{flex:1;display:flex;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--white);cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);text-align:left;}
+.color-pick-btn:hover{border-color:var(--pink-dark);}
+.color-pick-popup{position:fixed;z-index:99999;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:12px;width:310px;max-height:380px;overflow:hidden;display:flex;flex-direction:column;}
+.color-pick-search{border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;width:100%;margin-bottom:8px;box-sizing:border-box;outline:none;}
+.color-pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;overflow-y:auto;flex:1;}
+.color-pick-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px;border-radius:8px;border:1.5px solid transparent;}
+.color-pick-item:hover{border-color:var(--pink-dark);background:var(--blush);}
+.color-pick-item img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,.08);}
+.color-pick-item .cpick-dot-fb{width:40px;height:40px;border-radius:50%;background:#ddd;}
+.color-pick-item span{font-size:9px;color:var(--text-mid);text-align:center;line-height:1.2;word-break:break-all;}
 </style>
 </head>
 <body>
@@ -698,6 +708,61 @@ const YARN_COLORS=[
 ];
 const YARN_COLOR_OPT='<option value="">— Elige color —</option>'+YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
 
+const ADMIN_COLOR_IMGS={
+  'White':'blanco.jpg','Cream':'crema.jpg','Ecru':'crema.jpg',
+  'Arena S':'arena-sinf.jpg','Almond':'arena.jpg','Sand':'arena.jpg',
+  'Wheat':'beige-calido.jpg','Camel':'toffee.jpg','Gold':'dorado.jpg',
+  'Mustard':'mostaza.jpg','Yellow':'limon.jpg','Sunshine':'soleado.jpg',
+  'Orange':'naranja.jpg','Coral':'coral.jpg','Peach':'durazno.jpg',
+  'Salmon':'salmon.jpg','Red':'rojo.jpg','Crimson':'granate.jpg',
+  'Burgundy':'borgoña.jpg','Wine':'merlot.jpg','Blush':'rosa-palo.jpg',
+  'Pink':'rosa.jpg','Hot Pink':'taffy.jpg','Rose':'rose.jpg',
+  'Fuchsia':'fucsia.jpg','Mauve':'malva-claro.jpg','Lilac':'lila.jpg',
+  'Lavender':'lila.jpg','Purple':'morado.jpg','Violet':'violeta.jpg',
+  'Plum':'berenjena.jpg','Navy':'marino.jpg','Royal Blue':'azul-rey.jpg',
+  'Blue':'azul.jpg','Sky Blue':'azul-cielo.jpg','Powder Blue':'azul-polvo.jpg',
+  'Denim':'mezclilla.jpg','Teal':'teal.jpg','Turquoise':'turquesa.jpg',
+  'Aqua':'aqua.jpg','Mint':'menta.jpg','Sage':'salvia.jpg',
+  'Olive':'alcachofa.jpg','Lime':'lima.jpg','Green':'hoja.jpg',
+  'Emerald':'abeto.jpg','Forest':'verde-bosque.jpg','Hunter':'verde-pino.jpg',
+  'Tan':'beige-calido.jpg','Brown':'nuez-moscada.jpg','Chocolate':'chocolate.jpg',
+  'Espresso':'cacao.jpg','Charcoal':'carbon.jpg','Grey':'gris.jpg',
+  'Silver':'gris-claro.jpg','Black':'negro.jpg',
+  'Buff':'arena.jpg',
+};
+function getAdminYarnImg(name){const s=ADMIN_COLOR_IMGS[name];return s?`images/colores/${s}`:null;}
+
+let _activePRow=null,_activePPopup=null;
+function openColorPicker(btn){
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;}
+  _activePRow=btn.closest('div[data-yarn-row]');
+  const popup=document.createElement('div');
+  popup.className='color-pick-popup';
+  popup.innerHTML=`<input class="color-pick-search" placeholder="Buscar color..." oninput="filterCPicker(this)">
+    <div class="color-pick-grid">${YARN_COLORS.map(c=>{const img=getAdminYarnImg(c);
+      return `<div class="color-pick-item" onclick="selectYarnColor('${c.replace(/'/g,"\\'")}')">${img?`<img src="${img}" onerror="this.style.display='none'">`:'<div class="cpick-dot-fb"></div>'}<span>${c}</span></div>`;
+    }).join('')}</div>`;
+  document.body.appendChild(popup);
+  const r=btn.getBoundingClientRect();
+  popup.style.top=(r.bottom+6)+'px';
+  popup.style.left=Math.min(r.left,window.innerWidth-318)+'px';
+  _activePPopup=popup;
+  popup.querySelector('.color-pick-search').focus();
+  setTimeout(()=>document.addEventListener('click',_closePicker,{capture:true}),50);
+}
+function _closePicker(e){if(_activePPopup&&!_activePPopup.contains(e.target)){_activePPopup.remove();_activePPopup=null;document.removeEventListener('click',_closePicker,{capture:true});}}
+function filterCPicker(inp){const q=inp.value.toLowerCase();inp.closest('.color-pick-popup').querySelectorAll('.color-pick-item').forEach(el=>{el.style.display=el.querySelector('span').textContent.toLowerCase().includes(q)?'':'none';});}
+function selectYarnColor(name){
+  if(!_activePRow)return;
+  _activePRow.querySelector('.yarn-color-val').value=name;
+  _activePRow.querySelector('.cpick-label').textContent=name;
+  const img=getAdminYarnImg(name);
+  const dot=_activePRow.querySelector('.cpick-dot');
+  dot.innerHTML=img?`<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.innerHTML=''">`:'';
+  dot.style.background=img?'transparent':'#ddd';
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;document.removeEventListener('click',_closePicker,{capture:true});}
+}
+
 const defaultYarnColors={
   1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},
   3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
@@ -743,15 +808,23 @@ function addYarnRow(color='',qty=1){
   const list=document.getElementById('yarn-list-editor');
   document.getElementById('yarn-empty-hint').style.display='none';
   const row=document.createElement('div');
+  row.setAttribute('data-yarn-row','1');
   row.style.cssText='display:flex;align-items:center;gap:8px;';
+  const img=color?getAdminYarnImg(color):null;
+  const dotHtml=img?`<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`:'';
+  const dotBg=img?'transparent':'#ddd';
   row.innerHTML=`
-    <select style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;background:var(--white);color:var(--text);">${YARN_COLOR_OPT}</select>
+    <button type="button" class="color-pick-btn" onclick="openColorPicker(this)" style="flex:1;">
+      <div class="cpick-dot" style="width:24px;height:24px;border-radius:50%;background:${dotBg};flex-shrink:0;">${dotHtml}</div>
+      <span class="cpick-label">${color||'— Elige color —'}</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--text-light);">▼</span>
+    </button>
+    <input type="hidden" class="yarn-color-val" value="${color}">
     <span style="font-size:13px;color:var(--text-light);">×</span>
     <input type="number" value="${qty}" min="1" max="20" style="width:58px;border:1.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;">
     <span style="font-size:12px;color:var(--text-light);white-space:nowrap;">ovillo(s)</span>
     <button onclick="removeYarnRow(this)" style="background:var(--red-light);color:var(--red);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>`;
   list.appendChild(row);
-  if(color) row.querySelector('select').value=color;
 }
 
 function removeYarnRow(btn){
@@ -762,7 +835,7 @@ function removeYarnRow(btn){
 
 function getYarnList(){
   return Array.from(document.querySelectorAll('#yarn-list-editor > div')).map(row=>({
-    color:row.querySelector('select').value,
+    color:row.querySelector('.yarn-color-val')?.value||row.querySelector('select')?.value||'',
     qty:parseInt(row.querySelector('input[type=number]').value)||1
   })).filter(i=>i.color);
 }
