@@ -553,7 +553,7 @@ function imgHtml(img){
 }
 
 function itemCat(item){
-  if(item.img&&item.img.startsWith('yarn:'))return 'Estambre · Premier Yarns Basix';
+  if((item.img&&item.img.startsWith('yarn:'))||item.title.startsWith('Estambre '))return 'Estambre · Premier Yarns Basix';
   if(typeof item.id==='string'&&item.id.endsWith('-kit'))return 'Kit Estambres · KroshaPatterns';
   if(typeof item.id==='string'&&item.id.endsWith('-eyes'))return 'Accesorio · KroshaPatterns';
   return 'Patrón · KroshaPatterns';
