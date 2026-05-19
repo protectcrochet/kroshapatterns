@@ -544,40 +544,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <!-- YARN COLORS SECTION -->
     <div style="margin-top:18px;background:var(--pink-bg);border-radius:12px;padding:16px;border:1px solid var(--border);">
-      <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:14px;">🧶 Colores de Estambre — Premier Yarns Basix</div>
-      <div class="form-grid">
-        <div class="field">
-          <label>Piel / Skin</label>
-          <select id="pf-yarn-piel"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Cabello / Hair</label>
-          <select id="pf-yarn-cabello"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Vestido / Dress</label>
-          <select id="pf-yarn-vestido"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Forro / Lining</label>
-          <select id="pf-yarn-forro"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Rosas / Roses</label>
-          <select id="pf-yarn-rosas"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Detalles / Details</label>
-          <select id="pf-yarn-detalles"><option value="">— Sin color —</option></select>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-weight:700;font-size:14px;color:var(--text);">🧶 Estambres que uso</div>
+        <button onclick="addYarnRow()" style="background:var(--pink-dark);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Agregar color</button>
       </div>
-      <div class="form-grid" style="margin-top:12px;">
+      <div id="yarn-list-editor" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="yarn-empty-hint" style="font-size:12px;color:var(--text-light);text-align:center;padding:12px 0;">Haz clic en "+ Agregar color" para configurar los estambres de este patrón</div>
+      <div class="form-grid" style="margin-top:14px;">
         <div class="field">
           <label>Precio Kit Estambres (MXN) <span style="font-weight:400;color:var(--text-light);">— agregar al carrito</span></label>
           <input type="number" id="pf-kit-price" placeholder="0 = sin kit">
         </div>
         <div class="field">
-          <label>Precio Ojos Seguridad (MXN) <span style="font-weight:400;color:var(--text-light);">— par 10mm</span></label>
+          <label>Precio Ojos Seguridad (MXN)</label>
           <input type="number" id="pf-eyes-price" placeholder="0 = sin ojos">
         </div>
       </div>
@@ -717,13 +696,78 @@ const YARN_COLORS=[
   'Tan','Brown','Chocolate','Espresso',
   'Charcoal','Grey','Silver','Black',
 ];
-const YARN_COLOR_OPT=YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
-function fillYarnSelects(){
-  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&el.options.length<=1) el.insertAdjacentHTML('beforeend',YARN_COLOR_OPT);
+const YARN_COLOR_OPT='<option value="">— Elige color —</option>'+YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+const defaultYarnColors={
+  1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},
+  3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lavender',rosas:'Coral',detalles:'Gold'},
+  9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},
+  11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},
+  13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},
+  14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},
+  15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lavender',rosas:'',detalles:'Blue'},
+  18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},
+  19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},
+  22:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  23:{piel:'Almond',cabello:'Black',vestido:'Coral',forro:'White',rosas:'Rose',detalles:'Gold'},
+  24:{piel:'Almond',cabello:'Gold',vestido:'White',forro:'Sky Blue',rosas:'Rose',detalles:'Gold'},
+  26:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Black'},
+  27:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  28:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'',detalles:'Gold'},
+  31:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  32:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Blush',detalles:'Hot Pink'},
+  33:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  35:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  36:{piel:'Coral',cabello:'Coral',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},
+  38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},
+  39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},
+};
+
+function yarnColorsToList(yc){
+  const counts={},order=[];
+  Object.values(yc).forEach(color=>{
+    if(!color)return;
+    if(counts[color])counts[color]++;
+    else{counts[color]=1;order.push(color);}
   });
+  return order.map(color=>({color,qty:counts[color]}));
 }
+
+function addYarnRow(color='',qty=1){
+  const list=document.getElementById('yarn-list-editor');
+  document.getElementById('yarn-empty-hint').style.display='none';
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;align-items:center;gap:8px;';
+  row.innerHTML=`
+    <select style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;background:var(--white);color:var(--text);">${YARN_COLOR_OPT}</select>
+    <span style="font-size:13px;color:var(--text-light);">×</span>
+    <input type="number" value="${qty}" min="1" max="20" style="width:58px;border:1.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;">
+    <span style="font-size:12px;color:var(--text-light);white-space:nowrap;">ovillo(s)</span>
+    <button onclick="removeYarnRow(this)" style="background:var(--red-light);color:var(--red);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>`;
+  list.appendChild(row);
+  if(color) row.querySelector('select').value=color;
+}
+
+function removeYarnRow(btn){
+  btn.parentNode.remove();
+  if(!document.getElementById('yarn-list-editor').children.length)
+    document.getElementById('yarn-empty-hint').style.display='block';
+}
+
+function getYarnList(){
+  return Array.from(document.querySelectorAll('#yarn-list-editor > div')).map(row=>({
+    color:row.querySelector('select').value,
+    qty:parseInt(row.querySelector('input[type=number]').value)||1
+  })).filter(i=>i.color);
+}
+
+function fillYarnSelects(){} // kept for backward compat
 
 // ── CONSTANTS ──
 const ADMIN_PWD_KEY='krosha_admin_pwd';
@@ -881,7 +925,7 @@ function openProdModal(id){
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
-  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ed=document.getElementById('yarn-list-editor');if(ed){ed.innerHTML='';document.getElementById('yarn-empty-hint').style.display='block';}
   ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
   document.getElementById('prod-modal').classList.add('open');
 }
@@ -902,10 +946,12 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
-  const yc=p.yarnColors||{};
-  ['piel','cabello','vestido','forro','rosas','detalles'].forEach(k=>{
-    const el=document.getElementById(`pf-yarn-${k}`);if(el)el.value=yc[k]||'';
-  });
+  const editor=document.getElementById('yarn-list-editor');
+  editor.innerHTML='';
+  document.getElementById('yarn-empty-hint').style.display='block';
+  const yc=p.yarnColors||(defaultYarnColors[p.id])||{};
+  const yl=p.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
+  yl.forEach(item=>addYarnRow(item.color,item.qty));
   (p.images||[]).forEach((url,i)=>{
     const inp=document.getElementById(`pf-img${i+1}`);
     const prev=document.getElementById(`img-prev-${i+1}`);
@@ -917,7 +963,6 @@ function closeProdModal(){document.getElementById('prod-modal').classList.remove
 function saveProd(){
   const editId=document.getElementById('prod-edit-id').value;
   const imgs=[document.getElementById('pf-img1').value,document.getElementById('pf-img2').value,document.getElementById('pf-img3').value,document.getElementById('pf-img4').value].filter(Boolean);
-  const getYarn=k=>{const el=document.getElementById(`pf-yarn-${k}`);return el?el.value:'';};
   const prod={
     id:editId?parseInt(editId):Date.now(),
     nameEs:document.getElementById('pf-name-es').value,
@@ -933,10 +978,7 @@ function saveProd(){
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
-    yarnColors:{
-      piel:getYarn('piel'),cabello:getYarn('cabello'),vestido:getYarn('vestido'),
-      forro:getYarn('forro'),rosas:getYarn('rosas'),detalles:getYarn('detalles'),
-    },
+    yarnList:getYarnList(),
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
   let prods=getProds();
