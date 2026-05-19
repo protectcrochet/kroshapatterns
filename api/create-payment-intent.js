@@ -29,9 +29,14 @@ export default async function handler(req, res) {
     // Amount in smallest unit (cents), zero-decimal currencies stay as-is
     const amountInCents = zeroDecimal.includes(cur) ? Math.round(amount) : Math.round(amount * 100);
 
+    // Stripe minimum amounts per currency (in smallest unit)
+    const minimums = { mxn:1000, usd:50, eur:50, gbp:30, cad:50, brl:50, ars:3700, cop:200000, clp:500, dop:50, pen:200 };
+    const minAmount = minimums[cur] || 50;
+    const finalAmount = Math.max(amountInCents, minAmount);
+
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amountInCents,
+      amount: finalAmount,
       currency: cur,
       receipt_email: customerEmail,
       metadata: {
