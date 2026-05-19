@@ -385,26 +385,62 @@ const countryToCurrency={
   NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
 };
 const YARN_COLORS=[
-  {name:'White',hex:'#FFFFFF'},{name:'Cream',hex:'#FFF8DC'},{name:'Ecru',hex:'#F5F0E8'},
-  {name:'Almond',hex:'#DEB887'},{name:'Sand',hex:'#E8D5B0'},{name:'Wheat',hex:'#F5DEB3'},
-  {name:'Camel',hex:'#C19A6B'},{name:'Gold',hex:'#FFD700'},{name:'Mustard',hex:'#FFDB58'},
-  {name:'Yellow',hex:'#FFF176'},{name:'Sunshine',hex:'#FFE600'},{name:'Orange',hex:'#FF8C00'},
-  {name:'Coral',hex:'#FF7F50'},{name:'Peach',hex:'#FFDAB9'},{name:'Salmon',hex:'#FA8072'},
-  {name:'Red',hex:'#DC143C'},{name:'Crimson',hex:'#B22222'},{name:'Burgundy',hex:'#800020'},
-  {name:'Blush',hex:'#FFB6C1'},{name:'Pink',hex:'#FFC0CB'},{name:'Hot Pink',hex:'#FF69B4'},
-  {name:'Rose',hex:'#FF007F'},{name:'Fuchsia',hex:'#FF00FF'},{name:'Mauve',hex:'#D4869E'},
-  {name:'Lilac',hex:'#C8A2C8'},{name:'Lavender',hex:'#E6E6FA'},{name:'Purple',hex:'#800080'},
-  {name:'Violet',hex:'#8B00FF'},{name:'Plum',hex:'#DDA0DD'},{name:'Navy',hex:'#001F5B'},
-  {name:'Royal Blue',hex:'#4169E1'},{name:'Blue',hex:'#2962FF'},{name:'Sky Blue',hex:'#87CEEB'},
-  {name:'Powder Blue',hex:'#B0E0E6'},{name:'Denim',hex:'#1560BD'},{name:'Teal',hex:'#008080'},
-  {name:'Turquoise',hex:'#40E0D0'},{name:'Aqua',hex:'#00CED1'},{name:'Mint',hex:'#98FF98'},
-  {name:'Sage',hex:'#BCB88A'},{name:'Olive',hex:'#808000'},{name:'Lime',hex:'#32CD32'},
-  {name:'Green',hex:'#008000'},{name:'Emerald',hex:'#50C878'},{name:'Forest',hex:'#228B22'},
-  {name:'Tan',hex:'#D2B48C'},{name:'Brown',hex:'#8B4513'},{name:'Chocolate',hex:'#7B3F00'},
-  {name:'Espresso',hex:'#3C2005'},{name:'Charcoal',hex:'#36454F'},{name:'Grey',hex:'#9E9E9E'},
-  {name:'Silver',hex:'#C0C0C0'},{name:'Black',hex:'#1A1A1A'},
+  {name:'White',hex:'#FFFFFF',img:'blanco.jpg'},
+  {name:'Cream',hex:'#FFF8DC',img:'crema.jpg'},
+  {name:'Ecru',hex:'#F5F0E8',img:'crema.jpg'},
+  {name:'Almond',hex:'#DEB887',img:'arena.jpg'},
+  {name:'Sand',hex:'#E8D5B0',img:'arena.jpg'},
+  {name:'Wheat',hex:'#F5DEB3',img:'beige-calido.jpg'},
+  {name:'Camel',hex:'#C19A6B',img:'toffee.jpg'},
+  {name:'Gold',hex:'#FFD700',img:'dorado.jpg'},
+  {name:'Mustard',hex:'#FFDB58',img:'mostaza.jpg'},
+  {name:'Yellow',hex:'#FFF176',img:'limon.jpg'},
+  {name:'Sunshine',hex:'#FFE600',img:'limon.jpg'},
+  {name:'Orange',hex:'#FF8C00',img:'naranja.jpg'},
+  {name:'Coral',hex:'#FF7F50',img:'coral.jpg'},
+  {name:'Peach',hex:'#FFDAB9',img:'durazno.jpg'},
+  {name:'Salmon',hex:'#FA8072',img:'salmon.jpg'},
+  {name:'Red',hex:'#DC143C',img:'rojo.jpg'},
+  {name:'Crimson',hex:'#B22222',img:'granate.jpg'},
+  {name:'Burgundy',hex:'#800020',img:'borgoña.jpg'},
+  {name:'Blush',hex:'#FFB6C1',img:'rosa-palo.jpg'},
+  {name:'Pink',hex:'#FFC0CB',img:'rosa.jpg'},
+  {name:'Hot Pink',hex:'#FF69B4',img:'fucsia.jpg'},
+  {name:'Rose',hex:'#FF007F',img:'rose.jpg'},
+  {name:'Fuchsia',hex:'#FF00FF',img:'fucsia.jpg'},
+  {name:'Mauve',hex:'#D4869E',img:'malva-claro.jpg'},
+  {name:'Lilac',hex:'#C8A2C8',img:'lila.jpg'},
+  {name:'Lavender',hex:'#E6E6FA',img:'lila.jpg'},
+  {name:'Purple',hex:'#800080',img:'morado.jpg'},
+  {name:'Violet',hex:'#8B00FF',img:'violeta.jpg'},
+  {name:'Plum',hex:'#DDA0DD',img:'morado-oscuro.jpg'},
+  {name:'Navy',hex:'#001F5B',img:'marino.jpg'},
+  {name:'Royal Blue',hex:'#4169E1',img:'azul-rey.jpg'},
+  {name:'Blue',hex:'#2962FF',img:'azul.jpg'},
+  {name:'Sky Blue',hex:'#87CEEB',img:'azul-cielo.jpg'},
+  {name:'Powder Blue',hex:'#B0E0E6',img:'azul-polvo.jpg'},
+  {name:'Denim',hex:'#1560BD',img:'mezclilla.jpg'},
+  {name:'Teal',hex:'#008080',img:'teal.jpg'},
+  {name:'Turquoise',hex:'#40E0D0',img:'turquesa.jpg'},
+  {name:'Aqua',hex:'#00CED1',img:'aqua.jpg'},
+  {name:'Mint',hex:'#98FF98',img:'menta.jpg'},
+  {name:'Sage',hex:'#BCB88A',img:'salvia.jpg'},
+  {name:'Olive',hex:'#808000',img:'alcachofa.jpg'},
+  {name:'Lime',hex:'#32CD32',img:'lima.jpg'},
+  {name:'Green',hex:'#008000',img:'verde-bosque.jpg'},
+  {name:'Emerald',hex:'#50C878',img:'pino.jpg'},
+  {name:'Forest',hex:'#228B22',img:'verde-bosque.jpg'},
+  {name:'Tan',hex:'#D2B48C',img:'taupe.jpg'},
+  {name:'Brown',hex:'#8B4513',img:'chocolate.jpg'},
+  {name:'Chocolate',hex:'#7B3F00',img:'chocolate.jpg'},
+  {name:'Espresso',hex:'#3C2005',img:'cacao.jpg'},
+  {name:'Charcoal',hex:'#36454F',img:'carbon.jpg'},
+  {name:'Grey',hex:'#9E9E9E',img:'gris.jpg'},
+  {name:'Silver',hex:'#C0C0C0',img:'gris-claro.jpg'},
+  {name:'Black',hex:'#1A1A1A',img:'negro.jpg'},
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
+function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
 let cur='MXN', lang='es', curProd=null;
 let addonKit=false, addonEyes=false;
 
@@ -574,11 +610,14 @@ function renderGrid(filter){
   g.innerHTML=filtered.map(p=>{
     const isYarnColor=p.type==='hilo'&&p.yarnColorName;
     const hex=isYarnColor?getYarnHex(p.yarnColorName):'';
+    const yimg=isYarnColor?getYarnImg(p.yarnColorName):null;
     return `
     <div class="pcard" data-type="${p.type}" onclick="openM(${p.id})">
       <div class="pcard-img">
         ${isYarnColor
-          ?`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
+          ?yimg
+            ?`<img src="${yimg}" alt="${p.yarnColorName}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=yarn-ball-wrap style=background:${hex}22><div class=yarn-ball style=background:radial-gradient(circle+at+38%+35%,rgba(255,255,255,.5)+0%,transparent+70%),${hex}></div></div>'">`
+            :`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
           :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">`
         }
         <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
@@ -620,11 +659,11 @@ function openM(id){
 
   const gallery=document.querySelector('.modal-gallery');
   if(curProd.yarnColorName){
-    // Yarn color product — show big ball, no thumbs
     const hex=getYarnHex(curProd.yarnColorName);
-    gallery.innerHTML=`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;">
-      <div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div>
-    </div>`;
+    const yimg=getYarnImg(curProd.yarnColorName);
+    gallery.innerHTML=yimg
+      ?`<div style="width:100%;flex:1;min-height:360px;overflow:hidden;"><img src="${yimg}" alt="${curProd.yarnColorName}" style="width:100%;height:100%;min-height:360px;object-fit:cover;"></div>`
+      :`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div></div>`;
   } else {
     gallery.innerHTML=`<div class="mgallery-main"><img id="mimg-main" src="${curProd.images[0]||''}" alt="${curProd.title}"></div>
     <div class="mgallery-thumbs" id="mimg-thumbs">${(curProd.images||[]).map((img,i)=>
@@ -652,12 +691,12 @@ function openM(id){
     ];
     const chips=parts.filter(p=>yc[p.key]).map(p=>`
       <div class="yarn-chip">
-        <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
+        ${getYarnImg(yc[p.key])?`<img class="yarn-swatch" src="${getYarnImg(yc[p.key])}" alt="${yc[p.key]}" style="object-fit:cover;">`:`<div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>`}
         <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
         <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
       </div>`).join('');
     yarnSec.innerHTML=`<div class="yarn-section">
-      <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
+      <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
       <div class="yarn-grid">${chips}</div>
     </div>`;
     yarnSec.style.display='block';
