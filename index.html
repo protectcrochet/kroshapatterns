@@ -743,8 +743,21 @@ function openM(id){
     addonSec.style.display='block';
   } else if(addonSec){addonSec.style.display='none';}
 
-  updateModalPrice();
-  document.getElementById('mbtn-add').textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  // Yarn color products: not sold standalone
+  const btnBuy=document.getElementById('mbtn-buy');
+  const btnAdd=document.getElementById('mbtn-add');
+  const buySub=document.querySelector('.buy-price-sub');
+  if(curProd.yarnColorName){
+    btnBuy.style.display='none';
+    btnAdd.style.display='none';
+    if(buySub)buySub.innerHTML=`<div style="background:var(--blush);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;font-size:13px;color:var(--text-mid);line-height:1.5;">${lang==='es'?'🧶 Este estambre está disponible como add-on al comprar cualquier patrón':'🧶 This yarn is available as an add-on when buying any pattern'}</div>`;
+  } else {
+    btnBuy.style.display='';
+    btnAdd.style.display='';
+    if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
+    updateModalPrice();
+    btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  }
   document.getElementById('ov').classList.add('open');
 }
 
