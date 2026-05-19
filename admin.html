@@ -582,6 +582,21 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
       </div>
     </div>
+    <!-- ENTREGA DIGITAL -->
+    <div style="margin-top:18px;background:#f0f8f4;border-radius:12px;padding:16px;border:1px solid #b0ddc8;">
+      <div style="font-weight:700;font-size:14px;color:var(--green);margin-bottom:6px;">📦 Entrega Digital</div>
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">ProtectCrochet genera un link único por compra automáticamente. Para PDF, sube el archivo y pega el link directo.</div>
+      <div class="form-grid full">
+        <div class="field">
+          <label>🔐 Slug en ProtectCrochet <span style="font-weight:400;color:var(--text-light);">— el identificador del patrón en tu panel de ProtectCrochet (ej: <code>candy</code>)</span></label>
+          <input type="text" id="pf-pattern-slug" placeholder="candy">
+        </div>
+        <div class="field">
+          <label>📄 URL PDF directo <span style="font-weight:400;color:var(--text-light);">— Google Drive, Dropbox, etc. (solo si no está en ProtectCrochet)</span></label>
+          <input type="text" id="pf-pdf-url" placeholder="https://drive.google.com/file/...">
+        </div>
+      </div>
+    </div>
     <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
       <button class="btn btn-outline" onclick="closeProdModal()">Cancelar</button>
       <button class="btn btn-pink" onclick="saveProd()">💾 Guardar producto</button>
@@ -862,7 +877,7 @@ function openProdModal(id){
   fillYarnSelects();
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});;
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
@@ -885,6 +900,8 @@ function editProd(id){
   document.getElementById('pf-desc-en').value=p.descEn||'';
   document.getElementById('pf-kit-price').value=p.kitPrice||'';
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
+  document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
+  document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
   const yc=p.yarnColors||{};
   ['piel','cabello','vestido','forro','rosas','detalles'].forEach(k=>{
     const el=document.getElementById(`pf-yarn-${k}`);if(el)el.value=yc[k]||'';
@@ -914,6 +931,8 @@ function saveProd(){
     images:imgs,
     kitPrice:parseFloat(document.getElementById('pf-kit-price').value)||0,
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
+    patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
+    pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
     yarnColors:{
       piel:getYarn('piel'),cabello:getYarn('cabello'),vestido:getYarn('vestido'),
       forro:getYarn('forro'),rosas:getYarn('rosas'),detalles:getYarn('detalles'),

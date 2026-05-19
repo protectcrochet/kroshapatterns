@@ -53,7 +53,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .hc-img{overflow:hidden;}
 .hc:nth-child(1) .hc-img{height:280px;}
 .hc:nth-child(2) .hc-img,.hc:nth-child(3) .hc-img{height:130px;}
-.hc-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
+.hc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .hc:hover .hc-img img{transform:scale(1.05);}
 .hc-body{padding:10px 14px 14px;}
 .hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
@@ -81,7 +81,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .pcard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
 .pcard.hidden{display:none;}
 .pcard-img{height:200px;overflow:hidden;position:relative;background:var(--pink-mid);}
-.pcard-img img{width:100%;height:100%;object-fit:cover;object-position:top center;transition:transform .3s;}
+.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .pcard:hover .pcard-img img{transform:scale(1.06);}
 .pbadge{position:absolute;top:10px;left:10px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
 .pbadge.kit{background:#60A090;}
@@ -104,7 +104,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;}
 .modal-gallery{background:var(--pink-mid);border-radius:24px 0 0 24px;overflow:hidden;min-height:360px;display:flex;flex-direction:column;}
 .mgallery-main{flex:1;overflow:hidden;}
-.mgallery-main img{width:100%;height:100%;object-fit:cover;object-position:top center;min-height:300px;}
+.mgallery-main img{width:100%;height:100%;object-fit:cover;min-height:300px;}
 .mgallery-thumbs{display:flex;gap:6px;padding:8px;background:rgba(255,255,255,.5);}
 .mthumb{width:52px;height:52px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color .2s;flex-shrink:0;}
 .mthumb.active{border-color:var(--pink-dark);}
@@ -135,6 +135,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .yarn-swatch{width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(0,0,0,.12);flex-shrink:0;}
 .yarn-chip-label{font-size:10px;color:var(--text-light);font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
 .yarn-chip-name{font-size:12.5px;font-weight:700;color:var(--text);}
+.yarn-chip-add{background:var(--pink-dark);color:#fff;border:none;width:22px;height:22px;border-radius:6px;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s;font-family:'Nunito',sans-serif;margin-left:auto;}
+.yarn-chip-add:hover{background:var(--pink-text);}
+/* YARN COLOR CARD */
+.yarn-ball-wrap{width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.yarn-ball{width:120px;height:120px;border-radius:50%;box-shadow:0 8px 28px rgba(0,0,0,.28),inset 0 -5px 12px rgba(0,0,0,.18);}
 /* COMBO ADD-ONS */
 .addon-section{margin-bottom:14px;}
 .addon-title{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:8px;}
@@ -225,9 +230,9 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
   <div class="nav-inner">
     <a href="#" class="logo">🎀 KroshaPatterns</a>
     <ul class="nav-links">
-      <li><a href="#patrones" data-es="Patrones" data-en="Patterns">Patrones</a></li>
-      <li><a href="#kits" data-es="Kits" data-en="Kits">Kits</a></li>
-      <li><a href="#hilos" data-es="Hilos" data-en="Yarns">Hilos</a></li>
+      <li><a href="#productos" onclick="navFilter('patrones')" data-es="Patrones" data-en="Patterns">Patrones</a></li>
+      <li><a href="#productos" onclick="navFilter('kits')" data-es="Kits" data-en="Kits">Kits</a></li>
+      <li><a href="#productos" onclick="navFilter('hilo')" data-es="Estambres" data-en="Yarns">Estambres</a></li>
       <li><a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a></li>
     </ul>
     <div class="nav-right">
@@ -268,8 +273,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
       <h1><span id="hero-t1" data-es="Tu crochet," data-en="Your crochet,">Tu crochet,</span><br><em id="hero-t2" data-es="más bonito" data-en="more beautiful" style="color:var(--pink-dark);">más bonito</em></h1>
       <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Jennyfer.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.</p>
       <div class="hero-btns">
-        <a href="#patrones" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
-        <a href="#kits" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
+        <a href="#productos" onclick="navFilter('patrones')" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
+        <a href="#productos" onclick="navFilter('kits')" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
       </div>
     </div>
     <div class="hero-imgs">
@@ -300,14 +305,14 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
 </div>
 
 <!-- FILTER + PRODUCTS -->
-<div class="filter-wrap">
+<div id="productos" class="filter-wrap">
   <h2 class="filter-title" data-es="Todos los <em>productos</em>" data-en="All <em>products</em>">Todos los <em>productos</em></h2>
   <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
   <div class="filter-tabs">
     <button class="ftab active" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
     <button class="ftab" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
-    <button class="ftab" onclick="filterProds('hilo',this)" data-es="Hilos" data-en="Yarns">Hilos</button>
+    <button class="ftab" id="tab-estambres" onclick="filterProds('hilo',this)" data-es="Estambres" data-en="Yarns">Estambres</button>
   </div>
 </div>
 
@@ -330,7 +335,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
       <ul>
         <li><a href="#patrones" data-es="Patrones Digitales" data-en="Digital Patterns">Patrones Digitales</a></li>
         <li><a href="#kits" data-es="Kits Crochet" data-en="Crochet Kits">Kits Crochet</a></li>
-        <li><a href="#hilos" data-es="Hilos y Estambres" data-en="Yarn">Hilos y Estambres</a></li>
+        <li><a href="#estambres" data-es="Estambres" data-en="Yarns">Estambres</a></li>
       </ul>
     </div>
     <div class="foot-col">
@@ -413,10 +418,10 @@ function updateCartBadge(){document.getElementById('cn').textContent=getCartCoun
 // Falls back to hardcoded defaults if admin hasn't saved yet
 function getProducts(){
   const stored=localStorage.getItem(PRODS_KEY);
+  let base;
   if(stored){
     const arr=JSON.parse(stored);
-    // normalize field names: admin uses nameEs/nameEn/descEs, index uses title/titleEn/desc
-    return arr.filter(p=>p.status==='active'||!p.status).map(p=>({
+    base=arr.filter(p=>p.status==='active'||!p.status).map(p=>({
       id:p.id,
       title:p.nameEs||p.title||'',
       titleEn:p.nameEn||p.titleEn||'',
@@ -426,12 +431,18 @@ function getProducts(){
       images:p.images||[],
       desc:p.descEs||p.desc||'',
       descEn:p.descEn||'',
-      yarnColors:p.yarnColors||null,
+      yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
+      protectUrl:p.protectUrl||'',
+      pdfUrl:p.pdfUrl||'',
     }));
+  } else {
+    base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
   }
-  return defaultProducts;
+  // Always include the full Premier Yarns Basix catalog (IDs 100-151)
+  const ids=new Set(base.map(p=>p.id));
+  return [...base,...yarnProducts.filter(p=>!ids.has(p.id))];
 }
 
 // ── LOAD HERO from localStorage ──
@@ -498,8 +509,58 @@ const defaultProducts=[
   {id:39,handle:'toby-puppy',title:'Toby Puppy Crochet Pattern',titleEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061'],desc:'Patrón de crochet PDF. Perrito Toby. Disponible en español e inglés. 35cm.'},
 ];
 
+// Colores detectados por personaje (Premier Yarns Basix)
+// Pendientes de confirmar marcados con '' — se asignan desde admin
+const defaultYarnColors={
+  1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},       // Candy
+  3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},           // Graduadita 35cm
+  4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Mini Rapunzel
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lavender',rosas:'Coral',detalles:'Gold'},     // Sirenita
+  9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Rapunzel 35cm
+  10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},         // Maléfica
+  11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},             // Reina
+  13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},           // Mini Ramo 25cm
+  14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},          // Valiente/Mérida
+  15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},          // Bella/Belle
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lavender',rosas:'',detalles:'Blue'},  // Emily (pendiente confirmar)
+  18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},      // Sally
+  19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca Ramo 35cm
+  21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},                // Stitch
+  22:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},          // Graduación 45cm
+  23:{piel:'Almond',cabello:'Black',vestido:'Coral',forro:'White',rosas:'Rose',detalles:'Gold'},          // Frida Kahlo
+  24:{piel:'Almond',cabello:'Gold',vestido:'White',forro:'Sky Blue',rosas:'Rose',detalles:'Gold'},        // Sailor Moon
+  26:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Black'},           // Gatita (pendiente confirmar)
+  27:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca 65cm
+  28:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'',detalles:'Gold'},               // Virgen
+  31:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},         // Ramo Rapunzel
+  32:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Blush',detalles:'Hot Pink'},       // Conejita Mia XL
+  33:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Princesa
+  35:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Black'},                        // Panda
+  36:{piel:'Coral',cabello:'Coral',vestido:'',forro:'White',rosas:'',detalles:'Black'},                   // Loki Fox
+  37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},                        // Jirafa
+  38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},                        // Conejito
+  39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},                        // Toby Puppy
+};
+
+// ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
+const yarnProducts=YARN_COLORS.map((c,i)=>({
+  id:100+i,
+  title:`Estambre ${c.name} 200g`,
+  titleEn:`${c.name} Yarn 200g`,
+  price:150,
+  type:'hilo',
+  skill:'',
+  images:[],
+  desc:`Estambre Premier Yarns Basix color ${c.name}. Presentación 200g. Acrílico suave de alta calidad.`,
+  descEn:`Premier Yarns Basix ${c.name}. 200g. High-quality soft acrylic yarn.`,
+  yarnColors:null,
+  yarnColorName:c.name,
+  kitPrice:0,
+  eyesPrice:0,
+}));
+
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
-function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Hilo / Estambre':t==='amigurumis'?'Amigurumi':'Patrón Digital';}
+function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':'Patrón Digital';}
 function typeBadge(t){return t==='kits'?'kit':t==='hilo'?'hilo':t==='amigurumis'?'kit':'';}
 
 let activeFilter='all';
@@ -510,22 +571,28 @@ function renderGrid(filter){
   const g=document.getElementById('pgrid');
   const filtered=activeFilter==='all'?products:products.filter(p=>p.type===activeFilter);
   if(!filtered.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';return;}
-  g.innerHTML=filtered.map(p=>`
+  g.innerHTML=filtered.map(p=>{
+    const isYarnColor=p.type==='hilo'&&p.yarnColorName;
+    const hex=isYarnColor?getYarnHex(p.yarnColorName):'';
+    return `
     <div class="pcard" data-type="${p.type}" onclick="openM(${p.id})">
       <div class="pcard-img">
-        <img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">
+        ${isYarnColor
+          ?`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
+          :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">`
+        }
         <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
         <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">♡</button>
       </div>
       <div class="pcard-body">
         <div class="pcard-cat">${typeLabel(p.type)}</div>
-        <div class="pcard-name">${lang==='en'&&p.titleEn?p.titleEn:p.title}</div>
+        <div class="pcard-name">${isYarnColor?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title)}</div>
         <div class="pcard-foot">
           <div class="pcard-price">${f(p.price)}</div>
           <button class="btn-plus" onclick="event.stopPropagation();qAdd(${p.id})">+</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 function filterProds(type,btn){
@@ -534,26 +601,47 @@ function filterProds(type,btn){
   renderGrid(type);
 }
 
+function navFilter(type){
+  // Activate the matching tab and filter
+  const tabs=document.querySelectorAll('.ftab');
+  tabs.forEach(t=>{
+    t.classList.remove('active');
+    if((type==='all'&&t.textContent.trim()==='Todos')||(t.getAttribute('onclick')||'').includes(`'${type}'`))
+      t.classList.add('active');
+  });
+  renderGrid(type);
+}
+
 function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
   addonKit=false; addonEyes=false;
-  document.getElementById('mimg-main').src=curProd.images[0]||'';
-  document.getElementById('mimg-main').alt=curProd.title;
-  document.getElementById('mimg-thumbs').innerHTML=(curProd.images||[]).map((img,i)=>
-    `<div class="mthumb ${i===0?'active':''}" onclick="switchImg(this,'${img}')"><img src="${img}" alt=""></div>`
-  ).join('');
+
+  const gallery=document.querySelector('.modal-gallery');
+  if(curProd.yarnColorName){
+    // Yarn color product — show big ball, no thumbs
+    const hex=getYarnHex(curProd.yarnColorName);
+    gallery.innerHTML=`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;">
+      <div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div>
+    </div>`;
+  } else {
+    gallery.innerHTML=`<div class="mgallery-main"><img id="mimg-main" src="${curProd.images[0]||''}" alt="${curProd.title}"></div>
+    <div class="mgallery-thumbs" id="mimg-thumbs">${(curProd.images||[]).map((img,i)=>
+      `<div class="mthumb ${i===0?'active':''}" onclick="switchImg(this,'${img}')"><img src="${img}" alt=""></div>`
+    ).join('')}</div>`;
+  }
+
   document.getElementById('mcat').textContent=typeLabel(curProd.type);
-  document.getElementById('mname').textContent=lang==='en'&&curProd.titleEn?curProd.titleEn:curProd.title;
+  document.getElementById('mname').textContent=curProd.yarnColorName?curProd.yarnColorName:(lang==='en'&&curProd.titleEn?curProd.titleEn:curProd.title);
   document.getElementById('mdesc').textContent=lang==='en'&&curProd.descEn?curProd.descEn:curProd.desc;
   document.getElementById('md-price').textContent=f(curProd.price);
-  document.getElementById('md-level').textContent=curProd.skill||'—';
+  document.getElementById('md-level').textContent=curProd.yarnColorName?'Premier Yarns Basix':(curProd.skill||'—');
 
-  // Yarn colors section
+  // Yarn colors section (only for pattern products)
   const yarnSec=document.getElementById('m-yarn-section');
   const yc=curProd.yarnColors;
-  if(yarnSec&&yc&&Object.values(yc).some(v=>v)){
+  if(yarnSec&&!curProd.yarnColorName&&yc&&Object.values(yc).some(v=>v)){
     const parts=[
       {key:'piel',label:lang==='es'?'Piel':'Skin'},
       {key:'cabello',label:lang==='es'?'Cabello':'Hair'},
@@ -565,10 +653,11 @@ function openM(id){
     const chips=parts.filter(p=>yc[p.key]).map(p=>`
       <div class="yarn-chip">
         <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
-        <div><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
+        <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
+        <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
       </div>`).join('');
     yarnSec.innerHTML=`<div class="yarn-section">
-      <div class="yarn-section-title">🧶 ${lang==='es'?'Colores Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
+      <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
       <div class="yarn-grid">${chips}</div>
     </div>`;
     yarnSec.style.display='block';
@@ -576,7 +665,7 @@ function openM(id){
 
   // Add-on / combo section
   const addonSec=document.getElementById('m-addon-section');
-  if(addonSec&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
+  if(addonSec&&!curProd.yarnColorName&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
     let html=`<div class="addon-section"><div class="addon-title">🎁 ${lang==='es'?'Completa tu kit':'Build your kit'}</div>`;
     if(curProd.kitPrice>0){
       html+=`<div class="addon-row" id="addon-kit" onclick="toggleAddon('kit')">
@@ -644,9 +733,23 @@ function qAdd(id){
   const p=products.find(x=>x.id===id);if(!p)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===id);
-  if(existing)existing.qty++;else cart.push({id:p.id,title:p.title,price:p.price,img:p.images[0]||'',qty:1});
+  const imgVal=p.yarnColorName?`yarn:${getYarnHex(p.yarnColorName)}`:p.images[0]||'';
+  const label=p.yarnColorName?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title);
+  if(existing)existing.qty++;else cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty:1});
   saveCart(cart);updateCartBadge();
-  showToast(`🎀 ${lang==='es'?p.title:p.titleEn||p.title} ${lang==='es'?'agregado':'added'}`);
+  showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
+}
+
+function addYarnToCart(colorName){
+  const yp=yarnProducts.find(p=>p.yarnColorName===colorName);
+  if(!yp)return;
+  const cart=getCart();
+  const existing=cart.find(i=>i.id===yp.id);
+  const hex=getYarnHex(colorName);
+  if(existing)existing.qty++;
+  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:`yarn:${hex}`,qty:1});
+  saveCart(cart);updateCartBadge();
+  showToast(`🧶 ${colorName} ${lang==='es'?'agregado al carrito':'added to cart'}`);
 }
 
 function addToCart(){

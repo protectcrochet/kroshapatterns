@@ -27,6 +27,13 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .lang-btn{padding:5px 13px;border-radius:30px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);transition:all .2s;}
 .lang-btn.active{background:var(--pink-dark);color:#fff;}
 .cur-sel{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:30px;padding:6px 13px;font-size:13px;font-family:'Nunito',sans-serif;cursor:pointer;}
+.btn-cart-nav{background:var(--pink-dark);color:#fff;border:none;padding:9px 18px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Nunito',sans-serif;transition:background .2s;}
+.btn-cart-nav:hover{background:var(--pink-text);}
+.cn{background:rgba(255,255,255,.3);width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.btn-back{background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:12px 22px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;display:flex;align-items:center;gap:7px;margin-bottom:16px;}
+.btn-back:hover{background:var(--pink-mid);}
+.ship-fields{margin-top:12px;display:none;}
+.ship-fields.visible{display:block;}
 
 /* STEPS */
 .steps-bar{background:var(--white);border-bottom:1.5px solid var(--border);padding:16px 2rem;}
@@ -213,7 +220,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <nav class="nav-bar">
   <div class="nav-ann" id="nav-ann">🎀 Patrones digitales al instante · Pago 100% seguro</div>
   <div class="nav-inner">
-    <a href="krosha-opcion-B.html" class="logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="logo">🎀 KroshaPatterns</a>
     <div class="nav-right">
       <div class="lang-toggle">
         <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
@@ -239,6 +246,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
+      <button class="btn-cart-nav" onclick="showCartPage()">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="nav-cn">0</span></button>
     </div>
   </div>
 </nav>
@@ -296,6 +304,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <div class="page" id="page-checkout">
   <div class="checkout-layout">
     <div>
+      <button class="btn-back" onclick="goBackToCart()">← <span data-es="Regresar al carrito" data-en="Back to cart">Regresar al carrito</span></button>
       <div class="checkout-form">
 
         <!-- Contact -->
@@ -361,6 +370,38 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               </select>
             </div>
           </div>
+          <!-- ADDRESS FIELDS — shown only for physical items -->
+          <div id="ship-fields" class="ship-fields">
+            <div style="background:var(--blush);border-radius:12px;padding:13px 15px;border:1px solid var(--border);margin-bottom:12px;font-size:12.5px;color:var(--text-mid);">
+              📦 <strong>Envío físico detectado</strong> — Por favor ingresa tu dirección de entrega.
+            </div>
+            <div class="form-grid full" style="margin-bottom:12px;">
+              <div class="field">
+                <label data-es="CALLE Y NÚMERO" data-en="STREET & NUMBER">CALLE Y NÚMERO</label>
+                <input type="text" id="ship-street" placeholder="Av. Reforma 123">
+              </div>
+            </div>
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="field">
+                <label data-es="COLONIA / BARRIO" data-en="NEIGHBORHOOD">COLONIA / BARRIO</label>
+                <input type="text" id="ship-colonia" placeholder="Centro">
+              </div>
+              <div class="field">
+                <label data-es="CIUDAD" data-en="CITY">CIUDAD</label>
+                <input type="text" id="ship-city" placeholder="Ciudad de México">
+              </div>
+            </div>
+            <div class="form-grid">
+              <div class="field">
+                <label data-es="ESTADO / PROVINCIA" data-en="STATE / PROVINCE">ESTADO / PROVINCIA</label>
+                <input type="text" id="ship-state" placeholder="CDMX">
+              </div>
+              <div class="field">
+                <label data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
+                <input type="text" id="ship-zip" placeholder="06600" maxlength="10">
+              </div>
+            </div>
+          </div>
           <!-- SHIPPING INFO — shown only for physical items -->
           <div id="shipping-info-box" style="display:none;margin-top:12px;"></div>
         </div>
@@ -401,27 +442,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
             </div>
           </div>
 
-          <!-- Card fields -->
-          <div class="card-fields" id="card-fields">
-            <div class="field" style="margin-bottom:12px;">
-              <label data-es="NÚMERO DE TARJETA" data-en="CARD NUMBER">NÚMERO DE TARJETA</label>
-              <input type="text" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fmtCard(this)">
-            </div>
-            <div class="card-row">
-              <div class="field">
-                <label data-es="NOMBRE EN TARJETA" data-en="NAME ON CARD">NOMBRE EN TARJETA</label>
-                <input type="text" placeholder="Jennyfer García">
-              </div>
-              <div class="field">
-                <label data-es="VENCIMIENTO" data-en="EXPIRY">VENCIMIENTO</label>
-                <input type="text" placeholder="MM/AA" maxlength="5" oninput="fmtExp(this)">
-              </div>
-              <div class="field">
-                <label>CVC</label>
-                <input type="text" placeholder="123" maxlength="4">
-              </div>
-            </div>
-          </div>
+          <!-- Card fields — populated dynamically by selPay() -->
+          <div class="card-fields" id="card-fields"></div>
         </div>
 
         <button class="btn-checkout" onclick="confirmOrder()" id="confirm-btn" data-es="Confirmar y pagar" data-en="Confirm & pay">Confirmar y pagar</button>
@@ -453,15 +475,15 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <h3 data-es="Detalles del pedido" data-en="Order details">Detalles del pedido</h3>
       <div class="confirm-row">
         <span class="label" data-es="Número de pedido" data-en="Order number">Número de pedido</span>
-        <span class="val">#KP-2026-0842</span>
+        <span class="val" id="confirm-order-ref">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Productos" data-en="Products">Productos</span>
-        <span class="val" data-es="3 patrones + estambres" data-en="3 patterns + yarns">3 patrones + estambres</span>
+        <span class="val" id="confirm-items-label">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Total pagado" data-en="Total paid">Total pagado</span>
-        <span class="val" id="confirm-total" style="color:var(--pink-dark);">$870 MXN</span>
+        <span class="val" id="confirm-total" style="color:var(--pink-dark);">—</span>
       </div>
       <div class="confirm-row">
         <span class="label" data-es="Método de pago" data-en="Payment method">Método de pago</span>
@@ -473,9 +495,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       </div>
     </div>
 
-    <button class="download-btn" onclick="showToast(lang==='es'?'📥 Descargando tus patrones...':'📥 Downloading your patterns...')">
-      📥 <span data-es="Descargar mis patrones (PDF)" data-en="Download my patterns (PDF)">Descargar mis patrones (PDF)</span>
-    </button>
+    <div id="confirm-downloads" style="width:100%;margin-bottom:10px;"></div>
     <button class="back-btn" onclick="goHome()">
       <span data-es="← Seguir comprando" data-en="← Continue shopping">← Seguir comprando</span>
     </button>
@@ -493,7 +513,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 
 <footer>
   <div class="foot-inner">
-    <a href="krosha-opcion-B.html" class="foot-logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="foot-logo">🎀 KroshaPatterns</a>
     <div class="foot-copy" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       © 2026 kroshapatterns.com ·
       <span style="background:#635BFF;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:800;font-family:system-ui,sans-serif;">stripe</span>
@@ -518,9 +538,26 @@ const countryToCurrency={
   NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
 };
 let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
+let stripeInst=null, stripeCard=null;
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
+
+function imgHtml(img){
+  if(!img)return '🧸';
+  if(img.startsWith('yarn:')){
+    const hex=img.slice(5);
+    return `<div style="width:100%;height:100%;background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};border-radius:inherit;"></div>`;
+  }
+  return `<img src="${img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`;
+}
+
+function itemCat(item){
+  if(item.img&&item.img.startsWith('yarn:'))return 'Estambre · Premier Yarns Basix';
+  if(typeof item.id==='string'&&item.id.endsWith('-kit'))return 'Kit Estambres · KroshaPatterns';
+  if(typeof item.id==='string'&&item.id.endsWith('-eyes'))return 'Accesorio · KroshaPatterns';
+  return 'Patrón · KroshaPatterns';
+}
 
 function renderCart(){
   const cart=getCartItems();
@@ -537,10 +574,10 @@ function renderCart(){
   container.innerHTML=cart.map((item,i)=>`
     <div class="cart-item" data-id="${item.id}">
       <div class="ci-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;border-radius:14px;">
-        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+        ${imgHtml(item.img)}
       </div>
       <div class="ci-body">
-        <div class="ci-cat">Patrón · KroshaPatterns</div>
+        <div class="ci-cat">${itemCat(item)}</div>
         <div class="ci-name">${item.title}</div>
         <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
         <div class="ci-actions">
@@ -581,7 +618,7 @@ function renderMiniSummary(cart,sub){
   if(mi)mi.innerHTML=cart.map((item,i)=>`
     <div class="mini-item">
       <div class="mini-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;">
-        ${item.img?`<img src="${item.img}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`:'🧸'}
+        ${imgHtml(item.img)}
       </div>
       <div class="mini-info"><h4>${item.title}</h4><p>x${item.qty}</p></div>
       <span class="mini-price">${f(item.price*item.qty)}</span>
@@ -612,12 +649,12 @@ function chQty(btn,d,id){
   const item=cart.find(i=>i.id===id);
   if(!item)return;
   item.qty=Math.max(1,item.qty+d);
-  saveCart(cart);renderCart();
+  saveCart(cart);renderCart();updateNavCart();
 }
 
 function removeItem(id){
   const cart=getCartItems().filter(i=>i.id!==id);
-  saveCart(cart);renderCart();
+  saveCart(cart);renderCart();updateNavCart();
   showToast(lang==='es'?'🗑 Eliminado':'🗑 Removed');
 }
 
@@ -635,7 +672,29 @@ function goToCheckout(){
   setStep(2);
   document.getElementById('page-cart').classList.remove('active');
   document.getElementById('page-checkout').classList.add('active');
+  updateShipping();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBackToCart(){
+  setStep(1);
+  document.getElementById('page-checkout').classList.remove('active');
+  document.getElementById('page-cart').classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showCartPage(){
+  // If on checkout or confirm page, go back to cart
+  if(!document.getElementById('page-cart').classList.contains('active')){
+    goBackToCart();
+  }
+}
+
+function updateNavCart(){
+  const cart=getCartItems();
+  const count=cart.reduce((a,i)=>a+i.qty,0);
+  const el=document.getElementById('nav-cn');
+  if(el)el.textContent=count;
 }
 
 function selPay(el,method){
@@ -660,34 +719,22 @@ function selPay(el,method){
   document.getElementById('confirm-pay').textContent=payNames[method];
 
   if(method==='stripe'){
+    // Stripe Elements — PCI-compliant, required by Stripe
     container.innerHTML=`
       <div style="padding:16px;background:var(--pink-bg);border-radius:12px;border:1.5px solid var(--border);">
         <div class="field" style="margin-bottom:12px;">
-          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NÚMERO DE TARJETA':'CARD NUMBER'}</label>
-          <input type="text" id="card-number" placeholder="1234 5678 9012 3456" maxlength="19" 
-            style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
-            oninput="let v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim()">
+          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE EN TARJETA':'NAME ON CARD'}</label>
+          <input type="text" id="card-name" placeholder="${lang==='es'?'Jennyfer García':'Jennyfer García'}"
+            style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;">
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE':'NAME'}</label>
-            <input type="text" id="card-name" placeholder="${lang==='es'?'Nombre en tarjeta':'Name on card'}"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
-          </div>
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'VENCIMIENTO':'EXPIRY'}</label>
-            <input type="text" id="card-exp" placeholder="MM/AA" maxlength="5"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;"
-              oninput="let v=this.value.replace(/\D/g,'').substring(0,4);if(v.length>2)v=v.substring(0,2)+'/'+v.substring(2);this.value=v;">
-          </div>
-          <div class="field">
-            <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">CVC</label>
-            <input type="text" id="card-cvc" placeholder="123" maxlength="4"
-              style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
-          </div>
+        <div class="field">
+          <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'DATOS DE TARJETA':'CARD DETAILS'}</label>
+          <div id="stripe-card-el" style="border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;background:#fff;margin-top:5px;"></div>
         </div>
         <div id="stripe-error" style="color:#C0392B;font-size:12px;margin-top:8px;min-height:16px;"></div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:6px;display:flex;align-items:center;gap:5px;">🔒 ${lang==='es'?'Datos encriptados por Stripe — nunca vemos tu tarjeta':'Card data encrypted by Stripe — we never see it'}</div>
       </div>`;
+    mountStripeElement();
   } else if(method==='paypal'){
     container.innerHTML='<div id="paypal-btn-container" style="margin-top:4px;"></div>';
     btn.style.display='none';
@@ -704,11 +751,36 @@ function selPay(el,method){
   }
 }
 
+function mountStripeElement(){
+  const doMount=()=>{
+    stripeInst=Stripe(STRIPE_PK);
+    const els=stripeInst.elements({locale:lang==='es'?'es':'en'});
+    stripeCard=els.create('card',{
+      style:{
+        base:{fontFamily:'Nunito, sans-serif',fontSize:'15px',color:'#3A1E2E','::placeholder':{color:'#B48EA8'}},
+        invalid:{color:'#C0392B'},
+      },
+      hidePostalCode:true,
+    });
+    const el=document.getElementById('stripe-card-el');
+    if(el)stripeCard.mount('#stripe-card-el');
+    stripeCard.on('change',e=>{
+      const err=document.getElementById('stripe-error');
+      if(err)err.textContent=e.error?e.error.message:'';
+    });
+  };
+  if(window.Stripe){doMount();}
+  else{const s=document.createElement('script');s.src='https://js.stripe.com/v3/';s.onload=doMount;document.head.appendChild(s);}
+}
+
 function loadPayPalBtn(){
   const existing=document.querySelector('script[src*="paypal.com/sdk"]');
   if(existing)existing.remove();
+  // PayPal only supports certain currencies; fall back to USD for unsupported ones
+  const ppSupported=['AUD','BRL','CAD','CZK','DKK','EUR','HKD','HUF','ILS','JPY','MYR','MXN','TWD','NZD','NOK','PHP','PLN','GBP','SGD','SEK','CHF','THB','USD'];
+  const ppCur=ppSupported.includes(cur)?cur:'USD';
   const s=document.createElement('script');
-  s.src=`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=MXN&locale=${lang==='es'?'es_MX':'en_US'}`;
+  s.src=`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${ppCur}&locale=${lang==='es'?'es_MX':'en_US'}`;
   s.onload=()=>renderPayPalBtn();
   document.head.appendChild(s);
 }
@@ -733,8 +805,8 @@ function renderPayPalBtn(){
     }),
     onApprove:async(d,actions)=>{
       await actions.order.capture();
-      await sendConfirmationEmail(email,name,items,total,'PayPal');
-      showSuccess('🅿️ PayPal');
+      const {ref,downloadToken}=await sendConfirmationEmail(email,name,items,total,'PayPal');
+      showSuccess('🅿️ PayPal',ref,items,total,downloadToken);
     },
     onError:(err)=>{
       console.error('PayPal error:',err);
@@ -744,7 +816,7 @@ function renderPayPalBtn(){
 }
 
 // ── PAYMENT KEYS (public only) ──
-const STRIPE_PK='pk_live_51TWS758EuB8JnWEcjNUSGY5vXyDISqxjv2fDY3VTV5vnC49Qgidp85VKTigDZ1mD3EmAdQAdUryxJO2b8C6iK2Nc00xXCcSDbI';
+const STRIPE_PK='pk_live_51TYeF5DCAhEL8em8oeJfBfv95vvHd05BXAoklt4O5EqUbMO8NZJCWvJlUqBIxTDTNUGl948WecEBrTtWGlU80NlD00xSvOl0us';
 const PAYPAL_CLIENT_ID='AXfyE1JvtTKEqpKJXpdWVXtViMzenTzv9kRc1wzbD85tC9kj1KXvVGsivJw3Hp7ZAariacRoX3MZrNk7';
 const MP_PUBLIC_KEY='APP_USR-9f968d3b-0330-4e45-87d9-d8e890690ec9';
 
@@ -753,7 +825,6 @@ const CART_KEY='krosha_cart';
 function getCartItems(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
 function getCartTotal(){
   const cart=getCartItems();
-  const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,ARS:53};
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
   return Math.round((sub-disc)*(rates[cur]||1)*100)/100;
@@ -788,22 +859,18 @@ async function confirmOrder(){
 // ── STRIPE ──
 async function processStripe(email,name,btn){
   try{
-    const cardNumber=document.getElementById('card-number')?.value?.replace(/\s/g,'')||'';
-    const cardExp=document.getElementById('card-exp')?.value||'';
-    const cardCvc=document.getElementById('card-cvc')?.value||'';
-    const cardName=document.getElementById('card-name')?.value||name;
-
-    if(!cardNumber||!cardExp||!cardCvc){
-      document.getElementById('stripe-error').textContent=lang==='es'?'Por favor completa los datos de tu tarjeta':'Please complete your card details';
+    if(!stripeInst||!stripeCard){
+      showToast(lang==='es'?'⚠️ El formulario de pago no está listo, intenta de nuevo':'⚠️ Payment form not ready, try again');
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
       return;
     }
 
+    const cardName=document.getElementById('card-name')?.value?.trim()||name;
     const total=getCartTotal();
-    const items=getCartItems();
+    const items=enrichItemsWithDownloads(getCartItems());
 
-    // Call backend
+    // 1. Create PaymentIntent on backend
     const res=await fetch('/api/create-payment-intent',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -812,32 +879,22 @@ async function processStripe(email,name,btn){
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error procesando pago');
 
-    // Use Stripe.js to confirm
-    if(!window.Stripe){
-      await new Promise(r=>{const s=document.createElement('script');s.src='https://js.stripe.com/v3/';s.onload=r;document.head.appendChild(s);});
-    }
-    const stripe=Stripe(STRIPE_PK);
-    const[expMonth,expYear]=cardExp.split('/');
-
-    const{paymentIntent,error}=await stripe.confirmCardPayment(data.clientSecret,{
+    // 2. Confirm with Stripe CardElement (PCI-compliant — never touches raw card data)
+    const{paymentIntent,error}=await stripeInst.confirmCardPayment(data.clientSecret,{
       payment_method:{
-        card:{
-          number:cardNumber,
-          exp_month:parseInt(expMonth),
-          exp_year:parseInt('20'+expYear),
-          cvc:cardCvc,
-        },
+        card:stripeCard,
         billing_details:{name:cardName,email},
-      }
+      },
     });
 
     if(error){
-      document.getElementById('stripe-error').textContent=error.message;
+      const errEl=document.getElementById('stripe-error');
+      if(errEl)errEl.textContent=error.message;
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
-    } else if(paymentIntent.status==='succeeded'){
-      await sendConfirmationEmail(email,name,items,total,'Stripe');
-      showSuccess('💳 Stripe');
+    } else if(paymentIntent&&paymentIntent.status==='succeeded'){
+      const {ref,downloadToken}=await sendConfirmationEmail(email,name,items,total,'Stripe');
+      showSuccess('💳 Stripe',ref,items,total,downloadToken);
     }
   }catch(e){
     const errEl=document.getElementById('stripe-error');
@@ -858,22 +915,24 @@ async function processMercadoPago(email,name,btn){
   }
   btn.textContent=lang==='es'?'Cargando Mercado Pago...':'Loading Mercado Pago...';
   try{
-    const items=getCartItems();
+    const items=enrichItemsWithDownloads(getCartItems());
     const total=getCartTotal();
 
     // Call backend to create MP preference
     const res=await fetch('/api/create-mp-preference',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:'MXN'}),
+      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:cur}),
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error con Mercado Pago');
 
-    // Store email for return
+    // Store data for return — cart items also saved so they survive redirect
     localStorage.setItem('krosha_pending_email',email);
     localStorage.setItem('krosha_pending_name',name);
     localStorage.setItem('krosha_pending_total',total);
+    localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
+    localStorage.setItem('krosha_pending_cur',cur);
 
     // Redirect to MP Checkout Pro — real payment page
     btn.textContent=lang==='es'?'Redirigiendo a Mercado Pago...':'Redirecting to Mercado Pago...';
@@ -886,25 +945,70 @@ async function processMercadoPago(email,name,btn){
   }
 }
 
+// ── ENRICH ITEMS WITH DOWNLOAD URLS ──
+function enrichItemsWithDownloads(items){
+  try{
+    const stored=JSON.parse(localStorage.getItem('krosha_products')||'[]');
+    return items.map(item=>{
+      const prod=stored.find(p=>p.id===item.id||p.id===parseInt(item.id));
+      if(prod){
+        return{...item,patternSlug:prod.patternSlug||'',pdfUrl:prod.pdfUrl||''};
+      }
+      return item;
+    });
+  }catch(e){return items;}
+}
+
 // ── SEND EMAIL ──
 async function sendConfirmationEmail(email,name,items,total,payMethod){
   try{
-    await fetch('/api/send-confirmation',{
+    const ref=`KP-${Date.now().toString().slice(-6)}`;
+    const r=await fetch('/api/send-confirmation',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         customerEmail:email,customerName:name,
         items,total,currency:cur,payMethod,
-        orderRef:`KP-${Date.now().toString().slice(-6)}`,
+        orderRef:ref,
       }),
     });
-  }catch(e){console.log('Email error (non-blocking):',e);}
+    const d=await r.json().catch(()=>({}));
+    return{ref:d.orderRef||ref,downloadToken:d.downloadToken||null};
+  }catch(e){
+    console.log('Email error:',e);
+    return{ref:`KP-${Date.now().toString().slice(-6)}`,downloadToken:null};
+  }
 }
 
 // ── SUCCESS ──
-function showSuccess(payMethod){
+function showSuccess(payMethod,orderRef,items,total,downloadToken){
   localStorage.removeItem(CART_KEY);
+  updateNavCart();
+  const refEl=document.getElementById('confirm-order-ref');
+  if(refEl)refEl.textContent='#'+(orderRef||'—');
+  const itemsEl=document.getElementById('confirm-items-label');
+  if(itemsEl&&items)itemsEl.textContent=items.length===1?items[0].title:`${items.length} producto${items.length>1?'s':''}`;
+  const totalEl=document.getElementById('confirm-total');
+  if(totalEl&&total)totalEl.textContent=f(total);
   document.getElementById('confirm-pay').textContent=payMethod;
+  const dlWrap=document.getElementById('confirm-downloads');
+  if(dlWrap){
+    if(downloadToken){
+      const url=`descargar.html?token=${downloadToken}`;
+      dlWrap.innerHTML=`<a href="${url}" target="_blank" rel="noopener"
+        style="display:block;background:var(--pink-dark);color:#fff;text-decoration:none;
+               padding:13px 20px;border-radius:30px;font-size:14px;font-weight:700;
+               text-align:center;margin-bottom:8px;font-family:'Nunito',sans-serif;">
+        🔐 Acceder a mis patrones
+      </a>
+      <p style="text-align:center;font-size:12px;color:var(--text-light);margin-top:6px;">
+        También te enviamos este enlace por correo. Es tuyo para siempre.
+      </p>`;
+    } else {
+      dlWrap.innerHTML=`<p style="text-align:center;font-size:13px;color:var(--text-light);margin-bottom:10px;">
+        📧 Revisa tu correo — recibirás el enlace de acceso a tu patrón en unos minutos.</p>`;
+    }
+  }
   setStep(3);
   document.getElementById('page-checkout').classList.remove('active');
   document.getElementById('page-confirm').classList.add('active');
@@ -917,21 +1021,20 @@ async function checkReturnStatus(){
   const status=params.get('status');
   const method=params.get('method');
   if(status==='success'||status==='approved'){
-    // Send confirmation email with stored data
     const email=localStorage.getItem('krosha_pending_email')||'';
     const name=localStorage.getItem('krosha_pending_name')||'Cliente';
     const total=parseFloat(localStorage.getItem('krosha_pending_total')||'0');
-    const items=getCartItems();
-    if(email) await sendConfirmationEmail(email,name,items,total,method==='mp'?'Mercado Pago':'PayPal');
-    // Clear pending data
-    ['krosha_pending_email','krosha_pending_name','krosha_pending_total'].forEach(k=>localStorage.removeItem(k));
+    const savedCur=localStorage.getItem('krosha_pending_cur')||'MXN';
+    // Use saved items (cart may already be cleared after redirect)
+    const savedItems=JSON.parse(localStorage.getItem('krosha_pending_items')||'[]');
+    const items=savedItems.length?savedItems:getCartItems();
+    cur=savedCur;
+    const payLabel=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
+    let ref='',downloadToken=null;
+    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel);ref=r.ref;downloadToken=r.downloadToken;}
+    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur'].forEach(k=>localStorage.removeItem(k));
     setTimeout(()=>{
-      setStep(3);
-      document.getElementById('page-cart').classList.remove('active');
-      document.getElementById('page-checkout').classList.remove('active');
-      document.getElementById('page-confirm').classList.add('active');
-      document.getElementById('confirm-pay').textContent=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
-      localStorage.removeItem(CART_KEY);
+      showSuccess(payLabel,ref,items,total,downloadToken);
     },300);
   }
 }
@@ -970,6 +1073,18 @@ async function confirmOrder(){
   const email=document.querySelector('input[type="email"]').value;
   const name=document.getElementById('fname').value||'Cliente';
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
+
+  // Validate shipping address if physical items
+  if(hasPhysicalItems()){
+    const street=document.getElementById('ship-street')?.value?.trim();
+    const city=document.getElementById('ship-city')?.value?.trim();
+    const zip=document.getElementById('ship-zip')?.value?.trim();
+    if(!street||!city||!zip){
+      showToast(lang==='es'?'⚠️ Ingresa tu dirección de envío':'⚠️ Enter your shipping address');
+      document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+  }
 
   const btn=document.getElementById('confirm-btn');
   btn.textContent=lang==='es'?'Procesando...':'Processing...';
@@ -1021,6 +1136,7 @@ function hasPhysicalItems(){
   return cart.some(i=>{
     const t=String(i.id);
     return t.includes('-kit')||t.includes('-eyes')||
+      (i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('kit')||
       i.title.toLowerCase().includes('estambre')||
       i.title.toLowerCase().includes('hilo')||
@@ -1029,8 +1145,11 @@ function hasPhysicalItems(){
 }
 function updateShipping(){
   const box=document.getElementById('shipping-info-box');
+  const shipFields=document.getElementById('ship-fields');
+  const isPhysical=hasPhysicalItems();
+  if(shipFields)shipFields.classList.toggle('visible',isPhysical);
   if(!box)return;
-  if(!hasPhysicalItems()){box.style.display='none';return;}
+  if(!isPhysical){box.style.display='none';return;}
   const country=document.getElementById('country-sel')?.value||'MX';
   const isMX=country==='MX';
   const isCentroAm=['GT','HN','SV','NI','CR','PA','CU'].includes(country);
@@ -1087,8 +1206,9 @@ async function detectCurrencyFromIP(){
 }
 
 // init
-setStep(2);
+setStep(1);
 renderCart();
+updateNavCart();
 checkReturnStatus();
 detectCurrencyFromIP();
 </script>
