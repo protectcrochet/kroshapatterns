@@ -477,6 +477,7 @@ function getProducts(){
       desc:p.descEs||p.desc||'',
       descEn:p.descEn||'',
       yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
+      yarnList:p.yarnList||null,
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
       protectUrl:p.protectUrl||'',
@@ -487,7 +488,44 @@ function getProducts(){
   }
   // Always include the full Premier Yarns Basix catalog (IDs 100-151)
   const ids=new Set(base.map(p=>p.id));
-  return [...base,...yarnProducts.filter(p=>!ids.has(p.id))];
+  const yarnKits=generateYarnKits(base);
+  return [...base,...yarnProducts.filter(p=>!ids.has(p.id)),...yarnKits];
+}
+
+function generateYarnKits(patternProds){
+  const result=[];
+  const existingIds=new Set(patternProds.map(p=>p.id));
+  Object.entries(defaultYarnColors).forEach(([patId,yc])=>{
+    const id=parseInt(patId);
+    const pat=patternProds.find(p=>p.id===id);
+    if(!pat||pat.type==='kits'||pat.type==='hilo')return;
+    const yl=pat.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+    if(!yl||!yl.length)return;
+    const kitId=1000+id;
+    if(existingIds.has(kitId))return;
+    const totalQty=yl.reduce((s,i)=>s+i.qty,0);
+    const price=totalQty*150;
+    const shortName=(pat.title||'')
+      .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
+      .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    result.push({
+      id:kitId,
+      title:`Kit Estambres ${shortName}`,
+      titleEn:`Yarn Kit ${shortName}`,
+      price,
+      type:'kits',
+      skill:'',
+      images:pat.images||[],
+      desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,
+      descEn:`${totalQty} Premier Yarns Basix 200g skeins. All colors for the ${pat.titleEn||pat.title} pattern.`,
+      yarnList:yl,
+      kitPrice:0,
+      eyesPrice:0,
+      isYarnKit:true,
+      patternId:id,
+    });
+  });
+  return result;
 }
 
 // ── LOAD HERO from localStorage ──
@@ -690,7 +728,21 @@ function openM(id){
   const yarnSec=document.getElementById('m-yarn-section');
   const yc=curProd.yarnColors;
   const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
-  if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
+  if(yarnSec&&curProd.isYarnKit&&yl&&yl.length){
+    const infoRows=yl.map(item=>{
+      const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
+        ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
+        <span style="font-size:11px;color:var(--text-light);">×${item.qty} ovillo${item.qty>1?'s':''} · 200g</span>
+      </div>`;
+    }).join('');
+    yarnSec.innerHTML=`<div style="margin-bottom:14px;">
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
+      ${infoRows}
+    </div>`;
+    yarnSec.style.display='block';
+  } else if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
     const rows=yl.map(item=>{
       const key=item.color.replace(/[^a-zA-Z0-9]/g,'_');
       const yimg=getYarnImg(item.color);
@@ -747,14 +799,24 @@ function openM(id){
   const btnBuy=document.getElementById('mbtn-buy');
   const btnAdd=document.getElementById('mbtn-add');
   const buySub=document.querySelector('.buy-price-sub');
+  const fmtEl=document.getElementById('md-format');
   if(curProd.yarnColorName){
     btnBuy.style.display='none';
     btnAdd.style.display='none';
     if(buySub)buySub.innerHTML=`<div style="background:var(--blush);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;font-size:13px;color:var(--text-mid);line-height:1.5;">${lang==='es'?'🧶 Este estambre está disponible como add-on al comprar cualquier patrón':'🧶 This yarn is available as an add-on when buying any pattern'}</div>`;
+    if(fmtEl)fmtEl.textContent='200g · Acrílico';
+  } else if(curProd.isYarnKit){
+    btnBuy.style.display='';
+    btnAdd.style.display='';
+    if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Envío a domicilio':'Price in your currency · Home delivery';
+    if(fmtEl)fmtEl.textContent=lang==='es'?'Kit físico':'Physical Kit';
+    updateModalPrice();
+    btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   } else {
     btnBuy.style.display='';
     btnAdd.style.display='';
     if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
+    if(fmtEl)fmtEl.textContent='PDF Digital';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   }
