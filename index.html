@@ -451,7 +451,7 @@ function yarnColorsToList(yc){
   return order.map(color=>({color,qty:counts[color]}));
 }
 let cur='MXN', lang='es', curProd=null;
-let addonKit=false, addonEyes=false;
+let addonKit=false, addonEyes=false, addonYarns={};
 
 // ── CART (persists across pages) ──
 function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
@@ -664,7 +664,7 @@ function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
-  addonKit=false; addonEyes=false;
+  addonKit=false; addonEyes=false; addonYarns={};
 
   const gallery=document.querySelector('.modal-gallery');
   if(curProd.yarnColorName){
@@ -691,18 +691,25 @@ function openM(id){
   const yc=curProd.yarnColors;
   const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
   if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
-    const chips=yl.map(item=>`
-      <div class="yarn-chip">
-        ${getYarnImg(item.color)?`<img class="yarn-swatch" src="${getYarnImg(item.color)}" alt="${item.color}" style="object-fit:cover;">`:`<div class="yarn-swatch" style="background:${getYarnHex(item.color)}"></div>`}
-        <div style="flex:1">
-          <div class="yarn-chip-name">${item.color}</div>
-          <div class="yarn-chip-label">×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?lang==='es'?'s':'s':''}</div>
+    const rows=yl.map(item=>{
+      const key=item.color.replace(/[^a-zA-Z0-9]/g,'_');
+      const yimg=getYarnImg(item.color);
+      const hex=getYarnHex(item.color);
+      const yp=yarnProducts.find(p=>p.yarnColorName===item.color);
+      const price=(yp?yp.price:150)*item.qty;
+      return `<div class="addon-row" id="yarn-addon-${key}" onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})">
+        <div class="addon-cb" id="yarn-cb-${key}"></div>
+        ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
+        <div class="addon-info">
+          <strong>${item.color}</strong>
+          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · 200g</span>
         </div>
-        <button class="yarn-chip-add" onclick="addYarnQtyToCart('${item.color}',${item.qty})" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
-      </div>`).join('');
-    yarnSec.innerHTML=`<div class="yarn-section">
-      <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
-      <div class="yarn-grid">${chips}</div>
+        <span class="addon-price">+${f(price)}</span>
+      </div>`;
+    }).join('');
+    yarnSec.innerHTML=`<div class="addon-section">
+      <div class="addon-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
+      ${rows}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec){yarnSec.style.display='none';}
@@ -759,8 +766,26 @@ function updateModalPrice(){
   let total=curProd.price;
   if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
   if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=yarnProducts.find(p=>p.yarnColorName===color);
+    total+=(yp?yp.price:150)*qty;
+  });
   document.getElementById('mbuy-price').textContent=f(total);
   document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(total)}`;
+}
+
+function toggleYarnAddon(color,qty){
+  const key=color.replace(/[^a-zA-Z0-9]/g,'_');
+  if(addonYarns[color]){
+    delete addonYarns[color];
+    document.getElementById(`yarn-addon-${key}`)?.classList.remove('checked');
+    const cb=document.getElementById(`yarn-cb-${key}`);if(cb)cb.textContent='';
+  } else {
+    addonYarns[color]=qty;
+    document.getElementById(`yarn-addon-${key}`)?.classList.add('checked');
+    const cb=document.getElementById(`yarn-cb-${key}`);if(cb)cb.textContent='✓';
+  }
+  updateModalPrice();
 }
 
 function switchImg(el,src){
@@ -811,6 +836,12 @@ function addToCart(){
     const eeyes=cart.find(i=>i.id===eyesId);
     if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:'',qty:1});
   }
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=yarnProducts.find(p=>p.yarnColorName===color);
+    if(!yp)return;
+    const ey=cart.find(i=>i.id===yp.id);
+    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} 200g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty});
+  });
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
 }
