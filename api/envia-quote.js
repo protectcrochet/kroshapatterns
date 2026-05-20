@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         insurance: 0,
         declaredValue: 0,
       }],
-      shipment: { carrier: 'all', type: 1 },
+      shipment: { type: 1 },
       settings: { currency: 'MXN' },
     };
 
