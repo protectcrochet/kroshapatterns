@@ -894,16 +894,55 @@ function doLogin(){
     document.getElementById('pwd-input').value='';
   }
 }
-function publishProducts(){
+const GH_OWNER='protectcrochet', GH_REPO='kroshapatterns', GH_PATH='data/products.json';
+const GH_TOKEN_KEY='krosha_gh_token';
+
+async function publishProducts(){
   const stored=localStorage.getItem(PRODS_KEY);
-  if(!stored){showToast('No hay cambios en el admin para publicar.','warn');return;}
-  const blob=new Blob([stored],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='products.json';
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  showToast('✅ Descargado. Compártelo con Claude para publicar en el sitio.');
+  if(!stored){showToast('No hay productos guardados para publicar.','warn');return;}
+
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){
+    token=prompt('🔑 Pega tu GitHub Token (se guarda en este dispositivo):');
+    if(!token)return;
+    localStorage.setItem(GH_TOKEN_KEY,token.trim());
+    token=token.trim();
+  }
+
+  const btn=document.querySelector('.sb-bottom [onclick="publishProducts()"]');
+  const orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Publicando...';btn.style.pointerEvents='none';}
+
+  try{
+    // Encode content as base64 (handles UTF-8 / Spanish chars)
+    const bytes=new TextEncoder().encode(stored);
+    const b64=btoa(String.fromCharCode(...bytes));
+
+    // Get current file SHA
+    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{headers});
+    const getData=await getR.json();
+    if(!getR.ok)throw new Error(getData.message||'Error obteniendo archivo');
+
+    // Commit updated file
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{
+      method:'PUT',headers,
+      body:JSON.stringify({message:'Publicar: actualizar productos desde admin',content:b64,sha:getData.sha})
+    });
+    const putData=await putR.json();
+    if(!putR.ok)throw new Error(putData.message||'Error al publicar');
+
+    showToast('🚀 ¡Publicado! En ~1 min se actualiza en kroshapatterns.com');
+  }catch(e){
+    showToast('❌ Error: '+e.message,'warn');
+    // If token error, clear it so user can re-enter
+    if(e.message.includes('Bad credential')||e.message.includes('401')){
+      localStorage.removeItem(GH_TOKEN_KEY);
+      showToast('Token inválido. Se borró, intenta de nuevo.','warn');
+    }
+  }finally{
+    if(btn){btn.textContent=orig;btn.style.pointerEvents='';}
+  }
 }
 
 function doLogout(){
