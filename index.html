@@ -525,34 +525,40 @@ function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 function getCartCount(){return getCart().reduce((a,i)=>a+i.qty,0);}
 function updateCartBadge(){document.getElementById('cn').textContent=getCartCount();}
 
-// ── LOAD PRODUCTS from localStorage (set by admin) ──
-// Falls back to hardcoded defaults if admin hasn't saved yet
+// ── LOAD PRODUCTS ──
+// Priority: localStorage (admin preview) → data/products.json (published) → hardcoded defaults
+let _publishedProducts=null;
+
+function _mapProducts(arr){
+  return arr.filter(p=>p.status==='active'||!p.status).map(p=>({
+    id:p.id,
+    title:p.nameEs||p.title||'',
+    titleEn:p.nameEn||p.titleEn||'',
+    price:p.price||0,
+    type:p.type||'patrones',
+    skill:p.skill||'',
+    images:p.images||[],
+    desc:p.descEs||p.desc||'',
+    descEn:p.descEn||'',
+    yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
+    yarnList:p.yarnList||null,
+    kitPrice:p.kitPrice||0,
+    eyesPrice:p.eyesPrice||0,
+    protectUrl:p.protectUrl||'',
+    pdfUrl:p.pdfUrl||'',
+  }));
+}
+
 function getProducts(){
   const stored=localStorage.getItem(PRODS_KEY);
   let base;
   if(stored){
-    const arr=JSON.parse(stored);
-    base=arr.filter(p=>p.status==='active'||!p.status).map(p=>({
-      id:p.id,
-      title:p.nameEs||p.title||'',
-      titleEn:p.nameEn||p.titleEn||'',
-      price:p.price||0,
-      type:p.type||'patrones',
-      skill:p.skill||'',
-      images:p.images||[],
-      desc:p.descEs||p.desc||'',
-      descEn:p.descEn||'',
-      yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
-      yarnList:p.yarnList||null,
-      kitPrice:p.kitPrice||0,
-      eyesPrice:p.eyesPrice||0,
-      protectUrl:p.protectUrl||'',
-      pdfUrl:p.pdfUrl||'',
-    }));
+    base=_mapProducts(JSON.parse(stored));
+  } else if(_publishedProducts&&_publishedProducts.length){
+    base=_mapProducts(_publishedProducts);
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
   }
-  // Always include the full Premier Yarns Basix catalog (IDs 100-151)
   const ids=new Set(base.map(p=>p.id));
   const yarnKits=generateYarnKits(base);
   return [...base,...yarnProducts.filter(p=>!ids.has(p.id)),...yarnKits];
@@ -1044,10 +1050,16 @@ async function detectCurrencyFromIP(){
 }
 
 // ── INIT ──
-applyHero();
-renderGrid();
-updateCartBadge();
-detectCurrencyFromIP();
+(async()=>{
+  try{
+    const r=await fetch('data/products.json?v='+Date.now());
+    if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length)_publishedProducts=d;}
+  }catch(e){}
+  applyHero();
+  renderGrid();
+  updateCartBadge();
+  detectCurrencyFromIP();
+})();
 
 // Listen for changes from admin (same tab via storage events won't fire, but cross-tab will)
 window.addEventListener('storage', e=>{
