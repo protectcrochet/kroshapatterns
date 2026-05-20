@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     destination: {
       name: 'Cliente', company: '', email: 'cliente@email.com', phone: '5550000000',
       street: 'Calle Destino 1', number: '1', district: 'Centro',
-      city: 'Ciudad', state: '', country: pais_destino, postalCode: cp_destino,
+      city: 'Ciudad', state: isMX ? 'MX' : '', country: pais_destino, postalCode: cp_destino,
     },
     packages: [{
       content: 'Kit crochet', amount: 1, type: 'box',
@@ -80,23 +80,33 @@ export default async function handler(req, res) {
 
     // Combinar y normalizar resultados
     const rates = [];
-    results.forEach(result => {
-      if (result.status === 'fulfilled' && result.value.data) {
-        result.value.data.forEach(r => {
-          rates.push({
-            carrier: r.carrier,
-            service: r.service,
-            serviceDescription: r.serviceDescription || r.service,
-            days: r.deliveryEstimate || r.days || '?',
-            price: r.totalPrice || r.price,
-            currency: 'MXN',
+    const debug = [];
+    results.forEach((result, i) => {
+      const carrier = CARRIERS[i];
+      if (result.status === 'fulfilled') {
+        const val = result.value;
+        debug.push({ carrier, status: 'ok', hasData: !!val.data, dataLen: val.data?.length, meta: val.meta, errors: val.errors });
+        // Algunas respuestas anidan en val.data, otras en val directamente
+        const items = val.data || (Array.isArray(val) ? val : null);
+        if (items && items.length) {
+          items.forEach(r => {
+            rates.push({
+              carrier: r.carrier || carrier,
+              service: r.service,
+              serviceDescription: r.serviceDescription || r.service,
+              days: r.deliveryEstimate || r.days || '?',
+              price: r.totalPrice || r.price,
+              currency: 'MXN',
+            });
           });
-        });
+        }
+      } else {
+        debug.push({ carrier, status: 'rejected', reason: result.reason?.message });
       }
     });
 
     rates.sort((a, b) => a.price - b.price);
-    return res.status(200).json({ ok: true, rates, internacional: !isMX });
+    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: debug });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
