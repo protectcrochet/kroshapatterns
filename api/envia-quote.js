@@ -80,18 +80,14 @@ export default async function handler(req, res) {
 
     // Combinar y normalizar resultados
     const rates = [];
-    const debug = [];
     results.forEach((result, i) => {
-      const carrier = CARRIERS[i];
       if (result.status === 'fulfilled') {
         const val = result.value;
-        debug.push({ carrier, status: 'ok', hasData: !!val.data, dataLen: val.data?.length, meta: val.meta, errors: val.errors });
-        // Algunas respuestas anidan en val.data, otras en val directamente
         const items = val.data || (Array.isArray(val) ? val : null);
         if (items && items.length) {
           items.forEach(r => {
             rates.push({
-              carrier: r.carrier || carrier,
+              carrier: r.carrier || CARRIERS[i],
               service: r.service,
               serviceDescription: r.serviceDescription || r.service,
               days: r.deliveryEstimate || r.days || '?',
@@ -100,13 +96,11 @@ export default async function handler(req, res) {
             });
           });
         }
-      } else {
-        debug.push({ carrier, status: 'rejected', reason: result.reason?.message });
       }
     });
 
     rates.sort((a, b) => a.price - b.price);
-    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: debug });
+    return res.status(200).json({ ok: true, rates, internacional: !isMX });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
