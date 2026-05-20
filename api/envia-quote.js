@@ -32,7 +32,7 @@ export default async function handler(req, res) {
         city: 'Ciudad de México',
         state: 'DF',
         country: 'MX',
-        postalCode: '06600', // CP de origen — ajustar con tu dirección
+        postalCode: '76030', // CP de origen Querétaro
       },
       destination: {
         name: 'Cliente',
