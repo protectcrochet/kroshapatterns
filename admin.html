@@ -227,6 +227,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('orders',this)"><span class="sb-icon">📦</span> Pedidos</div>
       <div class="sb-item" onclick="goTab('customers',this)"><span class="sb-icon">👥</span> Clientes</div>
       <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
+      <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
       <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
     </nav>
     <div class="sb-bottom">
@@ -420,6 +421,22 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
 
     <!-- SETTINGS -->
+    <!-- INVENTARIO -->
+    <div class="tab-section" id="tab-inventory">
+      <div class="page-header">
+        <div class="page-title">Inventario de Estambres <em>🧶</em></div>
+        <button class="btn btn-pink" onclick="publishInventory()">🚀 Publicar Inventario</button>
+      </div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
+          <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
+          <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+        </div>
+        <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+
     <div class="tab-section" id="tab-settings">
       <div class="page-header">
         <div class="page-title">Ajustes <em>⚙️</em></div>
@@ -1370,11 +1387,90 @@ function closeConfirm(){document.getElementById('confirm-modal').classList.remov
 document.getElementById('confirm-ok-btn').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};
 
 // ── NAVIGATION ──
+// ── INVENTARIO ──
+const INV_KEY='krosha_inventory';
+const GH_INV_PATH='data/inventory.json';
+
+function getInventory(){return JSON.parse(localStorage.getItem(INV_KEY)||'{}');}
+function saveInventory(inv){localStorage.setItem(INV_KEY,JSON.stringify(inv));}
+
+function renderInventory(){
+  const inv=getInventory();
+  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  const grid=document.getElementById('inv-grid');
+  if(!grid)return;
+  const colors=YARN_COLORS.filter(c=>c.toLowerCase().includes(q));
+  let agotados=0,total=0;
+  grid.innerHTML=colors.map(color=>{
+    const stock=inv[color]??0;
+    if(stock===0)agotados++;
+    total++;
+    const img=getAdminYarnImg(color);
+    const imgHtml=img?`<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:`<div style="width:32px;height:32px;border-radius:50%;background:#ddd;flex-shrink:0;"></div>`;
+    const badge=stock===0?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;">Agotado</span>`:stock<=3?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;">Bajo</span>`:'';
+    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+      ${imgHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${color}</div>
+        ${badge}
+      </div>
+      <input type="number" min="0" max="999" value="${stock}"
+        style="width:56px;border:1.5px solid var(--border);border-radius:8px;padding:5px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;"
+        onchange="updateStock('${color.replace(/'/g,"\\'")}',this.value)">
+    </div>`;
+  }).join('');
+  const sumEl=document.getElementById('inv-summary');
+  if(sumEl)sumEl.textContent=`${agotados} agotado${agotados!==1?'s':''} de ${total} colores`;
+}
+
+function updateStock(color,val){
+  const inv=getInventory();
+  inv[color]=Math.max(0,parseInt(val)||0);
+  saveInventory(inv);
+  renderInventory();
+}
+
+function setAllStock(){
+  const n=parseInt(prompt('¿Cuántas unidades para todos los colores?','10'));
+  if(isNaN(n)||n<0)return;
+  const inv=getInventory();
+  YARN_COLORS.forEach(c=>{inv[c]=n;});
+  saveInventory(inv);
+  renderInventory();
+  showToast(`Stock de todos los colores actualizado a ${n}`);
+}
+
+async function publishInventory(){
+  const inv=getInventory();
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){token=prompt('🔑 GitHub Token:');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
+  const btn=event.currentTarget;
+  const origTxt=btn.textContent;btn.textContent='⏳ Publicando...';btn.disabled=true;
+  try{
+    const content=JSON.stringify(inv,null,2);
+    const bytes=new TextEncoder().encode(content);
+    const b64=btoa(String.fromCharCode(...bytes));
+    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{headers});
+    const getData=await getR.json();
+    const sha=getR.ok&&getData.sha?getData.sha:undefined;
+    const body={message:'Inventario: actualizar stock de estambres',content:b64};
+    if(sha)body.sha=sha;
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(!putR.ok){const e=await putR.json();throw new Error(e.message);}
+    showToast('🚀 ¡Inventario publicado! Se actualiza en ~1 min.');
+  }catch(e){
+    showToast('❌ Error: '+e.message,'warn');
+    if(e.message.includes('Bad credential')){localStorage.removeItem(GH_TOKEN_KEY);}
+  }finally{btn.textContent=origTxt;btn.disabled=false;}
+}
+
 function goTab(name,el){
   document.querySelectorAll('.tab-section').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
+  if(name==='inventory')renderInventory();
 }
 
 // ── TOAST ──

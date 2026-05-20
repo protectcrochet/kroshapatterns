@@ -525,6 +525,11 @@ function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 function getCartCount(){return getCart().reduce((a,i)=>a+i.qty,0);}
 function updateCartBadge(){document.getElementById('cn').textContent=getCartCount();}
 
+// ── INVENTORY ──
+let _inventory={};
+function getStock(color){const s=_inventory[color];return s===undefined?999:s;}
+function isOutOfStock(color){return getStock(color)===0;}
+
 // ── LOAD PRODUCTS ──
 // Priority: localStorage (admin preview) → data/products.json (published) → hardcoded defaults
 let _publishedProducts=null;
@@ -821,14 +826,21 @@ function openM(id){
       const hex=getYarnHex(item.color);
       const yp=yarnProducts.find(p=>p.yarnColorName===item.color);
       const price=(yp?yp.price:150)*item.qty;
-      return `<div class="addon-row" id="yarn-addon-${key}" onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})">
+      const oos=isOutOfStock(item.color);
+      const stock=getStock(item.color);
+      const stockBadge=oos
+        ?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Agotado</span>`
+        :stock<=3&&stock<999
+        ?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Últimos ${stock}</span>`
+        :'';
+      return `<div class="addon-row${oos?' agotado':''}" id="yarn-addon-${key}" ${oos?'':`onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})"`} style="${oos?'opacity:.55;cursor:not-allowed;':''}">
         <div class="addon-cb" id="yarn-cb-${key}"></div>
         ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <div class="addon-info">
           <strong>${item.color}</strong>
           <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · 200g</span>
         </div>
-        <span class="addon-price">+${f(price)}</span>
+        ${stockBadge||`<span class="addon-price">+${f(price)}</span>`}
       </div>`;
     }).join('');
     yarnSec.innerHTML=`<div class="addon-section">
@@ -922,6 +934,7 @@ function updateModalPrice(){
 }
 
 function toggleYarnAddon(color,qty){
+  if(isOutOfStock(color))return;
   const key=color.replace(/[^a-zA-Z0-9]/g,'_');
   if(addonYarns[color]){
     delete addonYarns[color];
@@ -1051,10 +1064,11 @@ async function detectCurrencyFromIP(){
 
 // ── INIT ──
 (async()=>{
-  try{
-    const r=await fetch('data/products.json?v='+Date.now());
-    if(r.ok){const d=await r.json();if(Array.isArray(d)&&d.length)_publishedProducts=d;}
-  }catch(e){}
+  const v=Date.now();
+  await Promise.all([
+    fetch('data/products.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)&&d.length)_publishedProducts=d;}).catch(()=>{}),
+    fetch('data/inventory.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
+  ]);
   applyHero();
   renderGrid();
   updateCartBadge();
