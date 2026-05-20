@@ -20,76 +20,59 @@ export default async function handler(req, res) {
   if (!token) return res.status(500).json({ error: 'API key no configurada' });
 
   try {
-    const body = {
+    const CARRIERS = ['fedex','dhl','estafeta','redpack','paquetexpress','ups','sendex'];
+
+    const makeBody = (carrier) => ({
       origin: {
-        name: 'KroshaPatterns',
-        company: 'KroshaPatterns',
-        email: 'jenny@kroshapatterns.com',
-        phone: '4421000000',
-        street: 'Calle Origen 1',
-        number: '1',
-        district: 'Centro',
-        city: 'Querétaro',
-        state: 'QRO',
-        country: 'MX',
-        postalCode: '76030',
+        name: 'KroshaPatterns', company: 'KroshaPatterns',
+        email: 'jenny@kroshapatterns.com', phone: '4421000000',
+        street: 'Calle Origen 1', number: '1', district: 'Centro',
+        city: 'Querétaro', state: 'QRO', country: 'MX', postalCode: '76030',
       },
       destination: {
-        name: 'Cliente',
-        company: '',
-        email: 'cliente@email.com',
-        phone: '3310000000',
-        street: 'Calle Destino 1',
-        number: '1',
-        district: 'Centro',
-        city: 'Guadalajara',
-        state: 'JAL',
-        country: 'MX',
-        postalCode: cp_destino,
+        name: 'Cliente', company: '', email: 'cliente@email.com', phone: '3310000000',
+        street: 'Calle Destino 1', number: '1', district: 'Centro',
+        city: 'Ciudad', state: 'MX', country: 'MX', postalCode: cp_destino,
       },
       packages: [{
-        content: 'Kit crochet',
-        amount: 1,
-        type: 'box',
+        content: 'Kit crochet', amount: 1, type: 'box',
         dimensions: { length: largo, width: ancho, height: alto },
-        weight: peso,
-        insurance: 0,
-        declaredValue: 0,
+        weight: peso, insurance: 0, declaredValue: 0,
       }],
-      shipment: { carrier: 'fedex', type: 1 },
+      shipment: { carrier, type: 1 },
       settings: { currency: 'MXN' },
-    };
-
-    const response = await fetch(`${ENVIA_BASE}/ship/rate/`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
     });
 
-    const data = await response.json();
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.message || 'Error al cotizar', raw: data });
-    }
+    // Cotizar todos los carriers en paralelo
+    const results = await Promise.allSettled(
+      CARRIERS.map(carrier =>
+        fetch(`${ENVIA_BASE}/ship/rate/`, {
+          method: 'POST', headers,
+          body: JSON.stringify(makeBody(carrier)),
+        }).then(r => r.json())
+      )
+    );
 
-    // Debug: devolver respuesta completa para revisar formato
-    if (!data.data || data.data.length === 0) {
-      return res.status(200).json({ ok: false, debug: data });
-    }
+    // Combinar y normalizar resultados
+    const rates = [];
+    results.forEach(result => {
+      if (result.status === 'fulfilled' && result.value.data) {
+        result.value.data.forEach(r => {
+          rates.push({
+            carrier: r.carrier,
+            service: r.service,
+            serviceDescription: r.serviceDescription || r.service,
+            days: r.deliveryEstimate || r.days || '?',
+            price: r.totalPrice || r.price,
+            currency: 'MXN',
+          });
+        });
+      }
+    });
 
-    // Normalizar respuesta — devolver solo lo necesario para el checkout
-    const rates = (data.data || []).map(r => ({
-      carrier: r.carrier,
-      service: r.service,
-      serviceDescription: r.serviceDescription || r.service,
-      days: r.deliveryEstimate || r.days || '?',
-      price: r.totalPrice || r.price,
-      currency: 'MXN',
-    })).sort((a, b) => a.price - b.price);
-
+    rates.sort((a, b) => a.price - b.price);
     return res.status(200).json({ ok: true, rates });
 
   } catch (e) {
