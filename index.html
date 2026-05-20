@@ -605,9 +605,9 @@ function generateYarnKits(patternProds){
   return result;
 }
 
-// ── LOAD HERO from localStorage ──
+// ── LOAD HERO — prioridad: hero.json publicado → localStorage (preview admin) ──
 function applyHero(){
-  const h=JSON.parse(localStorage.getItem(HERO_KEY)||'null');
+  const h=_publishedHero||JSON.parse(localStorage.getItem(HERO_KEY)||'null');
   if(!h)return;
   // announcement bar
   const ann=document.getElementById('nav-ann');
@@ -1062,12 +1062,16 @@ async function detectCurrencyFromIP(){
   }catch(e){}
 }
 
+// Hero publicado (de data/hero.json) — fuente de verdad para todos los dispositivos
+let _publishedHero=null;
+
 // ── INIT ──
 (async()=>{
   const v=Date.now();
   await Promise.all([
     fetch('data/products.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)&&d.length)_publishedProducts=d;}).catch(()=>{}),
     fetch('data/inventory.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
+    fetch('data/hero.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
   ]);
   applyHero();
   renderGrid();

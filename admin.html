@@ -355,7 +355,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-hero">
       <div class="page-header">
         <div class="page-title">Hero <em>& Banners</em> 🎨</div>
-        <button class="btn btn-pink" onclick="saveHero()">💾 Guardar cambios</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="saveHero()">💾 Guardar</button>
+          <button class="btn btn-pink" onclick="publishHero()">🚀 Publicar Hero</button>
+        </div>
       </div>
 
       <div class="hero-editor">
@@ -1316,7 +1319,33 @@ function saveHero(){
     strip:stripItems,
   };
   saveHeroData(h);
-  showToast('🎨 Hero guardado — se aplicará al recargar la tienda');
+  showToast('🎨 Hero guardado — presiona Publicar Hero para que se vea en todos los dispositivos');
+}
+
+const GH_HERO_PATH='data/hero.json';
+async function publishHero(){
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){token=prompt('🔑 GitHub Token (se guarda solo aquí):');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
+  const btn=document.querySelector('[onclick="publishHero()"]');
+  const orig=btn?.textContent||'🚀 Publicar Hero';
+  if(btn){btn.textContent='⏳ Publicando…';btn.disabled=true;}
+  try{
+    const h=getHero();
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(h,null,2))));
+    const headers={'Authorization':'token '+token,'Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{headers});
+    const existing=getR.ok?await getR.json():null;
+    const body={message:'chore: actualizar hero desde admin',content,committer:{name:'KroshaAdmin',email:'jenny@kroshapatterns.com'}};
+    if(existing?.sha)body.sha=existing.sha;
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(!putR.ok){const e=await putR.json();throw new Error(e.message||'Error al publicar');}
+    showToast('🎨 ¡Hero publicado! Visible en todos los dispositivos en ~1 min');
+  }catch(e){
+    showToast('❌ '+e.message);
+    if(e.message.includes('Bad credential'))localStorage.removeItem(GH_TOKEN_KEY);
+  }finally{
+    if(btn){btn.textContent=orig;btn.disabled=false;}
+  }
 }
 
 // ── SETTINGS ──
