@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         insurance: 0,
         declaredValue: 0,
       }],
-      shipment: { type: 1 },
+      shipment: { carrier: ['fedex','dhl','estafeta','redpack','paquetexpress','ups'], type: 1 },
       settings: { currency: 'MXN' },
     };
 
