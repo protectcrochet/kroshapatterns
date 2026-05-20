@@ -1,16 +1,32 @@
 {
-  "title1Es": "Tu crochet,",
+  "title1Es": "Aqui Comienza ",
   "title1En": "Your crochet,",
-  "title2Es": "más bonito",
+  "title2Es": "La Magia",
   "title2En": "more beautiful",
-  "subEs": "Patrones PDF exclusivos, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.",
-  "subEn": "Exclusive PDF patterns, complete kits with materials and premium yarn — all designed by Jennyfer.",
-  "annEs": "🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones",
-  "annEn": "🎀 Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns",
+  "subEs": "Patrones, kits completos con materiales y toda la variedad de los hilos con los que trabajo — todo diseñado por Krosha.",
+  "subEn": "Exclusive patterns, complete kits with materials and premium yarn — all designed by Krosha.",
+  "annEs": "Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones",
+  "annEn": " Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns",
   "strip": [
-    { "icon": "🔐", "es": "Acceso protegido", "sub_es": "Vía ProtectCrochet" },
-    { "icon": "💳", "es": "Pago seguro", "sub_es": "Stripe · PayPal · Mercado Pago" },
-    { "icon": "🌍", "es": "Tu moneda", "sub_es": "MXN, USD, EUR, DOP" },
-    { "icon": "🎀", "es": "+40 patrones", "sub_es": "Todos los niveles" }
+    {
+      "icon": "🔐",
+      "es": "Acceso protegido",
+      "sub_es": "Acceso Digital"
+    },
+    {
+      "icon": "💳",
+      "es": "Pago seguro",
+      "sub_es": "Stripe · PayPal · Mercado Pago"
+    },
+    {
+      "icon": "🌍",
+      "es": "Paga en tu moneda",
+      "sub_es": "MXN, USD, EUR, "
+    },
+    {
+      "icon": "🎀",
+      "es": "+40 patrones",
+      "sub_es": "Todos los niveles"
+    }
   ]
 }
