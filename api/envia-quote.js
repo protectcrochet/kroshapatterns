@@ -75,6 +75,11 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data.message || 'Error al cotizar', raw: data });
     }
 
+    // Debug: devolver respuesta completa para revisar formato
+    if (!data.data || data.data.length === 0) {
+      return res.status(200).json({ ok: false, debug: data });
+    }
+
     // Normalizar respuesta — devolver solo lo necesario para el checkout
     const rates = (data.data || []).map(r => ({
       carrier: r.carrier,
