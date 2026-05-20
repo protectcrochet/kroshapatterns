@@ -1158,56 +1158,72 @@ function updateShipping(){
   if(!isPhysical){box.style.display='none';return;}
   const country=document.getElementById('country-sel')?.value||'MX';
   const isMX=country==='MX';
-  const isCentroAm=['GT','HN','SV','NI','CR','PA','CU'].includes(country);
-  const isLatAm=['CO','AR','BR','CL','PE','VE','EC','BO','UY','PY','DO','PR'].includes(country);
-  let html='';
-  if(isMX){
-    html=`<div style="background:#fff7e6;border-radius:14px;padding:16px;border:1.5px solid #ffe0a0;">
-      <div style="font-weight:700;color:#7a5200;font-size:13.5px;margin-bottom:6px;">📦 Cotiza tu envío en tiempo real</div>
-      <div style="font-size:12px;color:#a07020;margin-bottom:10px;">Ingresa tu código postal arriba — las tarifas se calculan automáticamente.</div>
-      <button onclick="cotizarEnvio()" style="background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">
-        🚚 Ver tarifas disponibles
-      </button>
-      <div id="envia-results" style="margin-top:12px;"></div>
-    </div>`;
-  } else if(isCentroAm||isLatAm||country==='US'||country==='CA'||country==='ES'||country==='GB'){
-    html=`<div style="background:#e8f4fd;border-radius:12px;padding:14px 16px;border:1.5px solid #b0d4f0;">
-      <div style="font-weight:700;color:#1a5fa6;font-size:13.5px;margin-bottom:6px;">✈️ Envío Internacional — envia.com</div>
-      <div style="font-size:12.5px;color:#2a6080;line-height:1.6;">
-        📦 Envío estándar internacional: <strong>$350–$550 MXN</strong> (10–20 días)<br>
-        🚀 Envío express internacional: <strong>$650–$950 MXN</strong> (5–7 días)<br>
-        <span style="font-size:11.5px;opacity:.8;">El costo exacto se cotiza al confirmar. Usamos envia.com para envíos internacionales desde México.</span>
+  const bgColor=isMX?'#fff7e6':'#e8f4fd';
+  const bdColor=isMX?'#ffe0a0':'#b0d4f0';
+  const txColor=isMX?'#7a5200':'#1a5fa6';
+  const stColor=isMX?'#a07020':'#2a6080';
+  const icon=isMX?'📦':'✈️';
+  const title=isMX?'Cotiza tu envío en tiempo real':'Cotiza tu envío internacional';
+  const hint=isMX
+    ?'Ingresa tu código postal (5 dígitos) y verás tarifas reales de las principales paqueterías.'
+    :'Ingresa tu código postal de destino. Cotizamos con DHL, FedEx y UPS para enviarte desde México.';
+  const cpHint=isMX?'Ej. 44100':'Ej. 90210 (EE.UU.), 28001 (España)';
+  const html=`<div style="background:${bgColor};border-radius:14px;padding:16px;border:1.5px solid ${bdColor};">
+    <div style="font-weight:700;color:${txColor};font-size:13.5px;margin-bottom:5px;">${icon} ${title}</div>
+    <div style="font-size:12px;color:${stColor};margin-bottom:10px;">${hint}</div>
+    ${!isMX?`<div style="margin-bottom:10px;">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${stColor};display:block;margin-bottom:5px;">Código postal de destino</label>
+      <div style="display:flex;gap:8px;">
+        <input id="intl-zip" type="text" placeholder="${cpHint}" maxlength="12"
+          style="flex:1;border:1.5px solid ${bdColor};border-radius:10px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;background:#fff;color:var(--text);"
+          oninput="autoQuoteShipping()">
       </div>
-    </div>`;
-  } else {
-    html=`<div style="background:#f5f5f5;border-radius:12px;padding:14px 16px;border:1.5px solid #ddd;">
-      <div style="font-size:13px;color:#555;">🌍 Para cotizar envío a tu país, escríbenos a <strong>hola@kroshapatterns.com</strong> antes de completar tu pedido.</div>
-    </div>`;
-  }
+    </div>`:''}
+    <button onclick="cotizarEnvio()" style="background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">
+      ${isMX?'🚚':'✈️'} Ver tarifas disponibles
+    </button>
+    <div id="envia-results" style="margin-top:12px;"></div>
+  </div>`;
   box.innerHTML=html;
   box.style.display='block';
-  // If zip already filled, auto-quote
+  // Auto-quote if zip already filled
   const zip=document.getElementById('ship-zip')?.value?.trim();
-  if(isMX&&zip&&/^\d{5}$/.test(zip)) cotizarEnvio();
+  if(zip&&_cpValidForCountry(zip,country)) cotizarEnvio();
+}
+
+// Valida que el CP tenga formato mínimo según el país
+function _cpValidForCountry(cp, country){
+  if(!cp) return false;
+  if(country==='MX') return /^\d{5}$/.test(cp);
+  return cp.trim().replace(/\s/g,'').length >= 3; // Internacional: mínimo 3 caracteres
+}
+
+// Obtiene el CP según si es México (campo de dirección) o internacional (campo propio)
+function _getCPAndCountry(){
+  const country=document.getElementById('country-sel')?.value||'MX';
+  const isMX=country==='MX';
+  const cp=isMX
+    ? document.getElementById('ship-zip')?.value?.trim()
+    : document.getElementById('intl-zip')?.value?.trim();
+  return {cp, country, isMX};
 }
 
 function autoQuoteShipping(){
-  const cp=document.getElementById('ship-zip')?.value?.trim();
-  const country=document.getElementById('country-sel')?.value||'MX';
-  if(country==='MX'&&cp&&/^\d{5}$/.test(cp)) cotizarEnvio();
+  const {cp, country}=_getCPAndCountry();
+  if(cp&&_cpValidForCountry(cp,country)) cotizarEnvio();
 }
 
 async function cotizarEnvio(){
-  const cp=document.getElementById('ship-zip')?.value?.trim();
-  if(!cp||!/^\d{5}$/.test(cp)){
-    showToast('⚠️ Ingresa un código postal válido (5 dígitos)');
-    document.getElementById('ship-zip')?.focus();
+  const {cp, country, isMX}=_getCPAndCountry();
+  if(!cp||!_cpValidForCountry(cp,country)){
+    showToast(isMX?'⚠️ Ingresa un código postal válido (5 dígitos)':'⚠️ Ingresa el código postal de destino');
+    (document.getElementById('ship-zip')||document.getElementById('intl-zip'))?.focus();
     return;
   }
   const el=document.getElementById('envia-results');
   if(!el)return;
   el.innerHTML=`<div style="text-align:center;padding:18px;color:var(--text-light);font-size:13px;">
-    <div style="font-size:22px;margin-bottom:8px;">⏳</div>Cotizando tarifas…</div>`;
+    <div style="font-size:22px;margin-bottom:8px;">${isMX?'⏳':'✈️'}</div>Cotizando tarifas${isMX?'':' internacionales'}…</div>`;
 
   try{
     const cart=getCartItems();
@@ -1215,13 +1231,13 @@ async function cotizarEnvio(){
     const r=await fetch('/api/envia-quote',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cp_destino:cp,peso,largo:25,ancho:20,alto:15}),
+      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso, largo:25, ancho:20, alto:15}),
     });
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');
     if(!data.rates||!data.rates.length){
       el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">
-        ⚠️ No encontramos tarifas para el CP <strong>${cp}</strong>. Verifica que sea correcto.</div>`;
+        ⚠️ No encontramos tarifas para el CP <strong>${cp}</strong>. Verifica que sea correcto o contáctanos.</div>`;
       return;
     }
     _shipRates=data.rates;
