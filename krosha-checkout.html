@@ -1231,7 +1231,7 @@ async function cotizarEnvio(){
     const r=await fetch('/api/envia-quote',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso, largo:25, ancho:20, alto:15}),
+      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso:1, largo:25, ancho:25, alto:37}),
     });
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');

@@ -17,10 +17,10 @@ export default async function handler(req, res) {
   const {
     cp_destino,
     pais_destino = 'MX',
-    peso  = 0.5,
-    largo = 20,
-    ancho = 15,
-    alto  = 10,
+    peso  = 1,
+    largo = 25,
+    ancho = 25,
+    alto  = 37,
   } = req.body || {};
 
   const isMX = pais_destino === 'MX';
