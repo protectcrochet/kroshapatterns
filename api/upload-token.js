@@ -2,7 +2,7 @@
 // Generates a client-side upload token for direct browser → Vercel Blob uploads
 // Bypasses the 4.5MB serverless body limit for large files (PDFs, etc.)
 
-import { handleUpload } from '@vercel/blob';
+import { handleUpload } from '@vercel/blob/client';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://kroshapatterns.com');
