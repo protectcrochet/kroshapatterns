@@ -1273,26 +1273,12 @@ async function handleUpload(input,n){
   const spin=document.getElementById('upload-spin-'+n);
   spin.style.display='inline';
   try{
-    const reader=new FileReader();
-    reader.onload=async function(e){
-      const fileData=e.target.result;
-      const res=await fetch('/api/upload-image',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({fileData,fileName:file.name,mimeType:file.type}),
-      });
-      const data=await res.json();
-      spin.style.display='none';
-      if(data.url){
-        const urlInput=document.getElementById('pf-img'+n);
-        urlInput.value=data.url;
-        previewImg(urlInput,'img-prev-'+n);
-        showToast('✅ Foto subida correctamente');
-      } else {
-        showToast('❌ Error: '+(data.error||'No se pudo subir'));
-      }
-    };
-    reader.readAsDataURL(file);
+    const blob=await clientBlobUpload(file);
+    spin.style.display='none';
+    const urlInput=document.getElementById('pf-img'+n);
+    urlInput.value=blob.url;
+    previewImg(urlInput,'img-prev-'+n);
+    showToast('✅ Foto subida correctamente');
   }catch(err){
     spin.style.display='none';
     showToast('❌ Error al subir: '+err.message);
@@ -1310,33 +1296,29 @@ async function handlePdfUpload(input){
   const spin=document.getElementById('upload-pdf-spin');
   spin.style.display='inline';
   try{
-    const reader=new FileReader();
-    reader.onload=async function(e){
-      const res=await fetch('/api/upload-image',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({fileData:e.target.result,fileName:file.name,mimeType:'application/pdf'}),
-      });
-      const data=await res.json();
-      spin.style.display='none';
-      if(data.url){
-        document.getElementById('pf-pdf-url').value=data.url;
-        const row=document.getElementById('pdf-preview-row');
-        const link=document.getElementById('pdf-preview-link');
-        row.style.display='flex';
-        link.href=data.url;
-        link.textContent=file.name;
-        showToast('✅ PDF subido correctamente');
-      } else {
-        showToast('❌ Error: '+(data.error||'No se pudo subir'));
-      }
-    };
-    reader.readAsDataURL(file);
+    const blob=await clientBlobUpload(file);
+    spin.style.display='none';
+    document.getElementById('pf-pdf-url').value=blob.url;
+    const row=document.getElementById('pdf-preview-row');
+    const link=document.getElementById('pdf-preview-link');
+    row.style.display='flex';
+    link.href=blob.url;
+    link.textContent=file.name;
+    showToast('✅ PDF subido correctamente');
   }catch(err){
     spin.style.display='none';
     showToast('❌ Error al subir PDF: '+err.message);
   }
   input.value='';
+}
+
+async function clientBlobUpload(file){
+  if(!window.__blobUpload) throw new Error('Módulo de subida no listo, recarga la página e intenta de nuevo');
+  const safeName=`krosha-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'')}`;
+  return await window.__blobUpload(safeName, file, {
+    access:'public',
+    handleUploadUrl:'/api/upload-token',
+  });
 }
 
 // ── ORDERS ──
@@ -1679,6 +1661,14 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 ['prod-modal','order-modal','cust-modal','confirm-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
 });
+</script>
+<script type="module">
+  try {
+    const { upload } = await import('https://esm.sh/@vercel/blob@0.27/client');
+    window.__blobUpload = upload;
+  } catch(e) {
+    console.warn('Blob client no cargado:', e);
+  }
 </script>
 </body>
 </html>
