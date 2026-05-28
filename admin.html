@@ -648,8 +648,16 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <input type="text" id="pf-pattern-slug" placeholder="candy">
         </div>
         <div class="field">
-          <label>📄 URL PDF directo <span style="font-weight:400;color:var(--text-light);">— Google Drive, Dropbox, etc. (solo si no está en ProtectCrochet)</span></label>
-          <input type="text" id="pf-pdf-url" placeholder="https://drive.google.com/file/...">
+          <label>📄 PDF del patrón <span style="font-weight:400;color:var(--text-light);">— sube el archivo o pega una URL</span></label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" id="pf-pdf-url" placeholder="https://..." style="flex:1;">
+            <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerPdfUpload()">📁 Subir PDF</button>
+            <input type="file" id="upload-pdf-file" accept="application/pdf" style="display:none;" onchange="handlePdfUpload(this)">
+            <span id="upload-pdf-spin" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
+          </div>
+          <div id="pdf-preview-row" style="display:none;margin-top:6px;padding:8px 12px;background:var(--pink-bg);border:1px solid var(--border);border-radius:8px;font-size:13px;display:flex;align-items:center;gap:8px;">
+            📄 <a id="pdf-preview-link" href="" target="_blank" style="color:var(--pink-dark);text-decoration:none;font-weight:600;">Ver PDF subido</a>
+          </div>
         </div>
       </div>
     </div>
@@ -1142,6 +1150,7 @@ function openProdModal(id){
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
   ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   setImgPos('50% 20%',1);
+  document.getElementById('pdf-preview-row').style.display='none';
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
@@ -1166,6 +1175,10 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
+  const pdfRow=document.getElementById('pdf-preview-row');
+  const pdfLink=document.getElementById('pdf-preview-link');
+  if(p.pdfUrl){pdfRow.style.display='flex';pdfLink.href=p.pdfUrl;pdfLink.textContent='Ver PDF actual';}
+  else{pdfRow.style.display='none';}
   setImgPos(p.imagePosition||'50% 20%',p.imageZoom||1);
   const editor=document.getElementById('yarn-list-editor');
   editor.innerHTML='';
@@ -1283,6 +1296,45 @@ async function handleUpload(input,n){
   }catch(err){
     spin.style.display='none';
     showToast('❌ Error al subir: '+err.message);
+  }
+  input.value='';
+}
+
+function triggerPdfUpload(){
+  document.getElementById('upload-pdf-file').click();
+}
+
+async function handlePdfUpload(input){
+  const file=input.files[0];
+  if(!file)return;
+  const spin=document.getElementById('upload-pdf-spin');
+  spin.style.display='inline';
+  try{
+    const reader=new FileReader();
+    reader.onload=async function(e){
+      const res=await fetch('/api/upload-image',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fileData:e.target.result,fileName:file.name,mimeType:'application/pdf'}),
+      });
+      const data=await res.json();
+      spin.style.display='none';
+      if(data.url){
+        document.getElementById('pf-pdf-url').value=data.url;
+        const row=document.getElementById('pdf-preview-row');
+        const link=document.getElementById('pdf-preview-link');
+        row.style.display='flex';
+        link.href=data.url;
+        link.textContent=file.name;
+        showToast('✅ PDF subido correctamente');
+      } else {
+        showToast('❌ Error: '+(data.error||'No se pudo subir'));
+      }
+    };
+    reader.readAsDataURL(file);
+  }catch(err){
+    spin.style.display='none';
+    showToast('❌ Error al subir PDF: '+err.message);
   }
   input.value='';
 }
