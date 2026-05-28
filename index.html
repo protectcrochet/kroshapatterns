@@ -154,7 +154,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .addon-price{font-size:13px;font-weight:700;color:var(--pink-dark);}
 
 /* FOOTER */
-footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
+footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .foot-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;margin-bottom:2.5rem;}
 .foot-logo{font-family:'Fraunces',serif;font-size:24px;font-style:italic;color:var(--pink-mid);text-decoration:none;display:block;margin-bottom:10px;}
 .foot-brand p{font-size:13px;line-height:1.7;margin-bottom:14px;}
@@ -180,7 +180,27 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
   .modal-grid{grid-template-columns:1fr;}
   .modal-gallery{border-radius:24px 24px 0 0;}
   .foot-inner{grid-template-columns:1fr 1fr;}
+  .nl-form{flex-direction:column;align-items:center;}
+  .nl-input{min-width:auto;width:100%;max-width:340px;}
 }
+
+/* NAV SCROLL BLUR */
+.nav-bar.scrolled{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(255,251,253,.92);box-shadow:0 2px 20px rgba(192,96,144,.12);}
+
+/* SCROLL REVEAL */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;}
+.reveal.visible{animation:fadeUp .55s ease forwards;}
+
+/* NEWSLETTER */
+.newsletter{background:#C06090;padding:60px 2rem;text-align:center;}
+.nl-inner{max-width:560px;margin:0 auto;}
+.nl-inner h3{font-family:'Fraunces',serif;font-size:30px;color:#fff;margin-bottom:10px;font-style:italic;}
+.nl-inner p{color:rgba(255,255,255,.85);font-size:14.5px;margin-bottom:26px;line-height:1.6;}
+.nl-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.nl-input{padding:14px 22px;border-radius:30px;border:none;font-size:14px;font-family:'Nunito',sans-serif;min-width:260px;outline:none;color:var(--text);flex:1;max-width:320px;}
+.nl-btn{background:#3A1E2E;color:#fff;border:none;padding:14px 28px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:background .2s;}
+.nl-btn:hover{background:#5C0E30;}
 </style>
 </head>
 <body>
@@ -313,10 +333,24 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:50px 2rem 
     <button class="ftab" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
     <button class="ftab" id="tab-estambres" onclick="filterProds('hilo',this)" data-es="Estambres" data-en="Yarns">Estambres</button>
+    <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
   </div>
 </div>
 
 <div class="pgrid" id="pgrid"></div>
+
+<!-- NEWSLETTER -->
+<section class="newsletter reveal">
+  <div class="nl-inner">
+    <div style="font-size:36px;margin-bottom:14px;">🎀</div>
+    <h3 data-es="¿Nueva por aquí?" data-en="New here?">¿Nueva por aquí?</h3>
+    <p data-es="Recibe novedades, tutoriales gratis y descuentos exclusivos directo a tu correo." data-en="Get news, free tutorials and exclusive discounts straight to your inbox.">Recibe novedades, tutoriales gratis y descuentos exclusivos directo a tu correo.</p>
+    <div class="nl-form">
+      <input class="nl-input" type="email" id="nl-email" placeholder="tucorreo@ejemplo.com">
+      <button class="nl-btn" onclick="nlSub()" data-es="¡Suscribirme! 🎀" data-en="Subscribe! 🎀">¡Suscribirme! 🎀</button>
+    </div>
+  </div>
+</section>
 
 <!-- FOOTER -->
 <footer>
@@ -568,21 +602,28 @@ let activeFilter='all';
 function renderGrid(filter){
   if(filter!==undefined)activeFilter=filter;
   const products=getProducts();
+  const wish=getWish();
   const g=document.getElementById('pgrid');
-  const filtered=activeFilter==='all'?products:products.filter(p=>p.type===activeFilter);
-  if(!filtered.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';return;}
-  g.innerHTML=filtered.map(p=>{
+  const filtered=activeFilter==='all'?products:activeFilter==='wish'?products.filter(p=>wish.includes(p.id)):products.filter(p=>p.type===activeFilter);
+  if(!filtered.length){
+    const msg=activeFilter==='wish'
+      ?'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">Aún no tienes favoritos. ¡Haz clic en el ♡ de cualquier producto!</div>'
+      :'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';
+    g.innerHTML=msg;return;
+  }
+  g.innerHTML=filtered.map((p,i)=>{
     const isYarnColor=p.type==='hilo'&&p.yarnColorName;
     const hex=isYarnColor?getYarnHex(p.yarnColorName):'';
+    const delay=Math.min(i,12)*0.04;
     return `
-    <div class="pcard" data-type="${p.type}" onclick="openM(${p.id})">
+    <div class="pcard" data-type="${p.type}" data-id="${p.id}" style="animation:fadeUp .4s ease ${delay}s both;" onclick="openM(${p.id})">
       <div class="pcard-img">
         ${isYarnColor
           ?`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
           :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">`
         }
         <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
-        <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">♡</button>
+        <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">${wish.includes(p.id)?'♥':'♡'}</button>
       </div>
       <div class="pcard-body">
         <div class="pcard-cat">${typeLabel(p.type)}</div>
@@ -776,10 +817,28 @@ function buyNow(){
   window.location.href='krosha-checkout.html';
 }
 
+function getWish(){return JSON.parse(localStorage.getItem('krosha_wishlist')||'[]');}
+function saveWish(w){localStorage.setItem('krosha_wishlist',JSON.stringify(w));updateWishBadge();}
+function updateWishBadge(){
+  const w=getWish();
+  const cnt=document.getElementById('wish-count');
+  if(cnt){cnt.textContent=w.length;cnt.style.display=w.length?'inline':'none';}
+}
 function toggleWish(btn){
-  const on=btn.textContent==='♥';
-  btn.textContent=on?'♡':'♥';
-  if(!on)showToast(lang==='es'?'♥ Guardado en favoritos':'♥ Saved to wishlist');
+  const card=btn.closest('.pcard');
+  const id=parseInt(card?.getAttribute('data-id')||'0');
+  const wish=getWish();
+  const idx=wish.indexOf(id);
+  const on=idx>=0;
+  if(on){wish.splice(idx,1);btn.textContent='♡';}
+  else{if(id)wish.push(id);btn.textContent='♥';showToast(lang==='es'?'♥ Guardado en favoritos':'♥ Saved to wishlist');}
+  saveWish(wish);
+}
+function nlSub(){
+  const email=document.getElementById('nl-email')?.value||'';
+  if(!email||!email.includes('@')){showToast(lang==='es'?'Ingresa tu correo 📧':'Enter your email 📧');return;}
+  showToast(lang==='es'?'🎀 ¡Gracias! Te avisaremos de novedades':'🎀 Thanks! We\'ll keep you posted');
+  document.getElementById('nl-email').value='';
 }
 
 function setC(){
@@ -831,12 +890,25 @@ async function detectCurrencyFromIP(){
 applyHero();
 renderGrid();
 updateCartBadge();
+updateWishBadge();
 detectCurrencyFromIP();
+
+// NAV BLUR ON SCROLL
+window.addEventListener('scroll',()=>{
+  document.querySelector('.nav-bar').classList.toggle('scrolled',window.scrollY>10);
+},{passive:true});
+
+// SCROLL REVEAL (for static .reveal elements like newsletter)
+const _ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');_ro.unobserve(e.target);}});
+},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>_ro.observe(el));
 
 // Listen for changes from admin (same tab via storage events won't fire, but cross-tab will)
 window.addEventListener('storage', e=>{
   if(e.key===PRODS_KEY||e.key===HERO_KEY){applyHero();renderGrid();}
   if(e.key===CART_KEY){updateCartBadge();}
+  if(e.key==='krosha_wishlist'){updateWishBadge();}
 });
 </script>
 </body>

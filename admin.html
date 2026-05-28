@@ -188,6 +188,14 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .confirm-box h3{font-size:18px;font-weight:700;margin-bottom:8px;}
 .confirm-box p{font-size:13.5px;color:var(--text-mid);margin-bottom:20px;}
 .confirm-btns{display:flex;gap:10px;justify-content:center;}
+
+/* IMG UPLOAD */
+.img-upload-row{display:flex;gap:8px;align-items:flex-start;}
+.img-upload-row input[type=text]{flex:1;}
+.btn-upload{background:var(--blush);color:var(--pink-dark);border:2px solid var(--pink-deep);border-radius:10px;padding:10px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:background .2s;}
+.btn-upload:hover{background:var(--pink-mid);}
+.upload-spinner{display:none;font-size:12px;color:var(--text-light);margin-top:4px;}
+.upload-spinner.on{display:block;}
 </style>
 </head>
 <body>
@@ -522,23 +530,43 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
-        <label>URL de foto principal</label>
-        <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')">
+        <label>Foto principal</label>
+        <div class="img-upload-row">
+          <input type="text" id="pf-img1" placeholder="https://... o sube desde tu computadora" oninput="previewImg(this,'img-prev-1')">
+          <button type="button" class="btn-upload" onclick="triggerUpload(1)">📁 Subir</button>
+        </div>
+        <input type="file" id="pf-file1" accept="image/*" style="display:none;" onchange="handleUpload(this,1)">
+        <div class="upload-spinner" id="spin1">⬆️ Subiendo...</div>
         <div style="margin-top:6px;"><img id="img-prev-1" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>URL foto 2 (opcional)</label>
-        <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')">
+        <label>Foto 2 (opcional)</label>
+        <div class="img-upload-row">
+          <input type="text" id="pf-img2" placeholder="https://... o sube desde tu computadora" oninput="previewImg(this,'img-prev-2')">
+          <button type="button" class="btn-upload" onclick="triggerUpload(2)">📁 Subir</button>
+        </div>
+        <input type="file" id="pf-file2" accept="image/*" style="display:none;" onchange="handleUpload(this,2)">
+        <div class="upload-spinner" id="spin2">⬆️ Subiendo...</div>
         <div style="margin-top:6px;"><img id="img-prev-2" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>URL foto 3 (opcional)</label>
-        <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
+        <label>Foto 3 (opcional)</label>
+        <div class="img-upload-row">
+          <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
+          <button type="button" class="btn-upload" onclick="triggerUpload(3)">📁 Subir</button>
+        </div>
+        <input type="file" id="pf-file3" accept="image/*" style="display:none;" onchange="handleUpload(this,3)">
+        <div class="upload-spinner" id="spin3">⬆️ Subiendo...</div>
         <div style="margin-top:6px;"><img id="img-prev-3" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>URL foto 4 (opcional)</label>
-        <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
+        <label>Foto 4 (opcional)</label>
+        <div class="img-upload-row">
+          <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
+          <button type="button" class="btn-upload" onclick="triggerUpload(4)">📁 Subir</button>
+        </div>
+        <input type="file" id="pf-file4" accept="image/*" style="display:none;" onchange="handleUpload(this,4)">
+        <div class="upload-spinner" id="spin4">⬆️ Subiendo...</div>
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
     </div>
@@ -1189,6 +1217,47 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 ['prod-modal','order-modal','cust-modal','confirm-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
 });
+
+// ── IMAGE UPLOAD ──
+function triggerUpload(n){
+  document.getElementById(`pf-file${n}`).click();
+}
+
+async function handleUpload(input, n) {
+  const file = input.files[0];
+  if (!file) return;
+  const maxMB = 10;
+  if (file.size > maxMB * 1024 * 1024) { showToast(`❌ La imagen no debe superar ${maxMB}MB`); return; }
+
+  const spin = document.getElementById(`spin${n}`);
+  spin.classList.add('on');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const res = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileData: e.target.result, fileName: file.name, mimeType: file.type }),
+      });
+      const data = await res.json();
+      spin.classList.remove('on');
+      if (data.url) {
+        const inp = document.getElementById(`pf-img${n}`);
+        inp.value = data.url;
+        previewImg(inp, `img-prev-${n}`);
+        showToast('✅ Imagen subida');
+      } else {
+        showToast('❌ ' + (data.error || 'Error al subir'));
+      }
+    } catch (err) {
+      spin.classList.remove('on');
+      showToast('❌ Error: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
 </script>
 </body>
 </html>
