@@ -573,6 +573,20 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
     </div>
+    <div class="form-grid full" style="margin-top:12px;">
+      <div class="field">
+        <label>Posición de la foto en la tarjeta <span style="font-weight:400;color:var(--text-light);">— ajusta el encuadre visible</span></label>
+        <select id="pf-img-pos">
+          <option value="center top">Centro arriba (default)</option>
+          <option value="center center">Centro</option>
+          <option value="center bottom">Centro abajo</option>
+          <option value="top center">Arriba</option>
+          <option value="bottom center">Abajo</option>
+          <option value="20% center">Izquierda</option>
+          <option value="80% center">Derecha</option>
+        </select>
+      </div>
+    </div>
     <!-- YARN COLORS SECTION -->
     <div style="margin-top:18px;background:var(--pink-bg);border-radius:12px;padding:16px;border:1px solid var(--border);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -1094,7 +1108,8 @@ function openProdModal(id){
   fillYarnSelects();
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});;
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pf-img-pos').value='center top';
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
@@ -1119,6 +1134,7 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
+  document.getElementById('pf-img-pos').value=p.imagePosition||'center top';
   const editor=document.getElementById('yarn-list-editor');
   editor.innerHTML='';
   document.getElementById('yarn-empty-hint').style.display='block';
@@ -1151,6 +1167,7 @@ function saveProd(){
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
+    imagePosition:document.getElementById('pf-img-pos').value||'center top',
     yarnList:getYarnList(),
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
