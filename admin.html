@@ -597,6 +597,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="field">
         <label>Posición de la foto en la tarjeta <span style="font-weight:400;color:var(--text-light);">— arrastra los sliders para ajustar el encuadre</span></label>
         <input type="hidden" id="pf-img-pos" value="50% 20%">
+        <input type="hidden" id="pf-img-zoom" value="1">
         <div style="display:flex;gap:16px;align-items:flex-start;margin-top:8px;">
           <div style="flex:1;">
             <div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">↔ Horizontal</div>
@@ -605,11 +606,14 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             <div style="font-size:12px;color:var(--text-light);margin-top:10px;margin-bottom:4px;">↕ Vertical</div>
             <input type="range" id="pf-pos-y" min="0" max="100" value="20" style="width:100%;accent-color:var(--pink-dark);" oninput="updateImgPos()">
             <div style="font-size:11px;color:var(--text-light);margin-top:2px;">Arriba ↑ ↓ Abajo</div>
+            <div style="font-size:12px;color:var(--text-light);margin-top:10px;margin-bottom:4px;">🔍 Zoom</div>
+            <input type="range" id="pf-pos-z" min="100" max="250" value="100" style="width:100%;accent-color:var(--pink-dark);" oninput="updateImgPos()">
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px;">Normal ← → Acercado</div>
           </div>
           <div style="flex-shrink:0;">
             <div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">Preview tarjeta</div>
             <div style="width:120px;height:140px;border-radius:12px;overflow:hidden;border:2px solid var(--border);background:#f0e6ef;">
-              <img id="pos-preview-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block;">
+              <img id="pos-preview-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;transform:scale(1);transform-origin:50% 20%;display:block;transition:transform .1s;">
             </div>
           </div>
         </div>
@@ -1137,7 +1141,7 @@ function openProdModal(id){
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
   ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  setImgPos('50% 20%');
+  setImgPos('50% 20%',1);
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
@@ -1162,7 +1166,7 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
-  setImgPos(p.imagePosition||'50% 20%');
+  setImgPos(p.imagePosition||'50% 20%',p.imageZoom||1);
   const editor=document.getElementById('yarn-list-editor');
   editor.innerHTML='';
   document.getElementById('yarn-empty-hint').style.display='block';
@@ -1197,7 +1201,8 @@ function saveProd(){
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
-    imagePosition:document.getElementById('pf-img-pos').value||'center top',
+    imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',
+    imageZoom:parseFloat(document.getElementById('pf-img-zoom').value)||1,
     yarnList:getYarnList(),
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
@@ -1223,21 +1228,26 @@ function previewImg(inp,prevId){
 function updateImgPos(){
   const x=document.getElementById('pf-pos-x').value;
   const y=document.getElementById('pf-pos-y').value;
-  const val=x+'% '+y+'%';
-  document.getElementById('pf-img-pos').value=val;
+  const z=parseFloat(document.getElementById('pf-pos-z').value)/100;
+  const pos=x+'% '+y+'%';
+  document.getElementById('pf-img-pos').value=pos;
+  document.getElementById('pf-img-zoom').value=z;
   const posImg=document.getElementById('pos-preview-img');
-  if(posImg)posImg.style.objectPosition=val;
+  if(posImg){posImg.style.objectPosition=pos;posImg.style.transform='scale('+z+')';posImg.style.transformOrigin=pos;}
 }
 
-function setImgPos(val){
-  const parts=(val||'50% 20%').match(/(\d+)%\s*(\d+)%/);
+function setImgPos(pos,zoom){
+  const parts=(pos||'50% 20%').match(/(\d+)%\s*(\d+)%/);
   const x=parts?parts[1]:'50';
   const y=parts?parts[2]:'20';
+  const z=parseFloat(zoom)||1;
   document.getElementById('pf-pos-x').value=x;
   document.getElementById('pf-pos-y').value=y;
+  document.getElementById('pf-pos-z').value=Math.round(z*100);
   document.getElementById('pf-img-pos').value=x+'% '+y+'%';
+  document.getElementById('pf-img-zoom').value=z;
   const posImg=document.getElementById('pos-preview-img');
-  if(posImg)posImg.style.objectPosition=x+'% '+y+'%';
+  if(posImg){posImg.style.objectPosition=x+'% '+y+'%';posImg.style.transform='scale('+z+')';posImg.style.transformOrigin=x+'% '+y+'%';}
 }
 
 function triggerUpload(n){

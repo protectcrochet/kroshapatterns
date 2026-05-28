@@ -583,7 +583,8 @@ function _mapProducts(arr){
     eyesPrice:p.eyesPrice||0,
     protectUrl:p.protectUrl||'',
     pdfUrl:p.pdfUrl||'',
-    imagePosition:p.imagePosition||'center top',
+    imagePosition:p.imagePosition||'50% 20%',
+    imageZoom:p.imageZoom||1,
   }));
 }
 
@@ -782,7 +783,7 @@ function renderGrid(filter){
           ?yimg
             ?`<img src="${yimg}" alt="${p.yarnColorName}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=yarn-ball-wrap style=background:${hex}22><div class=yarn-ball style=background:radial-gradient(circle+at+38%+35%,rgba(255,255,255,.5)+0%,transparent+70%),${hex}></div></div>'">`
             :`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
-          :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" style="object-position:${p.imagePosition||'center top'}" onerror="this.style.display='none'">`
+          :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" style="object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});transform-origin:${p.imagePosition||'50% 20%'};" onerror="this.style.display='none'">`
         }
         <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
         <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">${wish.includes(p.id)?'♥':'♡'}</button>
