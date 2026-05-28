@@ -554,22 +554,42 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
         <label>URL de foto principal</label>
-        <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')" style="flex:1;">
+          <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(1)">📁 Subir</button>
+          <input type="file" id="upload-file-1" accept="image/*" style="display:none;" onchange="handleUpload(this,1)">
+          <span id="upload-spin-1" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
+        </div>
         <div style="margin-top:6px;"><img id="img-prev-1" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
         <label>URL foto 2 (opcional)</label>
-        <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')" style="flex:1;">
+          <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(2)">📁 Subir</button>
+          <input type="file" id="upload-file-2" accept="image/*" style="display:none;" onchange="handleUpload(this,2)">
+          <span id="upload-spin-2" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
+        </div>
         <div style="margin-top:6px;"><img id="img-prev-2" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
         <label>URL foto 3 (opcional)</label>
-        <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')" style="flex:1;">
+          <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(3)">📁 Subir</button>
+          <input type="file" id="upload-file-3" accept="image/*" style="display:none;" onchange="handleUpload(this,3)">
+          <span id="upload-spin-3" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
+        </div>
         <div style="margin-top:6px;"><img id="img-prev-3" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
         <label>URL foto 4 (opcional)</label>
-        <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')" style="flex:1;">
+          <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(4)">📁 Subir</button>
+          <input type="file" id="upload-file-4" accept="image/*" style="display:none;" onchange="handleUpload(this,4)">
+          <span id="upload-spin-4" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
+        </div>
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
     </div>
@@ -1184,6 +1204,43 @@ function previewImg(inp,prevId){
   const prev=document.getElementById(prevId);
   if(inp.value){prev.src=inp.value;prev.style.display='block';}
   else{prev.src='';prev.style.display='none';}
+}
+
+function triggerUpload(n){
+  document.getElementById('upload-file-'+n).click();
+}
+
+async function handleUpload(input,n){
+  const file=input.files[0];
+  if(!file)return;
+  const spin=document.getElementById('upload-spin-'+n);
+  spin.style.display='inline';
+  try{
+    const reader=new FileReader();
+    reader.onload=async function(e){
+      const fileData=e.target.result;
+      const res=await fetch('/api/upload-image',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({fileData,fileName:file.name,mimeType:file.type}),
+      });
+      const data=await res.json();
+      spin.style.display='none';
+      if(data.url){
+        const urlInput=document.getElementById('pf-img'+n);
+        urlInput.value=data.url;
+        previewImg(urlInput,'img-prev-'+n);
+        showToast('✅ Foto subida correctamente');
+      } else {
+        showToast('❌ Error: '+(data.error||'No se pudo subir'));
+      }
+    };
+    reader.readAsDataURL(file);
+  }catch(err){
+    spin.style.display='none';
+    showToast('❌ Error al subir: '+err.message);
+  }
+  input.value='';
 }
 
 // ── ORDERS ──
