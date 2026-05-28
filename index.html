@@ -417,28 +417,139 @@ const countryToCurrency={
   NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
 };
 const YARN_COLORS=[
-  {name:'White',hex:'#FFFFFF'},{name:'Cream',hex:'#FFF8DC'},{name:'Ecru',hex:'#F5F0E8'},
-  {name:'Almond',hex:'#DEB887'},{name:'Sand',hex:'#E8D5B0'},{name:'Wheat',hex:'#F5DEB3'},
-  {name:'Camel',hex:'#C19A6B'},{name:'Gold',hex:'#FFD700'},{name:'Mustard',hex:'#FFDB58'},
-  {name:'Yellow',hex:'#FFF176'},{name:'Sunshine',hex:'#FFE600'},{name:'Orange',hex:'#FF8C00'},
-  {name:'Coral',hex:'#FF7F50'},{name:'Peach',hex:'#FFDAB9'},{name:'Salmon',hex:'#FA8072'},
-  {name:'Red',hex:'#DC143C'},{name:'Crimson',hex:'#B22222'},{name:'Burgundy',hex:'#800020'},
-  {name:'Blush',hex:'#FFB6C1'},{name:'Pink',hex:'#FFC0CB'},{name:'Hot Pink',hex:'#FF69B4'},
-  {name:'Rose',hex:'#FF007F'},{name:'Fuchsia',hex:'#FF00FF'},{name:'Mauve',hex:'#D4869E'},
-  {name:'Lilac',hex:'#C8A2C8'},{name:'Lavender',hex:'#E6E6FA'},{name:'Purple',hex:'#800080'},
-  {name:'Violet',hex:'#8B00FF'},{name:'Plum',hex:'#DDA0DD'},{name:'Navy',hex:'#001F5B'},
-  {name:'Royal Blue',hex:'#4169E1'},{name:'Blue',hex:'#2962FF'},{name:'Sky Blue',hex:'#87CEEB'},
-  {name:'Powder Blue',hex:'#B0E0E6'},{name:'Denim',hex:'#1560BD'},{name:'Teal',hex:'#008080'},
-  {name:'Turquoise',hex:'#40E0D0'},{name:'Aqua',hex:'#00CED1'},{name:'Mint',hex:'#98FF98'},
-  {name:'Sage',hex:'#BCB88A'},{name:'Olive',hex:'#808000'},{name:'Lime',hex:'#32CD32'},
-  {name:'Green',hex:'#008000'},{name:'Emerald',hex:'#50C878'},{name:'Forest',hex:'#228B22'},
-  {name:'Tan',hex:'#D2B48C'},{name:'Brown',hex:'#8B4513'},{name:'Chocolate',hex:'#7B3F00'},
-  {name:'Espresso',hex:'#3C2005'},{name:'Charcoal',hex:'#36454F'},{name:'Grey',hex:'#9E9E9E'},
-  {name:'Silver',hex:'#C0C0C0'},{name:'Black',hex:'#1A1A1A'},
+  {name:'White',hex:'#FFFFFF',img:'pb-white.jpg'},
+  {name:'Cream',hex:'#FFF8DC',img:'pb-cream.jpg'},
+  {name:'Ecru',hex:'#F5F0E8',img:'pb-cream.jpg'},
+  {name:'Linen',hex:'#FAF0E6',img:'pb-linen.jpg'},
+  {name:'Aran',hex:'#E8D5B7',img:'pb-aran.jpg'},
+  {name:'Arena S',hex:'#F2DFC0',img:'arena-sinf.jpg'},
+  {name:'Almond',hex:'#DEB887',img:'pb-buff.jpg'},
+  {name:'Sand',hex:'#E8D5B0',img:'pb-aran.jpg'},
+  {name:'Buff',hex:'#F5DEB3',img:'pb-buff.jpg'},
+  {name:'Warm Beige',hex:'#D4B896',img:'pb-warm-beige.jpg'},
+  {name:'Wheat',hex:'#F5DEB3',img:'pb-warm-beige.jpg'},
+  {name:'Camel',hex:'#C19A6B',img:'pb-toffee.jpg'},
+  {name:'Toffee',hex:'#A0785A',img:'pb-toffee.jpg'},
+  {name:'Hazel',hex:'#8E7455',img:'pb-hazel.jpg'},
+  {name:'Taupe',hex:'#8B7D7B',img:'pb-taupe.jpg'},
+  {name:'Nutmeg',hex:'#8C4E2A',img:'pb-nutmeg.jpg'},
+  {name:'Gold',hex:'#FFD700',img:'pb-goldenrod.jpg'},
+  {name:'Goldenrod',hex:'#DAA520',img:'pb-goldenrod.jpg'},
+  {name:'Mustard',hex:'#FFDB58',img:'pb-mustard.jpg'},
+  {name:'Dijon Mustard',hex:'#C49A00',img:'pb-dijon-mustard.jpg'},
+  {name:'Yellow',hex:'#FFF176',img:'pb-lemon.jpg'},
+  {name:'Lemon',hex:'#FFF44F',img:'pb-lemon.jpg'},
+  {name:'Maize',hex:'#F4C430',img:'pb-maize.jpg'},
+  {name:'Sunshine',hex:'#FFE600',img:'pb-sunny.jpg'},
+  {name:'Sunny',hex:'#FFD966',img:'pb-sunny.jpg'},
+  {name:'Butterscotch',hex:'#E3A857',img:'pb-butterscotch.jpg'},
+  {name:'Orange',hex:'#FF8C00',img:'pb-orange.jpg'},
+  {name:'Bright Orange',hex:'#FF6700',img:'pb-bright-orange.jpg'},
+  {name:'Coral',hex:'#FF7F50',img:'pb-coral.jpg'},
+  {name:'Peach',hex:'#FFDAB9',img:'pb-peach.jpg'},
+  {name:'Apricot',hex:'#FBCEB1',img:'pb-apricot.jpg'},
+  {name:'Salmon',hex:'#FA8072',img:'pb-salmon.jpg'},
+  {name:'Goldfish',hex:'#F4831F',img:'pb-goldfish.jpg'},
+  {name:'Pumpkin',hex:'#FF7518',img:'pb-pumpkin.jpg'},
+  {name:'Sweet Potato',hex:'#D2691E',img:'pb-sweet-potato.jpg'},
+  {name:'Ember',hex:'#C84B31',img:'pb-ember.jpg'},
+  {name:'Red',hex:'#DC143C',img:'pb-red.jpg'},
+  {name:'Cherry Red',hex:'#9B1B30',img:'pb-cherry-red.jpg'},
+  {name:'Crimson',hex:'#B22222',img:'pb-garnet.jpg'},
+  {name:'Garnet',hex:'#6D1A36',img:'pb-garnet.jpg'},
+  {name:'Burgundy',hex:'#800020',img:'pb-burgundy.jpg'},
+  {name:'Mahogany',hex:'#C04000',img:'pb-mahogany.jpg'},
+  {name:'Chestnut',hex:'#954535',img:'pb-chestnut.jpg'},
+  {name:'Wine',hex:'#722F37',img:'pb-merlot.jpg'},
+  {name:'Merlot',hex:'#73343A',img:'pb-merlot.jpg'},
+  {name:'Rouge',hex:'#C10020',img:'pb-rouge.jpg'},
+  {name:'Blush',hex:'#FFB6C1',img:'pb-blush.jpg'},
+  {name:'Crepe',hex:'#F5C5C0',img:'pb-crepe.jpg'},
+  {name:'Ballet',hex:'#F4A7B9',img:'pb-ballet.jpg'},
+  {name:'Pink',hex:'#FFC0CB',img:'pb-pink.jpg'},
+  {name:'Hot Pink',hex:'#FF69B4',img:'pb-taffy.jpg'},
+  {name:'Taffy',hex:'#FF8FAB',img:'pb-taffy.jpg'},
+  {name:'Rose',hex:'#FF007F',img:'pb-rose.jpg'},
+  {name:'Raspberry',hex:'#E30B5C',img:'pb-raspberry.jpg'},
+  {name:'Fuchsia',hex:'#FF00FF',img:'pb-fuchsia.jpg'},
+  {name:'Mauve',hex:'#D4869E',img:'pb-light-mauve.jpg'},
+  {name:'Light Mauve',hex:'#C8A0B4',img:'pb-light-mauve.jpg'},
+  {name:'Pale Orchid',hex:'#DDA0DD',img:'pb-pale-orchid.jpg'},
+  {name:'Orchid',hex:'#DA70D6',img:'pb-orchid.jpg'},
+  {name:'Thistle',hex:'#C8A2C8',img:'pb-thistle.jpg'},
+  {name:'Lila',hex:'#D4A5C9',img:'lila-rosa.jpg'},
+  {name:'Wisteria',hex:'#C9A0DC',img:'pb-wisteria.jpg'},
+  {name:'Lilac',hex:'#B57BCC',img:'pb-lilac.jpg'},
+  {name:'Purple',hex:'#800080',img:'pb-purple.jpg'},
+  {name:'Violet',hex:'#8B00FF',img:'pb-violet.jpg'},
+  {name:'Dark Purple',hex:'#4B0082',img:'pb-dark-purple.jpg'},
+  {name:'Plum',hex:'#DDA0DD',img:'pb-eggplant.jpg'},
+  {name:'Eggplant',hex:'#614051',img:'pb-eggplant.jpg'},
+  {name:'Navy',hex:'#001F5B',img:'pb-navy.jpg'},
+  {name:'Royal Blue',hex:'#4169E1',img:'pb-royal-blue.jpg'},
+  {name:'Blue',hex:'#2962FF',img:'pb-blue.jpg'},
+  {name:'Bright Blue',hex:'#0073CF',img:'pb-bright-blue.jpg'},
+  {name:'Azure',hex:'#0080FF',img:'pb-azure.jpg'},
+  {name:'Cadet',hex:'#5F9EA0',img:'pb-cadet.jpg'},
+  {name:'Sky Blue',hex:'#87CEEB',img:'pb-light-blue.jpg'},
+  {name:'Light Blue',hex:'#ADD8E6',img:'pb-light-blue.jpg'},
+  {name:'Carolina Sky',hex:'#9EC1CF',img:'pb-carolina-sky.jpg'},
+  {name:'Powder Blue',hex:'#B0E0E6',img:'pb-powder-blue.jpg'},
+  {name:'Slate',hex:'#708090',img:'pb-slate.jpg'},
+  {name:'Steel',hex:'#71797E',img:'pb-steel.jpg'},
+  {name:'Storm',hex:'#4F5B66',img:'pb-storm.jpg'},
+  {name:'Denim',hex:'#1560BD',img:'pb-denim.jpg'},
+  {name:'Twilight',hex:'#4A3F6B',img:'pb-twilight.jpg'},
+  {name:'Teal',hex:'#008080',img:'pb-teal.jpg'},
+  {name:'Peacock',hex:'#006B75',img:'pb-peacock.jpg'},
+  {name:'Turquoise',hex:'#40E0D0',img:'pb-turquoise.jpg'},
+  {name:'Seaglass',hex:'#7FB5A0',img:'pb-seaglass.jpg'},
+  {name:'Aqua',hex:'#00CED1',img:'pb-aqua.jpg'},
+  {name:'Mint',hex:'#98FF98',img:'pb-mint.jpg'},
+  {name:'Celery',hex:'#9ACD32',img:'pb-celery.jpg'},
+  {name:'Spring Green',hex:'#00C85A',img:'pb-spring-green.jpg'},
+  {name:'Lime',hex:'#32CD32',img:'pb-lime.jpg'},
+  {name:'Sage',hex:'#BCB88A',img:'pb-sage.jpg'},
+  {name:'Fern',hex:'#4F7942',img:'pb-fern.jpg'},
+  {name:'Leaf',hex:'#5D8233',img:'pb-leaf.jpg'},
+  {name:'Green',hex:'#008000',img:'pb-leaf.jpg'},
+  {name:'Olive',hex:'#808000',img:'pb-artichoke.jpg'},
+  {name:'Artichoke',hex:'#707048',img:'pb-artichoke.jpg'},
+  {name:'Juniper',hex:'#3A5F4A',img:'pb-juniper.jpg'},
+  {name:'Emerald',hex:'#50C878',img:'pb-juniper.jpg'},
+  {name:'Forest',hex:'#228B22',img:'pb-forest-green.jpg'},
+  {name:'Forest Green',hex:'#1A5C38',img:'pb-forest-green.jpg'},
+  {name:'Pine',hex:'#1A472A',img:'pb-pine.jpg'},
+  {name:'Spruce',hex:'#0A3D2B',img:'pb-spruce.jpg'},
+  {name:'Hunter',hex:'#355E3B',img:'pb-spruce.jpg'},
+  {name:'Thyme',hex:'#3D6B35',img:'pb-thyme.jpg'},
+  {name:'Holly',hex:'#1A5E20',img:'pb-holly.jpg'},
+  {name:'Tan',hex:'#D2B48C',img:'pb-hazel.jpg'},
+  {name:'Brown',hex:'#8B4513',img:'pb-pecan.jpg'},
+  {name:'Pecan',hex:'#A0704A',img:'pb-pecan.jpg'},
+  {name:'Chocolate',hex:'#7B3F00',img:'pb-chocolate.jpg'},
+  {name:'Cocoa',hex:'#4A2C2A',img:'pb-cocoa.jpg'},
+  {name:'Espresso',hex:'#3C2005',img:'pb-cocoa.jpg'},
+  {name:'Charcoal',hex:'#36454F',img:'pb-charcoal.jpg'},
+  {name:'Grey',hex:'#9E9E9E',img:'pb-gray.jpg'},
+  {name:'Gray',hex:'#808080',img:'pb-gray.jpg'},
+  {name:'Silver',hex:'#C0C0C0',img:'pb-light-gray.jpg'},
+  {name:'Light Gray',hex:'#D3D3D3',img:'pb-light-gray.jpg'},
+  {name:'Black',hex:'#1A1A1A',img:'pb-black.jpg'},
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
+function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
+function yarnColorsToList(yc){
+  const counts={},order=[];
+  Object.values(yc).forEach(color=>{
+    if(!color)return;
+    if(counts[color])counts[color]++;
+    else{counts[color]=1;order.push(color);}
+  });
+  return order.map(color=>({color,qty:counts[color]}));
+}
 let cur='MXN', lang='es', curProd=null;
-let addonKit=false, addonEyes=false;
+let addonKit=false, addonEyes=false, addonYarns={};
 
 // ── CART (persists across pages) ──
 function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
@@ -446,38 +557,89 @@ function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 function getCartCount(){return getCart().reduce((a,i)=>a+i.qty,0);}
 function updateCartBadge(){document.getElementById('cn').textContent=getCartCount();}
 
-// ── LOAD PRODUCTS from localStorage (set by admin) ──
-// Falls back to hardcoded defaults if admin hasn't saved yet
+// ── INVENTORY ──
+let _inventory={};
+function getStock(color){const s=_inventory[color];return s===undefined?999:s;}
+function isOutOfStock(color){return getStock(color)===0;}
+
+// ── LOAD PRODUCTS ──
+// Priority: localStorage (admin preview) → data/products.json (published) → hardcoded defaults
+let _publishedProducts=null;
+
+function _mapProducts(arr){
+  return arr.filter(p=>p.status==='active'||!p.status).map(p=>({
+    id:p.id,
+    title:p.nameEs||p.title||'',
+    titleEn:p.nameEn||p.titleEn||'',
+    price:p.price||0,
+    type:p.type||'patrones',
+    skill:p.skill||'',
+    images:p.images||[],
+    desc:p.descEs||p.desc||'',
+    descEn:p.descEn||'',
+    yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
+    yarnList:p.yarnList||null,
+    kitPrice:p.kitPrice||0,
+    eyesPrice:p.eyesPrice||0,
+    protectUrl:p.protectUrl||'',
+    pdfUrl:p.pdfUrl||'',
+  }));
+}
+
 function getProducts(){
   const stored=localStorage.getItem(PRODS_KEY);
   let base;
   if(stored){
-    const arr=JSON.parse(stored);
-    base=arr.filter(p=>p.status==='active'||!p.status).map(p=>({
-      id:p.id,
-      title:p.nameEs||p.title||'',
-      titleEn:p.nameEn||p.titleEn||'',
-      price:p.price||0,
-      type:p.type||'patrones',
-      skill:p.skill||'',
-      images:p.images||[],
-      desc:p.descEs||p.desc||'',
-      descEn:p.descEn||'',
-      yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
-      kitPrice:p.kitPrice||0,
-      eyesPrice:p.eyesPrice||0,
-      protectUrl:p.protectUrl||'',
-      pdfUrl:p.pdfUrl||'',
-    }));
+    base=_mapProducts(JSON.parse(stored));
+  } else if(_publishedProducts&&_publishedProducts.length){
+    base=_mapProducts(_publishedProducts);
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
   }
-  return base;
+  const ids=new Set(base.map(p=>p.id));
+  const yarnKits=generateYarnKits(base);
+  return [...base,...yarnProducts.filter(p=>!ids.has(p.id)),...yarnKits];
 }
 
-// ── LOAD HERO from localStorage ──
+function generateYarnKits(patternProds){
+  const result=[];
+  const existingIds=new Set(patternProds.map(p=>p.id));
+  Object.entries(defaultYarnColors).forEach(([patId,yc])=>{
+    const id=parseInt(patId);
+    const pat=patternProds.find(p=>p.id===id);
+    if(!pat||pat.type==='kits'||pat.type==='hilo')return;
+    const yl=pat.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+    if(!yl||!yl.length)return;
+    const kitId=1000+id;
+    if(existingIds.has(kitId))return;
+    const totalQty=yl.reduce((s,i)=>s+i.qty,0);
+    const price=totalQty*150;
+    const shortName=(pat.title||'')
+      .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
+      .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    result.push({
+      id:kitId,
+      title:`Kit Estambres ${shortName}`,
+      titleEn:`Yarn Kit ${shortName}`,
+      price,
+      type:'kits',
+      skill:'',
+      images:pat.images||[],
+      desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,
+      descEn:`${totalQty} Premier Yarns Basix 200g skeins. All colors for the ${pat.titleEn||pat.title} pattern.`,
+      yarnList:yl,
+      kitPrice:0,
+      eyesPrice:0,
+      isYarnKit:true,
+      patternId:id,
+    });
+  });
+  return result;
+}
+
+// ── LOAD HERO — prioridad: hero.json publicado → localStorage (preview admin) ──
 function applyHero(){
-  const h=JSON.parse(localStorage.getItem(HERO_KEY)||'null');
+  const h=_publishedHero||JSON.parse(localStorage.getItem(HERO_KEY)||'null');
   if(!h)return;
   // announcement bar
   const ann=document.getElementById('nav-ann');
@@ -545,14 +707,14 @@ const defaultYarnColors={
   1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},       // Candy
   3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},           // Graduadita 35cm
   4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Mini Rapunzel
-  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lavender',rosas:'Coral',detalles:'Gold'},     // Sirenita
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lila',rosas:'Coral',detalles:'Gold'},     // Sirenita
   9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},          // Rapunzel 35cm
   10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},         // Maléfica
   11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},             // Reina
   13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},           // Mini Ramo 25cm
   14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},          // Valiente/Mérida
   15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},          // Bella/Belle
-  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lavender',rosas:'',detalles:'Blue'},  // Emily (pendiente confirmar)
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lila',rosas:'',detalles:'Blue'},  // Emily (pendiente confirmar)
   18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},      // Sally
   19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca Ramo 35cm
   21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},                // Stitch
@@ -610,12 +772,15 @@ function renderGrid(filter){
   g.innerHTML=filtered.map((p,i)=>{
     const isYarnColor=p.type==='hilo'&&p.yarnColorName;
     const hex=isYarnColor?getYarnHex(p.yarnColorName):'';
+    const yimg=isYarnColor?getYarnImg(p.yarnColorName):null;
     const delay=Math.min(i,12)*0.04;
     return `
     <div class="pcard" data-type="${p.type}" data-id="${p.id}" style="animation:fadeUp .4s ease ${delay}s both;" onclick="openM(${p.id})">
       <div class="pcard-img">
         ${isYarnColor
-          ?`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
+          ?yimg
+            ?`<img src="${yimg}" alt="${p.yarnColorName}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" onerror="this.outerHTML='<div class=yarn-ball-wrap style=background:${hex}22><div class=yarn-ball style=background:radial-gradient(circle+at+38%+35%,rgba(255,255,255,.5)+0%,transparent+70%),${hex}></div></div>'">`
+            :`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
           :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'">`
         }
         <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
@@ -653,15 +818,15 @@ function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
-  addonKit=false; addonEyes=false;
+  addonKit=false; addonEyes=false; addonYarns={};
 
   const gallery=document.querySelector('.modal-gallery');
   if(curProd.yarnColorName){
-    // Yarn color product — show big ball, no thumbs
     const hex=getYarnHex(curProd.yarnColorName);
-    gallery.innerHTML=`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;">
-      <div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div>
-    </div>`;
+    const yimg=getYarnImg(curProd.yarnColorName);
+    gallery.innerHTML=yimg
+      ?`<div style="width:100%;flex:1;min-height:360px;overflow:hidden;"><img src="${yimg}" alt="${curProd.yarnColorName}" style="width:100%;height:100%;min-height:360px;object-fit:cover;"></div>`
+      :`<div style="width:100%;flex:1;min-height:360px;display:flex;align-items:center;justify-content:center;padding:30px;background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};width:180px;height:180px;"></div></div>`;
   } else {
     gallery.innerHTML=`<div class="mgallery-main"><img id="mimg-main" src="${curProd.images[0]||''}" alt="${curProd.title}"></div>
     <div class="mgallery-thumbs" id="mimg-thumbs">${(curProd.images||[]).map((img,i)=>
@@ -678,24 +843,48 @@ function openM(id){
   // Yarn colors section (only for pattern products)
   const yarnSec=document.getElementById('m-yarn-section');
   const yc=curProd.yarnColors;
-  if(yarnSec&&!curProd.yarnColorName&&yc&&Object.values(yc).some(v=>v)){
-    const parts=[
-      {key:'piel',label:lang==='es'?'Piel':'Skin'},
-      {key:'cabello',label:lang==='es'?'Cabello':'Hair'},
-      {key:'vestido',label:lang==='es'?'Vestido':'Dress'},
-      {key:'forro',label:lang==='es'?'Forro':'Lining'},
-      {key:'rosas',label:lang==='es'?'Rosas':'Roses'},
-      {key:'detalles',label:lang==='es'?'Detalles':'Details'},
-    ];
-    const chips=parts.filter(p=>yc[p.key]).map(p=>`
-      <div class="yarn-chip">
-        <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
-        <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
-        <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
-      </div>`).join('');
-    yarnSec.innerHTML=`<div class="yarn-section">
-      <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
-      <div class="yarn-grid">${chips}</div>
+  const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+  if(yarnSec&&curProd.isYarnKit&&yl&&yl.length){
+    const infoRows=yl.map(item=>{
+      const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
+        ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
+        <span style="font-size:11px;color:var(--text-light);">×${item.qty} ovillo${item.qty>1?'s':''} · 200g</span>
+      </div>`;
+    }).join('');
+    yarnSec.innerHTML=`<div style="margin-bottom:14px;">
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
+      ${infoRows}
+    </div>`;
+    yarnSec.style.display='block';
+  } else if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
+    const rows=yl.map(item=>{
+      const key=item.color.replace(/[^a-zA-Z0-9]/g,'_');
+      const yimg=getYarnImg(item.color);
+      const hex=getYarnHex(item.color);
+      const yp=yarnProducts.find(p=>p.yarnColorName===item.color);
+      const price=(yp?yp.price:150)*item.qty;
+      const oos=isOutOfStock(item.color);
+      const stock=getStock(item.color);
+      const stockBadge=oos
+        ?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Agotado</span>`
+        :stock<=3&&stock<999
+        ?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Últimos ${stock}</span>`
+        :'';
+      return `<div class="addon-row${oos?' agotado':''}" id="yarn-addon-${key}" ${oos?'':`onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})"`} style="${oos?'opacity:.55;cursor:not-allowed;':''}">
+        <div class="addon-cb" id="yarn-cb-${key}"></div>
+        ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
+        <div class="addon-info">
+          <strong>${item.color}</strong>
+          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · 200g</span>
+        </div>
+        ${stockBadge||`<span class="addon-price">+${f(price)}</span>`}
+      </div>`;
+    }).join('');
+    yarnSec.innerHTML=`<div class="addon-section">
+      <div class="addon-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
+      ${rows}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec){yarnSec.style.display='none';}
@@ -718,8 +907,8 @@ function openM(id){
       html+=`<div class="addon-row" id="addon-eyes" onclick="toggleAddon('eyes')">
         <div class="addon-cb" id="cb-eyes"></div>
         <div class="addon-info">
-          <strong>👀 ${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
-          <span>10mm · ${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
+          <strong>${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
+          <span>${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
         </div>
         <span class="addon-price">+${f(curProd.eyesPrice)}</span>
       </div>`;
@@ -729,8 +918,31 @@ function openM(id){
     addonSec.style.display='block';
   } else if(addonSec){addonSec.style.display='none';}
 
-  updateModalPrice();
-  document.getElementById('mbtn-add').textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  // Yarn color products: not sold standalone
+  const btnBuy=document.getElementById('mbtn-buy');
+  const btnAdd=document.getElementById('mbtn-add');
+  const buySub=document.querySelector('.buy-price-sub');
+  const fmtEl=document.getElementById('md-format');
+  if(curProd.yarnColorName){
+    btnBuy.style.display='none';
+    btnAdd.style.display='none';
+    if(buySub)buySub.innerHTML=`<div style="background:var(--blush);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;font-size:13px;color:var(--text-mid);line-height:1.5;">${lang==='es'?'🧶 Este estambre está disponible como add-on al comprar cualquier patrón':'🧶 This yarn is available as an add-on when buying any pattern'}</div>`;
+    if(fmtEl)fmtEl.textContent='200g · Acrílico';
+  } else if(curProd.isYarnKit){
+    btnBuy.style.display='';
+    btnAdd.style.display='';
+    if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Envío a domicilio':'Price in your currency · Home delivery';
+    if(fmtEl)fmtEl.textContent=lang==='es'?'Kit físico':'Physical Kit';
+    updateModalPrice();
+    btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  } else {
+    btnBuy.style.display='';
+    btnAdd.style.display='';
+    if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
+    if(fmtEl)fmtEl.textContent='PDF Digital';
+    updateModalPrice();
+    btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  }
   document.getElementById('ov').classList.add('open');
 }
 
@@ -752,8 +964,27 @@ function updateModalPrice(){
   let total=curProd.price;
   if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
   if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=yarnProducts.find(p=>p.yarnColorName===color);
+    total+=(yp?yp.price:150)*qty;
+  });
   document.getElementById('mbuy-price').textContent=f(total);
   document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(total)}`;
+}
+
+function toggleYarnAddon(color,qty){
+  if(isOutOfStock(color))return;
+  const key=color.replace(/[^a-zA-Z0-9]/g,'_');
+  if(addonYarns[color]){
+    delete addonYarns[color];
+    document.getElementById(`yarn-addon-${key}`)?.classList.remove('checked');
+    const cb=document.getElementById(`yarn-cb-${key}`);if(cb)cb.textContent='';
+  } else {
+    addonYarns[color]=qty;
+    document.getElementById(`yarn-addon-${key}`)?.classList.add('checked');
+    const cb=document.getElementById(`yarn-cb-${key}`);if(cb)cb.textContent='✓';
+  }
+  updateModalPrice();
 }
 
 function switchImg(el,src){
@@ -770,23 +1001,23 @@ function qAdd(id){
   const p=products.find(x=>x.id===id);if(!p)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===id);
-  const imgVal=p.yarnColorName?`yarn:${getYarnHex(p.yarnColorName)}`:p.images[0]||'';
+  const imgVal=p.yarnColorName?(getYarnImg(p.yarnColorName)||`yarn:${getYarnHex(p.yarnColorName)}`):p.images[0]||'';
   const label=p.yarnColorName?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title);
   if(existing)existing.qty++;else cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty:1});
   saveCart(cart);updateCartBadge();
   showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
 }
 
-function addYarnToCart(colorName){
+function addYarnToCart(colorName){addYarnQtyToCart(colorName,1);}
+function addYarnQtyToCart(colorName,qty){
   const yp=yarnProducts.find(p=>p.yarnColorName===colorName);
   if(!yp)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===yp.id);
-  const hex=getYarnHex(colorName);
-  if(existing)existing.qty++;
-  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:`yarn:${hex}`,qty:1});
+  if(existing)existing.qty+=qty;
+  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty});
   saveCart(cart);updateCartBadge();
-  showToast(`🧶 ${colorName} ${lang==='es'?'agregado al carrito':'added to cart'}`);
+  showToast(`🧶 ${colorName} ×${qty} ${lang==='es'?'agregado':'added'}`);
 }
 
 function addToCart(){
@@ -802,8 +1033,14 @@ function addToCart(){
   if(addonEyes&&curProd.eyesPrice){
     const eyesId=`${curProd.id}-eyes`;
     const eeyes=cart.find(i=>i.id===eyesId);
-    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad 10mm`,price:curProd.eyesPrice,img:'',qty:1});
+    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:'',qty:1});
   }
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=yarnProducts.find(p=>p.yarnColorName===color);
+    if(!yp)return;
+    const ey=cart.find(i=>i.id===yp.id);
+    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} 200g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty});
+  });
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
 }
@@ -816,16 +1053,13 @@ function buyNow(){
 function getWish(){return JSON.parse(localStorage.getItem('krosha_wishlist')||'[]');}
 function saveWish(w){localStorage.setItem('krosha_wishlist',JSON.stringify(w));updateWishBadge();}
 function updateWishBadge(){
-  const w=getWish();
-  const cnt=document.getElementById('wish-count');
+  const w=getWish();const cnt=document.getElementById('wish-count');
   if(cnt){cnt.textContent=w.length;cnt.style.display=w.length?'inline':'none';}
 }
 function toggleWish(btn){
   const card=btn.closest('.pcard');
   const id=parseInt(card?.getAttribute('data-id')||'0');
-  const wish=getWish();
-  const idx=wish.indexOf(id);
-  const on=idx>=0;
+  const wish=getWish();const idx=wish.indexOf(id);const on=idx>=0;
   if(on){wish.splice(idx,1);btn.textContent='♡';}
   else{if(id)wish.push(id);btn.textContent='♥';showToast(lang==='es'?'♥ Guardado en favoritos':'♥ Saved to wishlist');}
   saveWish(wish);
@@ -882,19 +1116,30 @@ async function detectCurrencyFromIP(){
   }catch(e){}
 }
 
+// Hero publicado (de data/hero.json) — fuente de verdad para todos los dispositivos
+let _publishedHero=null;
+
 // ── INIT ──
-applyHero();
-renderGrid();
-updateCartBadge();
-updateWishBadge();
-detectCurrencyFromIP();
+(async()=>{
+  const v=Date.now();
+  await Promise.all([
+    fetch('data/products.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)&&d.length)_publishedProducts=d;}).catch(()=>{}),
+    fetch('data/inventory.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
+    fetch('data/hero.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
+  ]);
+  applyHero();
+  renderGrid();
+  updateCartBadge();
+  updateWishBadge();
+  detectCurrencyFromIP();
+})();
 
 // NAV BLUR ON SCROLL
 window.addEventListener('scroll',()=>{
   document.querySelector('.nav-bar').classList.toggle('scrolled',window.scrollY>10);
 },{passive:true});
 
-// SCROLL REVEAL (for static .reveal elements like newsletter)
+// SCROLL REVEAL
 const _ro=new IntersectionObserver(entries=>{
   entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');_ro.unobserve(e.target);}});
 },{threshold:.1});

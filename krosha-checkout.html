@@ -282,7 +282,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <h3 data-es="Resumen del pedido" data-en="Order summary">Resumen del pedido</h3>
       <div class="sum-row"><span id="subtotal-label">Subtotal (0 productos)</span><span id="subtotal">$0 MXN</span></div>
       <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val"></span></div>
-      <div class="sum-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span style="color:var(--green);" data-es="🔐 ProtectCrochet" data-en="🔐 ProtectCrochet">🔐 ProtectCrochet</span></div>
+      <div class="sum-row" id="sum-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="sum-ship-val" style="color:var(--green);" data-es="🔐 ProtectCrochet" data-en="🔐 ProtectCrochet">🔐 ProtectCrochet</span></div>
       <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$0 MXN</span></div>
       <div class="digital-badge" data-es="🔐 Acceso vía ProtectCrochet al confirmar pago" data-en="🔐 Access via ProtectCrochet after payment">🔐 Acceso vía ProtectCrochet al confirmar pago</div>
       <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
@@ -398,7 +398,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               </div>
               <div class="field">
                 <label data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
-                <input type="text" id="ship-zip" placeholder="06600" maxlength="10">
+                <input type="text" id="ship-zip" placeholder="06600" maxlength="10" oninput="autoQuoteShipping()">
               </div>
             </div>
           </div>
@@ -458,7 +458,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <div class="mini-divider"></div>
       <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$0 MXN</span></div>
       <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount"></span></div>
-      <div class="mini-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span style="color:var(--green);" data-es="ProtectCrochet 🔐" data-en="ProtectCrochet 🔐">ProtectCrochet 🔐</span></div>
+      <div class="mini-row" id="ms-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="ms-ship-val" style="color:var(--green);" data-es="ProtectCrochet 🔐" data-en="ProtectCrochet 🔐">ProtectCrochet 🔐</span></div>
       <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$0 MXN</span></div>
     </div>
   </div>
@@ -553,7 +553,7 @@ function imgHtml(img){
 }
 
 function itemCat(item){
-  if(item.img&&item.img.startsWith('yarn:'))return 'Estambre · Premier Yarns Basix';
+  if((item.img&&item.img.startsWith('yarn:'))||item.title.startsWith('Estambre '))return 'Estambre · Premier Yarns Basix';
   if(typeof item.id==='string'&&item.id.endsWith('-kit'))return 'Kit Estambres · KroshaPatterns';
   if(typeof item.id==='string'&&item.id.endsWith('-eyes'))return 'Accesorio · KroshaPatterns';
   return 'Patrón · KroshaPatterns';
@@ -598,7 +598,7 @@ function renderCart(){
 
 function updateSummary(sub){
   const disc=hasDiscount?Math.round(sub*.1):0;
-  const total=sub-disc;
+  const total=sub-disc+shipCost;
   const cart=getCartItems();
   const sl=document.getElementById('subtotal-label');
   if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${cart.length} ${lang==='es'?'producto':'item'}${cart.length!==1?'s':''})`;
@@ -609,11 +609,12 @@ function updateSummary(sub){
     document.getElementById('discount-val').textContent='−'+f(disc);
     document.getElementById('discount-row').style.display='flex';
   }
+  _updateShipTotals();
 }
 
 function renderMiniSummary(cart,sub){
   const disc=hasDiscount?Math.round(sub*.1):0;
-  const total=sub-disc;
+  const total=sub-disc+shipCost;
   const mi=document.getElementById('mini-items');
   if(mi)mi.innerHTML=cart.map((item,i)=>`
     <div class="mini-item">
@@ -827,7 +828,7 @@ function getCartTotal(){
   const cart=getCartItems();
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
-  return Math.round((sub-disc)*(rates[cur]||1)*100)/100;
+  return Math.round((sub-disc+shipCost)*(rates[cur]||1)*100)/100;
 }
 
 // ── LOAD SDKs ──
@@ -1131,6 +1132,8 @@ function showToast(msg){
 }
 
 // ── SHIPPING ──
+let shipCost=0, _shipRates=[], _selRateIdx=0;
+
 function hasPhysicalItems(){
   const cart=getCartItems();
   return cart.some(i=>{
@@ -1143,43 +1146,165 @@ function hasPhysicalItems(){
       i.title.toLowerCase().includes('ojos');
   });
 }
+
 function updateShipping(){
   const box=document.getElementById('shipping-info-box');
   const shipFields=document.getElementById('ship-fields');
   const isPhysical=hasPhysicalItems();
   if(shipFields)shipFields.classList.toggle('visible',isPhysical);
+  // Reset ship cost whenever shipping section updates
+  if(!isPhysical){shipCost=0;_shipRates=[];_updateShipTotals();}
   if(!box)return;
   if(!isPhysical){box.style.display='none';return;}
   const country=document.getElementById('country-sel')?.value||'MX';
   const isMX=country==='MX';
-  const isCentroAm=['GT','HN','SV','NI','CR','PA','CU'].includes(country);
-  const isLatAm=['CO','AR','BR','CL','PE','VE','EC','BO','UY','PY','DO','PR'].includes(country);
-  let html='';
-  if(isMX){
-    html=`<div style="background:#fff7e6;border-radius:12px;padding:14px 16px;border:1.5px solid #ffe0a0;">
-      <div style="font-weight:700;color:#7a5200;font-size:13.5px;margin-bottom:6px;">📦 Envío en México — t1.com</div>
-      <div style="font-size:12.5px;color:#a07020;line-height:1.6;">
-        🚚 Envío estándar (3-5 días): <strong>$99–$149 MXN</strong><br>
-        ⚡ Envío express (1-2 días): <strong>$199–$249 MXN</strong><br>
-        <span style="font-size:11.5px;opacity:.8;">Calculado al confirmar según tu código postal. Trabajamos con t1.com para envíos en México.</span>
+  const bgColor=isMX?'#fff7e6':'#e8f4fd';
+  const bdColor=isMX?'#ffe0a0':'#b0d4f0';
+  const txColor=isMX?'#7a5200':'#1a5fa6';
+  const stColor=isMX?'#a07020':'#2a6080';
+  const icon=isMX?'📦':'✈️';
+  const title=isMX?'Cotiza tu envío en tiempo real':'Cotiza tu envío internacional';
+  const hint=isMX
+    ?'Ingresa tu código postal (5 dígitos) y verás tarifas reales de las principales paqueterías.'
+    :'Ingresa tu código postal de destino. Cotizamos con DHL, FedEx y UPS para enviarte desde México.';
+  const cpHint=isMX?'Ej. 44100':'Ej. 90210 (EE.UU.), 28001 (España)';
+  const html=`<div style="background:${bgColor};border-radius:14px;padding:16px;border:1.5px solid ${bdColor};">
+    <div style="font-weight:700;color:${txColor};font-size:13.5px;margin-bottom:5px;">${icon} ${title}</div>
+    <div style="font-size:12px;color:${stColor};margin-bottom:10px;">${hint}</div>
+    ${!isMX?`<div style="margin-bottom:10px;">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${stColor};display:block;margin-bottom:5px;">Código postal de destino</label>
+      <div style="display:flex;gap:8px;">
+        <input id="intl-zip" type="text" placeholder="${cpHint}" maxlength="12"
+          style="flex:1;border:1.5px solid ${bdColor};border-radius:10px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;background:#fff;color:var(--text);"
+          oninput="autoQuoteShipping()">
       </div>
-    </div>`;
-  } else if(isCentroAm||isLatAm||country==='US'||country==='CA'||country==='ES'||country==='GB'){
-    html=`<div style="background:#e8f4fd;border-radius:12px;padding:14px 16px;border:1.5px solid #b0d4f0;">
-      <div style="font-weight:700;color:#1a5fa6;font-size:13.5px;margin-bottom:6px;">✈️ Envío Internacional — envía.com</div>
-      <div style="font-size:12.5px;color:#2a6080;line-height:1.6;">
-        📦 Envío estándar internacional: <strong>$350–$550 MXN</strong> (10-20 días)<br>
-        🚀 Envío express internacional: <strong>$650–$950 MXN</strong> (5-7 días)<br>
-        <span style="font-size:11.5px;opacity:.8;">El costo exacto se cotiza al confirmar. Usamos envía.com para envíos internacionales desde México.</span>
-      </div>
-    </div>`;
-  } else {
-    html=`<div style="background:#f5f5f5;border-radius:12px;padding:14px 16px;border:1.5px solid #ddd;">
-      <div style="font-size:13px;color:#555;">🌍 Para cotizar envío a tu país, escríbenos a <strong>hola@kroshapatterns.com</strong> antes de completar tu pedido.</div>
-    </div>`;
-  }
+    </div>`:''}
+    <button onclick="cotizarEnvio()" style="background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">
+      ${isMX?'🚚':'✈️'} Ver tarifas disponibles
+    </button>
+    <div id="envia-results" style="margin-top:12px;"></div>
+  </div>`;
   box.innerHTML=html;
   box.style.display='block';
+  // Auto-quote if zip already filled
+  const zip=document.getElementById('ship-zip')?.value?.trim();
+  if(zip&&_cpValidForCountry(zip,country)) cotizarEnvio();
+}
+
+// Valida que el CP tenga formato mínimo según el país
+function _cpValidForCountry(cp, country){
+  if(!cp) return false;
+  if(country==='MX') return /^\d{5}$/.test(cp);
+  return cp.trim().replace(/\s/g,'').length >= 3; // Internacional: mínimo 3 caracteres
+}
+
+// Obtiene el CP según si es México (campo de dirección) o internacional (campo propio)
+function _getCPAndCountry(){
+  const country=document.getElementById('country-sel')?.value||'MX';
+  const isMX=country==='MX';
+  const cp=isMX
+    ? document.getElementById('ship-zip')?.value?.trim()
+    : document.getElementById('intl-zip')?.value?.trim();
+  return {cp, country, isMX};
+}
+
+function autoQuoteShipping(){
+  const {cp, country}=_getCPAndCountry();
+  if(cp&&_cpValidForCountry(cp,country)) cotizarEnvio();
+}
+
+async function cotizarEnvio(){
+  const {cp, country, isMX}=_getCPAndCountry();
+  if(!cp||!_cpValidForCountry(cp,country)){
+    showToast(isMX?'⚠️ Ingresa un código postal válido (5 dígitos)':'⚠️ Ingresa el código postal de destino');
+    (document.getElementById('ship-zip')||document.getElementById('intl-zip'))?.focus();
+    return;
+  }
+  const el=document.getElementById('envia-results');
+  if(!el)return;
+  el.innerHTML=`<div style="text-align:center;padding:18px;color:var(--text-light);font-size:13px;">
+    <div style="font-size:22px;margin-bottom:8px;">${isMX?'⏳':'✈️'}</div>Cotizando tarifas${isMX?'':' internacionales'}…</div>`;
+
+  try{
+    const cart=getCartItems();
+    const peso=Math.max(0.3, cart.length*0.25);
+    const r=await fetch('/api/envia-quote',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso:1, largo:25, ancho:25, alto:37}),
+    });
+    const data=await r.json();
+    if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');
+    if(!data.rates||!data.rates.length){
+      el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">
+        ⚠️ No encontramos tarifas para el CP <strong>${cp}</strong>. Verifica que sea correcto o contáctanos.</div>`;
+      return;
+    }
+    _shipRates=data.rates;
+    _selRateIdx=0;
+    shipCost=_shipRates[0].price;
+    _renderRatesList();
+    _updateShipTotals();
+  }catch(e){
+    el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">⚠️ ${e.message}</div>`;
+  }
+}
+
+function _renderRatesList(){
+  const el=document.getElementById('envia-results');
+  if(!el||!_shipRates.length)return;
+  const top=_shipRates.slice(0,7);
+  el.innerHTML=`<div style="font-size:11.5px;color:var(--text-light);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Elige tu opción de envío</div>`+
+    top.map((r,i)=>{
+      const sel=i===_selRateIdx;
+      const carrierLogo={fedex:'🟣',dhl:'🟡',estafeta:'🔵',redpack:'🔴',paquetexpress:'🟠',ups:'🟤',sendex:'⚫'}[r.carrier.toLowerCase()]||'📦';
+      const daysStr=(r.days&&r.days!=='?')?`⏱ ${r.days} día${r.days!=1?'s':''} hábil${r.days!=1?'es':''}`:'';
+      return `<div onclick="selectShipRate(${i})" style="
+        border:2px solid ${sel?'var(--pink-dark)':'var(--border)'};
+        border-radius:12px;padding:11px 14px;margin-bottom:8px;cursor:pointer;
+        display:flex;align-items:center;gap:11px;
+        background:${sel?'var(--blush)':'var(--white)'};transition:all .15s;">
+        <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${sel?'var(--pink-dark)':'var(--border)'};
+          flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+          ${sel?'<div style="width:8px;height:8px;border-radius:50%;background:var(--pink-dark);"></div>':''}
+        </div>
+        <div style="font-size:18px;flex-shrink:0;">${carrierLogo}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text);">${r.carrier.toUpperCase()} — ${r.serviceDescription||r.service}</div>
+          ${daysStr?`<div style="font-size:11px;color:var(--text-light);">${daysStr}</div>`:''}
+        </div>
+        <div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};white-space:nowrap;">${f(r.price)}</div>
+      </div>`;
+    }).join('');
+}
+
+function selectShipRate(idx){
+  _selRateIdx=idx;
+  shipCost=_shipRates[idx]?.price||0;
+  _renderRatesList();
+  _updateShipTotals();
+}
+
+function _updateShipTotals(){
+  // Update summary shipping row label
+  const sv=document.getElementById('sum-ship-val');
+  const msv=document.getElementById('ms-ship-val');
+  if(shipCost>0){
+    const carrier=_shipRates[_selRateIdx];
+    const label=carrier?`${carrier.carrier.toUpperCase()} ${carrier.serviceDescription||''}`:f(shipCost);
+    if(sv){sv.textContent=f(shipCost);sv.style.color='var(--text)';}
+    if(msv){msv.textContent=f(shipCost);msv.style.color='var(--text)';}
+  } else {
+    if(sv){sv.textContent='🔐 ProtectCrochet';sv.style.color='var(--green)';}
+    if(msv){msv.textContent='ProtectCrochet 🔐';msv.style.color='var(--green)';}
+  }
+  // Recalculate total
+  const cart=getCartItems();
+  const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
+  const disc=hasDiscount?Math.round(sub*.1):0;
+  const total=sub-disc+shipCost;
+  const t=document.getElementById('total');if(t)t.textContent=f(total);
+  const mt=document.getElementById('ms-total');if(mt)mt.textContent=f(total);
 }
 
 // ── IP CURRENCY DETECTION ──

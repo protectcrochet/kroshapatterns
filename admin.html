@@ -188,14 +188,16 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .confirm-box h3{font-size:18px;font-weight:700;margin-bottom:8px;}
 .confirm-box p{font-size:13.5px;color:var(--text-mid);margin-bottom:20px;}
 .confirm-btns{display:flex;gap:10px;justify-content:center;}
-
-/* IMG UPLOAD */
-.img-upload-row{display:flex;gap:8px;align-items:flex-start;}
-.img-upload-row input[type=text]{flex:1;}
-.btn-upload{background:var(--blush);color:var(--pink-dark);border:2px solid var(--pink-deep);border-radius:10px;padding:10px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:background .2s;}
-.btn-upload:hover{background:var(--pink-mid);}
-.upload-spinner{display:none;font-size:12px;color:var(--text-light);margin-top:4px;}
-.upload-spinner.on{display:block;}
+.color-pick-btn{flex:1;display:flex;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--white);cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;color:var(--text);text-align:left;}
+.color-pick-btn:hover{border-color:var(--pink-dark);}
+.color-pick-popup{position:fixed;z-index:99999;background:#fff;border:1.5px solid var(--border);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.18);padding:12px;width:310px;max-height:380px;overflow:hidden;display:flex;flex-direction:column;}
+.color-pick-search{border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;width:100%;margin-bottom:8px;box-sizing:border-box;outline:none;}
+.color-pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;overflow-y:auto;flex:1;}
+.color-pick-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px;border-radius:8px;border:1.5px solid transparent;}
+.color-pick-item:hover{border-color:var(--pink-dark);background:var(--blush);}
+.color-pick-item img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid rgba(0,0,0,.08);}
+.color-pick-item .cpick-dot-fb{width:40px;height:40px;border-radius:50%;background:#ddd;}
+.color-pick-item span{font-size:9px;color:var(--text-mid);text-align:center;line-height:1.2;word-break:break-all;}
 </style>
 </head>
 <body>
@@ -225,10 +227,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('orders',this)"><span class="sb-icon">📦</span> Pedidos</div>
       <div class="sb-item" onclick="goTab('customers',this)"><span class="sb-icon">👥</span> Clientes</div>
       <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
+      <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
       <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
     </nav>
     <div class="sb-bottom">
       <a href="index.html" target="_blank" class="sb-logout">🌐 Ver tienda</a>
+      <div class="sb-logout" onclick="publishProducts()" style="background:var(--pink);color:#fff;font-weight:700;border-radius:10px;text-align:center;margin-bottom:6px;">🚀 Publicar</div>
       <div class="sb-logout" onclick="doLogout()">🚪 Cerrar sesión</div>
     </div>
   </div>
@@ -351,7 +355,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-hero">
       <div class="page-header">
         <div class="page-title">Hero <em>& Banners</em> 🎨</div>
-        <button class="btn btn-pink" onclick="saveHero()">💾 Guardar cambios</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="saveHero()">💾 Guardar</button>
+          <button class="btn btn-pink" onclick="publishHero()">🚀 Publicar Hero</button>
+        </div>
       </div>
 
       <div class="hero-editor">
@@ -417,6 +424,22 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
 
     <!-- SETTINGS -->
+    <!-- INVENTARIO -->
+    <div class="tab-section" id="tab-inventory">
+      <div class="page-header">
+        <div class="page-title">Inventario de Estambres <em>🧶</em></div>
+        <button class="btn btn-pink" onclick="publishInventory()">🚀 Publicar Inventario</button>
+      </div>
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
+          <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
+          <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+        </div>
+        <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+
     <div class="tab-section" id="tab-settings">
       <div class="page-header">
         <div class="page-title">Ajustes <em>⚙️</em></div>
@@ -530,82 +553,41 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
-        <label>Foto principal</label>
-        <div class="img-upload-row">
-          <input type="text" id="pf-img1" placeholder="https://... o sube desde tu computadora" oninput="previewImg(this,'img-prev-1')">
-          <button type="button" class="btn-upload" onclick="triggerUpload(1)">📁 Subir</button>
-        </div>
-        <input type="file" id="pf-file1" accept="image/*" style="display:none;" onchange="handleUpload(this,1)">
-        <div class="upload-spinner" id="spin1">⬆️ Subiendo...</div>
+        <label>URL de foto principal</label>
+        <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')">
         <div style="margin-top:6px;"><img id="img-prev-1" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>Foto 2 (opcional)</label>
-        <div class="img-upload-row">
-          <input type="text" id="pf-img2" placeholder="https://... o sube desde tu computadora" oninput="previewImg(this,'img-prev-2')">
-          <button type="button" class="btn-upload" onclick="triggerUpload(2)">📁 Subir</button>
-        </div>
-        <input type="file" id="pf-file2" accept="image/*" style="display:none;" onchange="handleUpload(this,2)">
-        <div class="upload-spinner" id="spin2">⬆️ Subiendo...</div>
+        <label>URL foto 2 (opcional)</label>
+        <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')">
         <div style="margin-top:6px;"><img id="img-prev-2" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>Foto 3 (opcional)</label>
-        <div class="img-upload-row">
-          <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
-          <button type="button" class="btn-upload" onclick="triggerUpload(3)">📁 Subir</button>
-        </div>
-        <input type="file" id="pf-file3" accept="image/*" style="display:none;" onchange="handleUpload(this,3)">
-        <div class="upload-spinner" id="spin3">⬆️ Subiendo...</div>
+        <label>URL foto 3 (opcional)</label>
+        <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')">
         <div style="margin-top:6px;"><img id="img-prev-3" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>Foto 4 (opcional)</label>
-        <div class="img-upload-row">
-          <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
-          <button type="button" class="btn-upload" onclick="triggerUpload(4)">📁 Subir</button>
-        </div>
-        <input type="file" id="pf-file4" accept="image/*" style="display:none;" onchange="handleUpload(this,4)">
-        <div class="upload-spinner" id="spin4">⬆️ Subiendo...</div>
+        <label>URL foto 4 (opcional)</label>
+        <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')">
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
       </div>
     </div>
     <!-- YARN COLORS SECTION -->
     <div style="margin-top:18px;background:var(--pink-bg);border-radius:12px;padding:16px;border:1px solid var(--border);">
-      <div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:14px;">🧶 Colores de Estambre — Premier Yarns Basix</div>
-      <div class="form-grid">
-        <div class="field">
-          <label>Piel / Skin</label>
-          <select id="pf-yarn-piel"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Cabello / Hair</label>
-          <select id="pf-yarn-cabello"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Vestido / Dress</label>
-          <select id="pf-yarn-vestido"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Forro / Lining</label>
-          <select id="pf-yarn-forro"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Rosas / Roses</label>
-          <select id="pf-yarn-rosas"><option value="">— Sin color —</option></select>
-        </div>
-        <div class="field">
-          <label>Detalles / Details</label>
-          <select id="pf-yarn-detalles"><option value="">— Sin color —</option></select>
-        </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-weight:700;font-size:14px;color:var(--text);">🧶 Estambres que uso</div>
+        <button onclick="addYarnRow()" style="background:var(--pink-dark);color:#fff;border:none;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Agregar color</button>
       </div>
-      <div class="form-grid" style="margin-top:12px;">
+      <div id="yarn-list-editor" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div id="yarn-empty-hint" style="font-size:12px;color:var(--text-light);text-align:center;padding:12px 0;">Haz clic en "+ Agregar color" para configurar los estambres de este patrón</div>
+      <div class="form-grid" style="margin-top:14px;">
         <div class="field">
           <label>Precio Kit Estambres (MXN) <span style="font-weight:400;color:var(--text-light);">— agregar al carrito</span></label>
           <input type="number" id="pf-kit-price" placeholder="0 = sin kit">
         </div>
         <div class="field">
-          <label>Precio Ojos Seguridad (MXN) <span style="font-weight:400;color:var(--text-light);">— par 10mm</span></label>
+          <label>Precio Ojos Seguridad (MXN)</label>
           <input type="number" id="pf-eyes-price" placeholder="0 = sin ojos">
         </div>
       </div>
@@ -735,23 +717,179 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 <script>
 // ── YARN COLORS ──
 const YARN_COLORS=[
-  'White','Cream','Ecru','Almond','Sand','Wheat','Camel',
-  'Gold','Mustard','Yellow','Sunshine','Orange','Coral','Peach','Salmon',
-  'Red','Crimson','Burgundy','Wine','Blush','Pink','Hot Pink','Rose',
-  'Fuchsia','Mauve','Lilac','Lavender','Purple','Violet','Plum',
-  'Navy','Royal Blue','Blue','Sky Blue','Powder Blue','Denim',
-  'Teal','Turquoise','Aqua','Mint','Sage','Olive','Lime',
-  'Green','Emerald','Forest','Hunter',
-  'Tan','Brown','Chocolate','Espresso',
-  'Charcoal','Grey','Silver','Black',
+  'White','Cream','Ecru','Linen','Aran','Arena S','Almond','Sand','Buff','Warm Beige','Wheat','Camel','Toffee','Hazel','Taupe','Nutmeg',
+  'Gold','Goldenrod','Mustard','Dijon Mustard','Yellow','Lemon','Maize','Sunshine','Sunny','Butterscotch',
+  'Orange','Bright Orange','Coral','Peach','Apricot','Salmon','Goldfish','Pumpkin','Sweet Potato','Ember',
+  'Red','Cherry Red','Crimson','Garnet','Burgundy','Mahogany','Chestnut','Wine','Merlot','Rouge',
+  'Blush','Crepe','Ballet','Pink','Hot Pink','Taffy','Rose','Raspberry','Fuchsia',
+  'Mauve','Light Mauve','Pale Orchid','Orchid','Thistle','Lila','Wisteria','Lilac',
+  'Purple','Violet','Dark Purple','Plum','Eggplant',
+  'Navy','Royal Blue','Blue','Bright Blue','Azure','Cadet','Sky Blue','Light Blue','Carolina Sky','Powder Blue','Slate','Steel','Storm','Denim','Twilight',
+  'Teal','Peacock','Turquoise','Seaglass','Aqua',
+  'Mint','Celery','Spring Green','Lime','Maize',
+  'Sage','Fern','Leaf','Green','Olive','Artichoke','Juniper','Emerald','Forest','Forest Green','Pine','Spruce','Hunter','Thyme','Holly',
+  'Tan','Brown','Pecan','Chocolate','Cocoa','Espresso',
+  'Charcoal','Grey','Gray','Silver','Light Gray','Black',
 ];
-const YARN_COLOR_OPT=YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
-function fillYarnSelects(){
-  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&el.options.length<=1) el.insertAdjacentHTML('beforeend',YARN_COLOR_OPT);
-  });
+const YARN_COLOR_OPT='<option value="">— Elige color —</option>'+YARN_COLORS.map(c=>`<option value="${c}">${c}</option>`).join('');
+
+const ADMIN_COLOR_IMGS={
+  'White':'pb-white.jpg','Cream':'pb-cream.jpg','Ecru':'pb-cream.jpg',
+  'Linen':'pb-linen.jpg','Aran':'pb-aran.jpg',
+  'Arena S':'arena-sinf.jpg','Almond':'pb-buff.jpg','Sand':'pb-aran.jpg','Buff':'pb-buff.jpg',
+  'Warm Beige':'pb-warm-beige.jpg','Wheat':'pb-warm-beige.jpg',
+  'Camel':'pb-toffee.jpg','Toffee':'pb-toffee.jpg','Hazel':'pb-hazel.jpg','Taupe':'pb-taupe.jpg','Nutmeg':'pb-nutmeg.jpg',
+  'Gold':'pb-goldenrod.jpg','Goldenrod':'pb-goldenrod.jpg',
+  'Mustard':'pb-mustard.jpg','Dijon Mustard':'pb-dijon-mustard.jpg',
+  'Yellow':'pb-lemon.jpg','Lemon':'pb-lemon.jpg','Maize':'pb-maize.jpg',
+  'Sunshine':'pb-sunny.jpg','Sunny':'pb-sunny.jpg','Butterscotch':'pb-butterscotch.jpg',
+  'Orange':'pb-orange.jpg','Bright Orange':'pb-bright-orange.jpg',
+  'Coral':'pb-coral.jpg','Peach':'pb-peach.jpg','Apricot':'pb-apricot.jpg',
+  'Salmon':'pb-salmon.jpg','Goldfish':'pb-goldfish.jpg','Pumpkin':'pb-pumpkin.jpg',
+  'Sweet Potato':'pb-sweet-potato.jpg','Ember':'pb-ember.jpg',
+  'Red':'pb-red.jpg','Cherry Red':'pb-cherry-red.jpg',
+  'Crimson':'pb-garnet.jpg','Garnet':'pb-garnet.jpg',
+  'Burgundy':'pb-burgundy.jpg','Mahogany':'pb-mahogany.jpg','Chestnut':'pb-chestnut.jpg',
+  'Wine':'pb-merlot.jpg','Merlot':'pb-merlot.jpg','Rouge':'pb-rouge.jpg',
+  'Blush':'pb-blush.jpg','Crepe':'pb-crepe.jpg','Ballet':'pb-ballet.jpg',
+  'Pink':'pb-pink.jpg','Hot Pink':'pb-taffy.jpg','Taffy':'pb-taffy.jpg',
+  'Rose':'pb-rose.jpg','Raspberry':'pb-raspberry.jpg','Fuchsia':'pb-fuchsia.jpg',
+  'Mauve':'pb-light-mauve.jpg','Light Mauve':'pb-light-mauve.jpg',
+  'Pale Orchid':'pb-pale-orchid.jpg','Orchid':'pb-orchid.jpg',
+  'Thistle':'pb-thistle.jpg','Lila':'lila-rosa.jpg','Wisteria':'pb-wisteria.jpg','Lilac':'pb-lilac.jpg',
+  'Purple':'pb-purple.jpg','Violet':'pb-violet.jpg',
+  'Dark Purple':'pb-dark-purple.jpg','Plum':'pb-eggplant.jpg','Eggplant':'pb-eggplant.jpg',
+  'Navy':'pb-navy.jpg','Royal Blue':'pb-royal-blue.jpg',
+  'Blue':'pb-blue.jpg','Bright Blue':'pb-bright-blue.jpg','Azure':'pb-azure.jpg',
+  'Cadet':'pb-cadet.jpg','Sky Blue':'pb-light-blue.jpg','Light Blue':'pb-light-blue.jpg',
+  'Carolina Sky':'pb-carolina-sky.jpg','Powder Blue':'pb-powder-blue.jpg',
+  'Slate':'pb-slate.jpg','Steel':'pb-steel.jpg','Storm':'pb-storm.jpg',
+  'Denim':'pb-denim.jpg','Twilight':'pb-twilight.jpg',
+  'Teal':'pb-teal.jpg','Peacock':'pb-peacock.jpg','Turquoise':'pb-turquoise.jpg',
+  'Seaglass':'pb-seaglass.jpg','Aqua':'pb-aqua.jpg',
+  'Mint':'pb-mint.jpg','Celery':'pb-celery.jpg','Spring Green':'pb-spring-green.jpg','Lime':'pb-lime.jpg',
+  'Sage':'pb-sage.jpg','Fern':'pb-fern.jpg','Leaf':'pb-leaf.jpg',
+  'Green':'pb-leaf.jpg','Olive':'pb-artichoke.jpg','Artichoke':'pb-artichoke.jpg',
+  'Juniper':'pb-juniper.jpg','Emerald':'pb-juniper.jpg',
+  'Forest':'pb-forest-green.jpg','Forest Green':'pb-forest-green.jpg',
+  'Pine':'pb-pine.jpg','Spruce':'pb-spruce.jpg','Hunter':'pb-spruce.jpg',
+  'Thyme':'pb-thyme.jpg','Holly':'pb-holly.jpg',
+  'Tan':'pb-hazel.jpg','Brown':'pb-pecan.jpg','Pecan':'pb-pecan.jpg',
+  'Chocolate':'pb-chocolate.jpg','Cocoa':'pb-cocoa.jpg','Espresso':'pb-cocoa.jpg',
+  'Charcoal':'pb-charcoal.jpg','Grey':'pb-gray.jpg','Gray':'pb-gray.jpg',
+  'Silver':'pb-light-gray.jpg','Light Gray':'pb-light-gray.jpg','Black':'pb-black.jpg',
+};
+function getAdminYarnImg(name){const s=ADMIN_COLOR_IMGS[name];return s?`images/colores/${s}`:null;}
+
+let _activePRow=null,_activePPopup=null;
+function openColorPicker(btn){
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;}
+  _activePRow=btn.closest('div[data-yarn-row]');
+  const popup=document.createElement('div');
+  popup.className='color-pick-popup';
+  popup.innerHTML=`<input class="color-pick-search" placeholder="Buscar color..." oninput="filterCPicker(this)">
+    <div class="color-pick-grid">${YARN_COLORS.map(c=>{const img=getAdminYarnImg(c);
+      return `<div class="color-pick-item" onclick="selectYarnColor('${c.replace(/'/g,"\\'")}')">${img?`<img src="${img}" onerror="this.style.display='none'">`:'<div class="cpick-dot-fb"></div>'}<span>${c}</span></div>`;
+    }).join('')}</div>`;
+  document.body.appendChild(popup);
+  const r=btn.getBoundingClientRect();
+  popup.style.top=(r.bottom+6)+'px';
+  popup.style.left=Math.min(r.left,window.innerWidth-318)+'px';
+  _activePPopup=popup;
+  popup.querySelector('.color-pick-search').focus();
+  setTimeout(()=>document.addEventListener('click',_closePicker,{capture:true}),50);
 }
+function _closePicker(e){if(_activePPopup&&!_activePPopup.contains(e.target)){_activePPopup.remove();_activePPopup=null;document.removeEventListener('click',_closePicker,{capture:true});}}
+function filterCPicker(inp){const q=inp.value.toLowerCase();inp.closest('.color-pick-popup').querySelectorAll('.color-pick-item').forEach(el=>{el.style.display=el.querySelector('span').textContent.toLowerCase().includes(q)?'':'none';});}
+function selectYarnColor(name){
+  if(!_activePRow)return;
+  _activePRow.querySelector('.yarn-color-val').value=name;
+  _activePRow.querySelector('.cpick-label').textContent=name;
+  const img=getAdminYarnImg(name);
+  const dot=_activePRow.querySelector('.cpick-dot');
+  dot.innerHTML=img?`<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.innerHTML=''">`:'';
+  dot.style.background=img?'transparent':'#ddd';
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;document.removeEventListener('click',_closePicker,{capture:true});}
+}
+
+const defaultYarnColors={
+  1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},
+  3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lila',rosas:'Coral',detalles:'Gold'},
+  9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},
+  11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},
+  13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},
+  14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},
+  15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lila',rosas:'',detalles:'Blue'},
+  18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},
+  19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},
+  22:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  23:{piel:'Almond',cabello:'Black',vestido:'Coral',forro:'White',rosas:'Rose',detalles:'Gold'},
+  24:{piel:'Almond',cabello:'Gold',vestido:'White',forro:'Sky Blue',rosas:'Rose',detalles:'Gold'},
+  26:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Black'},
+  27:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  28:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'',detalles:'Gold'},
+  31:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  32:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Blush',detalles:'Hot Pink'},
+  33:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  35:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  36:{piel:'Coral',cabello:'Coral',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},
+  38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},
+  39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},
+};
+
+function yarnColorsToList(yc){
+  const counts={},order=[];
+  Object.values(yc).forEach(color=>{
+    if(!color)return;
+    if(counts[color])counts[color]++;
+    else{counts[color]=1;order.push(color);}
+  });
+  return order.map(color=>({color,qty:counts[color]}));
+}
+
+function addYarnRow(color='',qty=1){
+  const list=document.getElementById('yarn-list-editor');
+  document.getElementById('yarn-empty-hint').style.display='none';
+  const row=document.createElement('div');
+  row.setAttribute('data-yarn-row','1');
+  row.style.cssText='display:flex;align-items:center;gap:8px;';
+  const img=color?getAdminYarnImg(color):null;
+  const dotHtml=img?`<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`:'';
+  const dotBg=img?'transparent':'#ddd';
+  row.innerHTML=`
+    <button type="button" class="color-pick-btn" onclick="openColorPicker(this)" style="flex:1;">
+      <div class="cpick-dot" style="width:24px;height:24px;border-radius:50%;background:${dotBg};flex-shrink:0;">${dotHtml}</div>
+      <span class="cpick-label">${color||'— Elige color —'}</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--text-light);">▼</span>
+    </button>
+    <input type="hidden" class="yarn-color-val" value="${color}">
+    <span style="font-size:13px;color:var(--text-light);">×</span>
+    <input type="number" value="${qty}" min="1" max="20" style="width:58px;border:1.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;">
+    <span style="font-size:12px;color:var(--text-light);white-space:nowrap;">ovillo(s)</span>
+    <button onclick="removeYarnRow(this)" style="background:var(--red-light);color:var(--red);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>`;
+  list.appendChild(row);
+}
+
+function removeYarnRow(btn){
+  btn.parentNode.remove();
+  if(!document.getElementById('yarn-list-editor').children.length)
+    document.getElementById('yarn-empty-hint').style.display='block';
+}
+
+function getYarnList(){
+  return Array.from(document.querySelectorAll('#yarn-list-editor > div')).map(row=>({
+    color:row.querySelector('.yarn-color-val')?.value||row.querySelector('select')?.value||'',
+    qty:parseInt(row.querySelector('input[type=number]').value)||1
+  })).filter(i=>i.color);
+}
+
+function fillYarnSelects(){} // kept for backward compat
 
 // ── CONSTANTS ──
 const ADMIN_PWD_KEY='krosha_admin_pwd';
@@ -776,6 +914,57 @@ function doLogin(){
     document.getElementById('pwd-input').value='';
   }
 }
+const GH_OWNER='protectcrochet', GH_REPO='kroshapatterns', GH_PATH='data/products.json';
+const GH_TOKEN_KEY='krosha_gh_token';
+
+async function publishProducts(){
+  const stored=localStorage.getItem(PRODS_KEY);
+  if(!stored){showToast('No hay productos guardados para publicar.','warn');return;}
+
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){
+    token=prompt('🔑 Pega tu GitHub Token (se guarda en este dispositivo):');
+    if(!token)return;
+    localStorage.setItem(GH_TOKEN_KEY,token.trim());
+    token=token.trim();
+  }
+
+  const btn=document.querySelector('.sb-bottom [onclick="publishProducts()"]');
+  const orig=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Publicando...';btn.style.pointerEvents='none';}
+
+  try{
+    // Encode content as base64 (handles UTF-8 / Spanish chars)
+    const bytes=new TextEncoder().encode(stored);
+    const b64=btoa(String.fromCharCode(...bytes));
+
+    // Get current file SHA
+    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{headers});
+    const getData=await getR.json();
+    if(!getR.ok)throw new Error(getData.message||'Error obteniendo archivo');
+
+    // Commit updated file
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{
+      method:'PUT',headers,
+      body:JSON.stringify({message:'Publicar: actualizar productos desde admin',content:b64,sha:getData.sha})
+    });
+    const putData=await putR.json();
+    if(!putR.ok)throw new Error(putData.message||'Error al publicar');
+
+    showToast('🚀 ¡Publicado! En ~1 min se actualiza en kroshapatterns.com');
+  }catch(e){
+    showToast('❌ Error: '+e.message,'warn');
+    // If token error, clear it so user can re-enter
+    if(e.message.includes('Bad credential')||e.message.includes('401')){
+      localStorage.removeItem(GH_TOKEN_KEY);
+      showToast('Token inválido. Se borró, intenta de nuevo.','warn');
+    }
+  }finally{
+    if(btn){btn.textContent=orig;btn.style.pointerEvents='';}
+  }
+}
+
 function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -909,7 +1098,7 @@ function openProdModal(id){
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
-  ['pf-yarn-piel','pf-yarn-cabello','pf-yarn-vestido','pf-yarn-forro','pf-yarn-rosas','pf-yarn-detalles'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ed=document.getElementById('yarn-list-editor');if(ed){ed.innerHTML='';document.getElementById('yarn-empty-hint').style.display='block';}
   ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
   document.getElementById('prod-modal').classList.add('open');
 }
@@ -930,10 +1119,12 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
-  const yc=p.yarnColors||{};
-  ['piel','cabello','vestido','forro','rosas','detalles'].forEach(k=>{
-    const el=document.getElementById(`pf-yarn-${k}`);if(el)el.value=yc[k]||'';
-  });
+  const editor=document.getElementById('yarn-list-editor');
+  editor.innerHTML='';
+  document.getElementById('yarn-empty-hint').style.display='block';
+  const yc=p.yarnColors||(defaultYarnColors[p.id])||{};
+  const yl=p.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
+  yl.forEach(item=>addYarnRow(item.color,item.qty));
   (p.images||[]).forEach((url,i)=>{
     const inp=document.getElementById(`pf-img${i+1}`);
     const prev=document.getElementById(`img-prev-${i+1}`);
@@ -945,7 +1136,6 @@ function closeProdModal(){document.getElementById('prod-modal').classList.remove
 function saveProd(){
   const editId=document.getElementById('prod-edit-id').value;
   const imgs=[document.getElementById('pf-img1').value,document.getElementById('pf-img2').value,document.getElementById('pf-img3').value,document.getElementById('pf-img4').value].filter(Boolean);
-  const getYarn=k=>{const el=document.getElementById(`pf-yarn-${k}`);return el?el.value:'';};
   const prod={
     id:editId?parseInt(editId):Date.now(),
     nameEs:document.getElementById('pf-name-es').value,
@@ -961,10 +1151,7 @@ function saveProd(){
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
-    yarnColors:{
-      piel:getYarn('piel'),cabello:getYarn('cabello'),vestido:getYarn('vestido'),
-      forro:getYarn('forro'),rosas:getYarn('rosas'),detalles:getYarn('detalles'),
-    },
+    yarnList:getYarnList(),
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
   let prods=getProds();
@@ -1132,7 +1319,33 @@ function saveHero(){
     strip:stripItems,
   };
   saveHeroData(h);
-  showToast('🎨 Hero guardado — se aplicará al recargar la tienda');
+  showToast('🎨 Hero guardado — presiona Publicar Hero para que se vea en todos los dispositivos');
+}
+
+const GH_HERO_PATH='data/hero.json';
+async function publishHero(){
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){token=prompt('🔑 GitHub Token (se guarda solo aquí):');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
+  const btn=document.querySelector('[onclick="publishHero()"]');
+  const orig=btn?.textContent||'🚀 Publicar Hero';
+  if(btn){btn.textContent='⏳ Publicando…';btn.disabled=true;}
+  try{
+    const h=getHero();
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(h,null,2))));
+    const headers={'Authorization':'token '+token,'Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{headers});
+    const existing=getR.ok?await getR.json():null;
+    const body={message:'chore: actualizar hero desde admin',content,committer:{name:'KroshaAdmin',email:'jenny@kroshapatterns.com'}};
+    if(existing?.sha)body.sha=existing.sha;
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(!putR.ok){const e=await putR.json();throw new Error(e.message||'Error al publicar');}
+    showToast('🎨 ¡Hero publicado! Visible en todos los dispositivos en ~1 min');
+  }catch(e){
+    showToast('❌ '+e.message);
+    if(e.message.includes('Bad credential'))localStorage.removeItem(GH_TOKEN_KEY);
+  }finally{
+    if(btn){btn.textContent=orig;btn.disabled=false;}
+  }
 }
 
 // ── SETTINGS ──
@@ -1203,11 +1416,90 @@ function closeConfirm(){document.getElementById('confirm-modal').classList.remov
 document.getElementById('confirm-ok-btn').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};
 
 // ── NAVIGATION ──
+// ── INVENTARIO ──
+const INV_KEY='krosha_inventory';
+const GH_INV_PATH='data/inventory.json';
+
+function getInventory(){return JSON.parse(localStorage.getItem(INV_KEY)||'{}');}
+function saveInventory(inv){localStorage.setItem(INV_KEY,JSON.stringify(inv));}
+
+function renderInventory(){
+  const inv=getInventory();
+  const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
+  const grid=document.getElementById('inv-grid');
+  if(!grid)return;
+  const colors=YARN_COLORS.filter(c=>c.toLowerCase().includes(q));
+  let agotados=0,total=0;
+  grid.innerHTML=colors.map(color=>{
+    const stock=inv[color]??0;
+    if(stock===0)agotados++;
+    total++;
+    const img=getAdminYarnImg(color);
+    const imgHtml=img?`<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:`<div style="width:32px;height:32px;border-radius:50%;background:#ddd;flex-shrink:0;"></div>`;
+    const badge=stock===0?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;">Agotado</span>`:stock<=3?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;">Bajo</span>`:'';
+    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+      ${imgHtml}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${color}</div>
+        ${badge}
+      </div>
+      <input type="number" min="0" max="999" value="${stock}"
+        style="width:56px;border:1.5px solid var(--border);border-radius:8px;padding:5px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;"
+        onchange="updateStock('${color.replace(/'/g,"\\'")}',this.value)">
+    </div>`;
+  }).join('');
+  const sumEl=document.getElementById('inv-summary');
+  if(sumEl)sumEl.textContent=`${agotados} agotado${agotados!==1?'s':''} de ${total} colores`;
+}
+
+function updateStock(color,val){
+  const inv=getInventory();
+  inv[color]=Math.max(0,parseInt(val)||0);
+  saveInventory(inv);
+  renderInventory();
+}
+
+function setAllStock(){
+  const n=parseInt(prompt('¿Cuántas unidades para todos los colores?','10'));
+  if(isNaN(n)||n<0)return;
+  const inv=getInventory();
+  YARN_COLORS.forEach(c=>{inv[c]=n;});
+  saveInventory(inv);
+  renderInventory();
+  showToast(`Stock de todos los colores actualizado a ${n}`);
+}
+
+async function publishInventory(){
+  const inv=getInventory();
+  let token=localStorage.getItem(GH_TOKEN_KEY);
+  if(!token){token=prompt('🔑 GitHub Token:');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
+  const btn=event.currentTarget;
+  const origTxt=btn.textContent;btn.textContent='⏳ Publicando...';btn.disabled=true;
+  try{
+    const content=JSON.stringify(inv,null,2);
+    const bytes=new TextEncoder().encode(content);
+    const b64=btoa(String.fromCharCode(...bytes));
+    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{headers});
+    const getData=await getR.json();
+    const sha=getR.ok&&getData.sha?getData.sha:undefined;
+    const body={message:'Inventario: actualizar stock de estambres',content:b64};
+    if(sha)body.sha=sha;
+    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(!putR.ok){const e=await putR.json();throw new Error(e.message);}
+    showToast('🚀 ¡Inventario publicado! Se actualiza en ~1 min.');
+  }catch(e){
+    showToast('❌ Error: '+e.message,'warn');
+    if(e.message.includes('Bad credential')){localStorage.removeItem(GH_TOKEN_KEY);}
+  }finally{btn.textContent=origTxt;btn.disabled=false;}
+}
+
 function goTab(name,el){
   document.querySelectorAll('.tab-section').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
+  if(name==='inventory')renderInventory();
 }
 
 // ── TOAST ──
@@ -1217,47 +1509,6 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 ['prod-modal','order-modal','cust-modal','confirm-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
 });
-
-// ── IMAGE UPLOAD ──
-function triggerUpload(n){
-  document.getElementById(`pf-file${n}`).click();
-}
-
-async function handleUpload(input, n) {
-  const file = input.files[0];
-  if (!file) return;
-  const maxMB = 10;
-  if (file.size > maxMB * 1024 * 1024) { showToast(`❌ La imagen no debe superar ${maxMB}MB`); return; }
-
-  const spin = document.getElementById(`spin${n}`);
-  spin.classList.add('on');
-
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    try {
-      const res = await fetch('/api/upload-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileData: e.target.result, fileName: file.name, mimeType: file.type }),
-      });
-      const data = await res.json();
-      spin.classList.remove('on');
-      if (data.url) {
-        const inp = document.getElementById(`pf-img${n}`);
-        inp.value = data.url;
-        previewImg(inp, `img-prev-${n}`);
-        showToast('✅ Imagen subida');
-      } else {
-        showToast('❌ ' + (data.error || 'Error al subir'));
-      }
-    } catch (err) {
-      spin.classList.remove('on');
-      showToast('❌ Error: ' + err.message);
-    }
-    input.value = '';
-  };
-  reader.readAsDataURL(file);
-}
 </script>
 </body>
 </html>

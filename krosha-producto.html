@@ -125,7 +125,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
   font-family:'Nunito',sans-serif;
 }
 .yarn-chip:hover,.yarn-chip.on{border-color:var(--pink-dark);background:var(--blush);}
-.yarn-chip .dot{width:14px;height:14px;border-radius:50%;flex-shrink:0;}
+.yarn-chip .dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;object-fit:cover;border:1.5px solid rgba(0,0,0,.08);}
 .yarn-chip .price-tag{font-size:11px;color:var(--text-light);margin-left:2px;}
 
 /* level */
@@ -498,12 +498,100 @@ const tx={
 };
 
 const yarnColors=[
-  {n:{es:'Rosa Bebé',en:'Baby Pink'},c:'#F4B8B8'},
-  {n:{es:'Crema',en:'Cream'},c:'#F5E6CC'},
-  {n:{es:'Blanco',en:'White'},c:'#F0F0F0'},
-  {n:{es:'Lavanda',en:'Lavender'},c:'#C9B5E0'},
-  {n:{es:'Menta',en:'Mint'},c:'#A8D8C0'},
-  {n:{es:'Caramelo',en:'Caramel'},c:'#D4935A'},
+  {n:{es:'Blanco',en:'White'},c:'#F0F0F0',img:'images/colores/blanco.jpg'},
+  {n:{es:'Gris Claro',en:'Light Gray'},c:'#C8C8C8',img:'images/colores/gris-claro.jpg'},
+  {n:{es:'Gris',en:'Gray'},c:'#9E9E9E',img:'images/colores/gris.jpg'},
+  {n:{es:'Negro',en:'Black'},c:'#222222',img:'images/colores/negro.jpg'},
+  {n:{es:'Limón',en:'Lemon'},c:'#F5E642',img:'images/colores/limon.jpg'},
+  {n:{es:'Coral',en:'Coral'},c:'#FF6B6B',img:'images/colores/coral.jpg'},
+  {n:{es:'Ballet',en:'Ballet'},c:'#F0B8C0',img:'images/colores/ballet.jpg'},
+  {n:{es:'Rosa',en:'Pink'},c:'#F48FB1',img:'images/colores/rosa.jpg'},
+  {n:{es:'Fucsia',en:'Fuchsia'},c:'#E040FB',img:'images/colores/fucsia.jpg'},
+  {n:{es:'Taffy',en:'Taffy'},c:'#F9A8D4',img:'images/colores/taffy.jpg'},
+  {n:{es:'Rosa Inglés',en:'Rose'},c:'#E88DA0',img:'images/colores/rose.jpg'},
+  {n:{es:'Rojo',en:'Red'},c:'#C0392B',img:'images/colores/rojo.jpg'},
+  {n:{es:'Granate',en:'Garnet'},c:'#8B1A2F',img:'images/colores/granate.jpg'},
+  {n:{es:'Borgoña',en:'Burgundy'},c:'#800020',img:'images/colores/borgoña.jpg'},
+  {n:{es:'Crepé',en:'Crepe'},c:'#D4A0A0',img:'images/colores/crepe.jpg'},
+  {n:{es:'Rosa Palo',en:'Blush'},c:'#F2C4C4',img:'images/colores/rosa-palo.jpg'},
+  {n:{es:'Malva Claro',en:'Light Mauve'},c:'#D8A0B8',img:'images/colores/malva-claro.jpg'},
+  {n:{es:'Thistle',en:'Thistle'},c:'#C8A0D8',img:'images/colores/lila.jpg'},
+  {n:{es:'Morado',en:'Purple'},c:'#7B2D8B',img:'images/colores/morado.jpg'},
+  {n:{es:'Berenjena',en:'Eggplant'},c:'#614051',img:'images/colores/berenjena.jpg'},
+  {n:{es:'Azul Rey',en:'Royal Blue'},c:'#1A50A0',img:'images/colores/azul-rey.jpg'},
+  {n:{es:'Azul Cielo',en:'Light Blue'},c:'#87CEEB',img:'images/colores/azul-cielo.jpg'},
+  {n:{es:'Pizarra',en:'Slate'},c:'#708090',img:'images/colores/pizarra.jpg'},
+  {n:{es:'Azure',en:'Azure'},c:'#007FFF',img:'images/colores/azul-azure.jpg'},
+  {n:{es:'Mezclilla',en:'Denim'},c:'#1560BD',img:'images/colores/mezclilla.jpg'},
+  {n:{es:'Vidrio de Mar',en:'Seaglass'},c:'#78C8B8',img:'images/colores/vidrio-mar.jpg'},
+  {n:{es:'Aqua',en:'Aqua'},c:'#00CED1',img:'images/colores/aqua.jpg'},
+  {n:{es:'Turquesa',en:'Turquoise'},c:'#40E0D0',img:'images/colores/turquesa.jpg'},
+  {n:{es:'Pavoreal',en:'Peacock'},c:'#33A1A1',img:'images/colores/pavoreal.jpg'},
+  {n:{es:'Crema',en:'Cream'},c:'#F5E6CC',img:'images/colores/crema.jpg'},
+  {n:{es:'Avellana',en:'Hazel'},c:'#A0785A',img:'images/colores/avellana.jpg'},
+  {n:{es:'Taupe',en:'Taupe'},c:'#B09080',img:'images/colores/taupe.jpg'},
+  {n:{es:'Pecán',en:'Pecan'},c:'#8B6040',img:'images/colores/pecan.jpg'},
+  {n:{es:'Verde Hoja',en:'Leaf'},c:'#5A8A3C',img:'images/colores/hoja.jpg'},
+  {n:{es:'Junípero',en:'Juniper'},c:'#3A6B4A',img:'images/colores/junipero.jpg'},
+  {n:{es:'Mostaza',en:'Mustard'},c:'#FFDB58',img:'images/colores/mostaza.jpg'},
+  {n:{es:'Verde Bosque',en:'Forest Green'},c:'#228B22',img:'images/colores/verde-bosque.jpg'},
+  {n:{es:'Marino',en:'Navy'},c:'#000080',img:'images/colores/marino.jpg'},
+  {n:{es:'Aran',en:'Aran'},c:'#E8D8B8',img:'images/colores/aran.jpg'},
+  {n:{es:'Nuez Moscada',en:'Nutmeg'},c:'#8B5E3C',img:'images/colores/nuez-moscada.jpg'},
+  {n:{es:'Calabaza',en:'Pumpkin'},c:'#D2601A',img:'images/colores/calabaza.jpg'},
+  {n:{es:'Lino',en:'Linen'},c:'#FAF0E6',img:'images/colores/lino.jpg'},
+  {n:{es:'Teal',en:'Teal'},c:'#008080',img:'images/colores/teal.jpg'},
+  {n:{es:'Brasa',en:'Ember'},c:'#C84820',img:'images/colores/brasa.jpg'},
+  {n:{es:'Carbón',en:'Charcoal'},c:'#4A4A4A',img:'images/colores/carbon.jpg'},
+  {n:{es:'Chocolate',en:'Chocolate'},c:'#5C3317',img:'images/colores/chocolate.jpg'},
+  {n:{es:'Dorado',en:'Goldenrod'},c:'#DAA520',img:'images/colores/dorado.jpg'},
+  {n:{es:'Durazno',en:'Peach'},c:'#FFCBA4',img:'images/colores/durazno.jpg'},
+  {n:{es:'Acero',en:'Steel'},c:'#708090',img:'images/colores/acero.jpg'},
+  {n:{es:'Cardo',en:'Thistle'},c:'#C8A0C8',img:'images/colores/cardo.jpg'},
+  {n:{es:'Pez Dorado',en:'Goldfish'},c:'#E87040',img:'images/colores/pez-dorado.jpg'},
+  {n:{es:'Butterscotch',en:'Butterscotch'},c:'#D2901A',img:'images/colores/butterscotch.jpg'},
+  {n:{es:'Pino',en:'Pine'},c:'#1A5C2A',img:'images/colores/pino.jpg'},
+  {n:{es:'Naranja',en:'Orange'},c:'#FF8C00',img:'images/colores/naranja.jpg'},
+  {n:{es:'Salvia',en:'Sage'},c:'#8FAF8F',img:'images/colores/salvia.jpg'},
+  {n:{es:'Verde Primavera',en:'Spring Green'},c:'#00FF7F',img:'images/colores/verde-primavera.jpg'},
+  {n:{es:'Helecho',en:'Fern'},c:'#4F7942',img:'images/colores/helecho.jpg'},
+  {n:{es:'Maíz',en:'Maize'},c:'#FBEC5D',img:'images/colores/maiz.jpg'},
+  {n:{es:'Buff',en:'Buff'},c:'#E8D5A3',img:'images/colores/arena.jpg'},
+  {n:{es:'Arena S',en:'Arena S'},c:'#F2DFC0',img:'images/colores/arena-sinf.jpg'},
+  {n:{es:'Violeta',en:'Violet'},c:'#8B00FF',img:'images/colores/violeta.jpg'},
+  {n:{es:'Salmón',en:'Salmon'},c:'#FA8072',img:'images/colores/salmon.jpg'},
+  {n:{es:'Tormenta',en:'Storm'},c:'#708090',img:'images/colores/tormenta.jpg'},
+  {n:{es:'Orquídea Pálida',en:'Pale Orchid'},c:'#DDA0DD',img:'images/colores/orquidea-palida.jpg'},
+  {n:{es:'Castaño',en:'Chestnut'},c:'#954535',img:'images/colores/castano.jpg'},
+  {n:{es:'Toffee',en:'Toffee'},c:'#9B6B3A',img:'images/colores/toffee.jpg'},
+  {n:{es:'Beige Cálido',en:'Warm Beige'},c:'#D4B896',img:'images/colores/beige-calido.jpg'},
+  {n:{es:'Albaricoque',en:'Apricot'},c:'#FBCEB1',img:'images/colores/albaricoque.jpg'},
+  {n:{es:'Cacao',en:'Cocoa'},c:'#5C4033',img:'images/colores/cacao.jpg'},
+  {n:{es:'Caoba',en:'Mahogany'},c:'#7B2D00',img:'images/colores/caoba.jpg'},
+  {n:{es:'Rojo Cereza',en:'Cherry Red'},c:'#A01020',img:'images/colores/rojo-cereza.jpg'},
+  {n:{es:'Mostaza Dijon',en:'Dijon Mustard'},c:'#C49A00',img:'images/colores/mostaza-dijon.jpg'},
+  {n:{es:'Camote',en:'Sweet Potato'},c:'#C05020',img:'images/colores/camote.jpg'},
+  {n:{es:'Lima',en:'Lime'},c:'#B4D900',img:'images/colores/lima.jpg'},
+  {n:{es:'Abeto',en:'Spruce'},c:'#1A5C3A',img:'images/colores/abeto.jpg'},
+  {n:{es:'Azul Brillante',en:'Bright Blue'},c:'#0050C8',img:'images/colores/azul-brillante.jpg'},
+  {n:{es:'Frambuesa',en:'Raspberry'},c:'#C01050',img:'images/colores/frambuesa.jpg'},
+  {n:{es:'Wisteria',en:'Wisteria'},c:'#9878C8',img:'images/colores/wisteria.jpg'},
+  {n:{es:'Soleado',en:'Sunny'},c:'#FFD700',img:'images/colores/soleado.jpg'},
+  {n:{es:'Naranja Brillante',en:'Bright Orange'},c:'#FF6000',img:'images/colores/naranja-brillante.jpg'},
+  {n:{es:'Merlot',en:'Merlot'},c:'#730022',img:'images/colores/merlot.jpg'},
+  {n:{es:'Orquídea',en:'Orchid'},c:'#DA70D6',img:'images/colores/orquidea.jpg'},
+  {n:{es:'Rouge',en:'Rouge'},c:'#C01840',img:'images/colores/rouge.jpg'},
+  {n:{es:'Morado Oscuro',en:'Dark Purple'},c:'#4B0082',img:'images/colores/morado-oscuro.jpg'},
+  {n:{es:'Azul Carolina',en:'Carolina Sky'},c:'#56A0D3',img:'images/colores/azul-carolina.jpg'},
+  {n:{es:'Crepúsculo',en:'Twilight'},c:'#4A4080',img:'images/colores/crepusculo.jpg'},
+  {n:{es:'Azul Polvo',en:'Powder Blue'},c:'#B0D0E8',img:'images/colores/azul-polvo.jpg'},
+  {n:{es:'Cadete',en:'Cadet'},c:'#5F9EA0',img:'images/colores/cadete.jpg'},
+  {n:{es:'Azul',en:'Blue'},c:'#0000CD',img:'images/colores/azul.jpg'},
+  {n:{es:'Apio',en:'Celery'},c:'#B8D878',img:'images/colores/apio.jpg'},
+  {n:{es:'Alcachofa',en:'Artichoke'},c:'#8F9779',img:'images/colores/alcachofa.jpg'},
+  {n:{es:'Menta',en:'Mint'},c:'#A8D8C0',img:'images/colores/menta.jpg'},
+  {n:{es:'Verde Pino',en:'Holly'},c:'#1A5C2A',img:'images/colores/verde-pino.jpg'},
+  {n:{es:'Tomillo',en:'Thyme'},c:'#6A8A5A',img:'images/colores/tomillo.jpg'},
 ];
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
@@ -511,7 +599,7 @@ function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.
 function renderYarn(){
   document.getElementById('yarn-chips').innerHTML=yarnColors.map(y=>`
     <div class="yarn-chip ${selYarn===y.n.es?'on':''}" onclick="toggleYarn(this,'${y.n.es}')">
-      <span class="dot" style="background:${y.c};${y.c==='#F0F0F0'?'border:1px solid #ccc':''}"></span>
+      <img class="dot" src="${y.img}" alt="${y.n[lang]}" onerror="this.style.background='${y.c}';this.removeAttribute('src')">
       ${y.n[lang]}
       <span class="price-tag">+${f(yarnPrice)}</span>
     </div>`).join('');
