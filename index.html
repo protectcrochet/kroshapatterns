@@ -474,9 +474,7 @@ function getProducts(){
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
   }
-  // Always include the full Premier Yarns Basix catalog (IDs 100-151)
-  const ids=new Set(base.map(p=>p.id));
-  return [...base,...yarnProducts.filter(p=>!ids.has(p.id))];
+  return base;
 }
 
 // ── LOAD HERO from localStorage ──
@@ -694,8 +692,7 @@ function openM(id){
     const chips=parts.filter(p=>yc[p.key]).map(p=>`
       <div class="yarn-chip">
         <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
-        <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
-        <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
+        <div><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
       </div>`).join('');
     yarnSec.innerHTML=`<div class="yarn-section">
       <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
