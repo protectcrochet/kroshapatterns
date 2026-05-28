@@ -14,6 +14,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN no configurado en Vercel. Ve a Storage → Blob → Connect to Project.' });
+  }
+
   try {
     const { put } = await import('@vercel/blob');
     const { fileData, fileName, mimeType } = req.body;
@@ -22,11 +26,8 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'fileData y fileName son requeridos' });
     }
 
-    // Strip data URL prefix if present (data:image/jpeg;base64,...)
     const base64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
     const buffer = Buffer.from(base64, 'base64');
-
-    // Sanitize filename
     const safeName = `krosha-${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '')}`;
 
     const blob = await put(safeName, buffer, {
