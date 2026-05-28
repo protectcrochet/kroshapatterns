@@ -252,7 +252,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     <ul class="nav-links">
       <li><a href="#productos" onclick="navFilter('patrones')" data-es="Patrones" data-en="Patterns">Patrones</a></li>
       <li><a href="#productos" onclick="navFilter('kits')" data-es="Kits" data-en="Kits">Kits</a></li>
-      <li><a href="#productos" onclick="navFilter('hilo')" data-es="Estambres" data-en="Yarns">Estambres</a></li>
       <li><a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a></li>
     </ul>
     <div class="nav-right">
@@ -332,7 +331,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     <button class="ftab active" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
     <button class="ftab" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
-    <button class="ftab" id="tab-estambres" onclick="filterProds('hilo',this)" data-es="Estambres" data-en="Yarns">Estambres</button>
     <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
   </div>
 </div>
@@ -692,7 +690,8 @@ function openM(id){
     const chips=parts.filter(p=>yc[p.key]).map(p=>`
       <div class="yarn-chip">
         <div class="yarn-swatch" style="background:${getYarnHex(yc[p.key])}"></div>
-        <div><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
+        <div style="flex:1"><div class="yarn-chip-label">${p.label}</div><div class="yarn-chip-name">${yc[p.key]}</div></div>
+        <button class="yarn-chip-add" onclick="addYarnToCart('${yc[p.key]}')" title="${lang==='es'?'Agregar al carrito':'Add to cart'}">+</button>
       </div>`).join('');
     yarnSec.innerHTML=`<div class="yarn-section">
       <div class="yarn-section-title">🧶 ${lang==='es'?'Estambres Premier Yarns Basix':'Premier Yarns Basix Colors'}</div>
