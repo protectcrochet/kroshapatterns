@@ -595,16 +595,24 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
-        <label>Posición de la foto en la tarjeta <span style="font-weight:400;color:var(--text-light);">— ajusta el encuadre visible</span></label>
-        <select id="pf-img-pos">
-          <option value="center top">Centro arriba (default)</option>
-          <option value="center center">Centro</option>
-          <option value="center bottom">Centro abajo</option>
-          <option value="top center">Arriba</option>
-          <option value="bottom center">Abajo</option>
-          <option value="20% center">Izquierda</option>
-          <option value="80% center">Derecha</option>
-        </select>
+        <label>Posición de la foto en la tarjeta <span style="font-weight:400;color:var(--text-light);">— arrastra los sliders para ajustar el encuadre</span></label>
+        <input type="hidden" id="pf-img-pos" value="50% 20%">
+        <div style="display:flex;gap:16px;align-items:flex-start;margin-top:8px;">
+          <div style="flex:1;">
+            <div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">↔ Horizontal</div>
+            <input type="range" id="pf-pos-x" min="0" max="100" value="50" style="width:100%;accent-color:var(--pink-dark);" oninput="updateImgPos()">
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px;">Izquierda ← → Derecha</div>
+            <div style="font-size:12px;color:var(--text-light);margin-top:10px;margin-bottom:4px;">↕ Vertical</div>
+            <input type="range" id="pf-pos-y" min="0" max="100" value="20" style="width:100%;accent-color:var(--pink-dark);" oninput="updateImgPos()">
+            <div style="font-size:11px;color:var(--text-light);margin-top:2px;">Arriba ↑ ↓ Abajo</div>
+          </div>
+          <div style="flex-shrink:0;">
+            <div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">Preview tarjeta</div>
+            <div style="width:120px;height:140px;border-radius:12px;overflow:hidden;border:2px solid var(--border);background:#f0e6ef;">
+              <img id="pos-preview-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block;">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <!-- YARN COLORS SECTION -->
@@ -1129,7 +1137,7 @@ function openProdModal(id){
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
   ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  document.getElementById('pf-img-pos').value='center top';
+  setImgPos('50% 20%');
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
@@ -1154,7 +1162,7 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
-  document.getElementById('pf-img-pos').value=p.imagePosition||'center top';
+  setImgPos(p.imagePosition||'50% 20%');
   const editor=document.getElementById('yarn-list-editor');
   editor.innerHTML='';
   document.getElementById('yarn-empty-hint').style.display='block';
@@ -1166,6 +1174,8 @@ function editProd(id){
     const prev=document.getElementById(`img-prev-${i+1}`);
     if(inp){inp.value=url;if(prev&&url){prev.src=url;prev.style.display='block';}}
   });
+  const posImg=document.getElementById('pos-preview-img');
+  if(posImg){posImg.src=(p.images&&p.images[0])||'';}
   document.getElementById('prod-modal').classList.add('open');
 }
 function closeProdModal(){document.getElementById('prod-modal').classList.remove('open');}
@@ -1204,6 +1214,30 @@ function previewImg(inp,prevId){
   const prev=document.getElementById(prevId);
   if(inp.value){prev.src=inp.value;prev.style.display='block';}
   else{prev.src='';prev.style.display='none';}
+  if(prevId==='img-prev-1'){
+    const posImg=document.getElementById('pos-preview-img');
+    if(posImg){posImg.src=inp.value||'';}
+  }
+}
+
+function updateImgPos(){
+  const x=document.getElementById('pf-pos-x').value;
+  const y=document.getElementById('pf-pos-y').value;
+  const val=x+'% '+y+'%';
+  document.getElementById('pf-img-pos').value=val;
+  const posImg=document.getElementById('pos-preview-img');
+  if(posImg)posImg.style.objectPosition=val;
+}
+
+function setImgPos(val){
+  const parts=(val||'50% 20%').match(/(\d+)%\s*(\d+)%/);
+  const x=parts?parts[1]:'50';
+  const y=parts?parts[2]:'20';
+  document.getElementById('pf-pos-x').value=x;
+  document.getElementById('pf-pos-y').value=y;
+  document.getElementById('pf-img-pos').value=x+'% '+y+'%';
+  const posImg=document.getElementById('pos-preview-img');
+  if(posImg)posImg.style.objectPosition=x+'% '+y+'%';
 }
 
 function triggerUpload(n){
