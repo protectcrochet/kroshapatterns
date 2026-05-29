@@ -413,6 +413,40 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="addStripItem()">+ Agregar ítem</button>
       </div>
 
+      <div class="hero-editor">
+        <h3>⭐ Productos destacados en el Hero</h3>
+        <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Elige los 3 productos que aparecen como tarjetas en la sección principal.</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+          <div class="field">
+            <label>Tarjeta 1</label>
+            <select id="hero-feat-1" onchange="updateHeroFeatPreview(1)" style="width:100%;"></select>
+            <div id="hero-feat-prev-1" style="margin-top:8px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);display:none;">
+              <img id="hero-feat-img-1" src="" style="width:100%;height:100px;object-fit:cover;display:block;">
+              <div style="padding:6px 8px;font-size:12px;font-weight:700;" id="hero-feat-name-1"></div>
+              <div style="padding:0 8px 6px;font-size:11px;color:var(--text-light);" id="hero-feat-price-1"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tarjeta 2</label>
+            <select id="hero-feat-2" onchange="updateHeroFeatPreview(2)" style="width:100%;"></select>
+            <div id="hero-feat-prev-2" style="margin-top:8px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);display:none;">
+              <img id="hero-feat-img-2" src="" style="width:100%;height:100px;object-fit:cover;display:block;">
+              <div style="padding:6px 8px;font-size:12px;font-weight:700;" id="hero-feat-name-2"></div>
+              <div style="padding:0 8px 6px;font-size:11px;color:var(--text-light);" id="hero-feat-price-2"></div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Tarjeta 3</label>
+            <select id="hero-feat-3" onchange="updateHeroFeatPreview(3)" style="width:100%;"></select>
+            <div id="hero-feat-prev-3" style="margin-top:8px;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);display:none;">
+              <img id="hero-feat-img-3" src="" style="width:100%;height:100px;object-fit:cover;display:block;">
+              <div style="padding:6px 8px;font-size:12px;font-weight:700;" id="hero-feat-name-3"></div>
+              <div style="padding:0 8px 6px;font-size:11px;color:var(--text-light);" id="hero-feat-price-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="hero-preview">
         <div class="hero-preview-label">Vista previa del título</div>
         <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--text);line-height:1.1;">
@@ -1433,7 +1467,37 @@ function loadHeroEditor(){
   document.getElementById('ann-en').value=h.annEn||'';
   updateHeroPreview();
   renderStripItems(h.strip||[]);
+  loadHeroFeatSelects(h.featuredProducts||[]);
   ['hero-title1-es','hero-title2-es','hero-sub-es'].forEach(id=>document.getElementById(id).addEventListener('input',updateHeroPreview));
+}
+
+function loadHeroFeatSelects(selected){
+  const prods=getProds();
+  const opts='<option value="">— sin producto —</option>'+prods.map(p=>`<option value="${p.id}">${p.nameEs||p.nameEn||'Producto '+p.id}</option>`).join('');
+  [1,2,3].forEach(n=>{
+    const sel=document.getElementById('hero-feat-'+n);
+    if(!sel)return;
+    sel.innerHTML=opts;
+    if(selected[n-1])sel.value=selected[n-1];
+    updateHeroFeatPreview(n);
+  });
+}
+
+function updateHeroFeatPreview(n){
+  const sel=document.getElementById('hero-feat-'+n);
+  const prev=document.getElementById('hero-feat-prev-'+n);
+  const img=document.getElementById('hero-feat-img-'+n);
+  const name=document.getElementById('hero-feat-name-'+n);
+  const price=document.getElementById('hero-feat-price-'+n);
+  if(!sel||!prev)return;
+  const id=parseInt(sel.value);
+  if(!id){prev.style.display='none';return;}
+  const p=getProds().find(x=>x.id===id);
+  if(!p){prev.style.display='none';return;}
+  prev.style.display='block';
+  img.src=(p.images&&p.images[0])||'';
+  name.textContent=p.nameEs||p.nameEn||'';
+  price.textContent=p.price?(p.price+' MXN'):'';
 }
 function updateHeroPreview(){
   document.getElementById('prev-title1').textContent=document.getElementById('hero-title1-es').value||'Tu crochet,';
@@ -1459,6 +1523,10 @@ function updateStrip(el){
 function addStripItem(){stripItems.push({icon:'🎀',es:'Nuevo ítem',sub_es:'Descripción'});renderStripItems(stripItems);}
 function removeStripItem(i){stripItems.splice(i,1);renderStripItems(stripItems);}
 function saveHero(){
+  const featuredProducts=[1,2,3].map(n=>{
+    const v=document.getElementById('hero-feat-'+n)?.value;
+    return v?parseInt(v):null;
+  }).filter(Boolean);
   const h={
     title1Es:document.getElementById('hero-title1-es').value,
     title1En:document.getElementById('hero-title1-en').value,
@@ -1469,6 +1537,7 @@ function saveHero(){
     annEs:document.getElementById('ann-es').value,
     annEn:document.getElementById('ann-en').value,
     strip:stripItems,
+    featuredProducts,
   };
   saveHeroData(h);
   showToast('🎨 Hero guardado — presiona Publicar Hero para que se vea en todos los dispositivos');

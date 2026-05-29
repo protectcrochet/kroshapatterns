@@ -659,6 +659,27 @@ function applyHero(){
       <div class="strip-item"><span class="strip-icon">${it.icon}</span>
       <div><strong>${lang==='es'?it.es:it.en||it.es}</strong>${lang==='es'?it.sub_es:it.sub_en||it.sub_es||''}</div></div>`).join('');
   }
+  // featured hero products
+  if(h.featuredProducts&&h.featuredProducts.length){
+    renderHeroCards(h.featuredProducts);
+  }
+}
+
+function renderHeroCards(ids){
+  const heroImgs=document.querySelector('.hero-imgs');
+  if(!heroImgs)return;
+  const prods=getProducts();
+  const cards=ids.map(id=>{
+    const p=prods.find(x=>x.id===id);
+    if(!p)return '';
+    const img=p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${p.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});" onerror="this.style.display='none'">`:'';
+    const price=p.price?`$${p.price} MXN`:'';
+    return `<div class="hc" onclick="openM(${p.id})" style="cursor:pointer;">
+      <div class="hc-img">${img}</div>
+      <div class="hc-body"><h4>${p.title}</h4><p>${price}</p></div>
+    </div>`;
+  }).filter(Boolean).join('');
+  if(cards)heroImgs.innerHTML=cards;
 }
 
 const defaultProducts=[
