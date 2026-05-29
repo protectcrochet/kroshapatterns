@@ -805,7 +805,7 @@ function renderNovedades(){
   const wish=getWish();
   wrap.innerHTML=`
     <p class="nov-title">Los más <em>nuevos</em></p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding-bottom:8px;">
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,300px));gap:20px;justify-content:center;margin:0 auto;padding-bottom:8px;">
       ${show.map((p,i)=>renderCard(p,i,wish)).join('')}
     </div>`;
 }
