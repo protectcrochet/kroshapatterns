@@ -574,6 +574,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <option value="draft">Borrador</option>
         </select>
       </div>
+      <div class="field">
+        <label>Orden en el grid <span style="font-weight:400;color:var(--text-light);">— número menor = aparece primero</span></label>
+        <input type="number" id="pf-sort-order" placeholder="1" min="1" max="999" style="width:100%;">
+      </div>
+    </div>
+    <div class="form-grid full" style="margin-top:8px;">
+      <div style="display:flex;align-items:center;gap:10px;background:var(--pink-bg);border:1.5px solid var(--border);border-radius:10px;padding:12px 16px;cursor:pointer;" onclick="document.getElementById('pf-featured').click()">
+        <input type="checkbox" id="pf-featured" style="width:18px;height:18px;accent-color:var(--pink-dark);cursor:pointer;">
+        <div>
+          <div style="font-weight:700;font-size:13px;">⭐ Mostrar en "Los más nuevos"</div>
+          <div style="font-size:12px;color:var(--text-light);">Aparece en la sección destacada antes del grid principal</div>
+        </div>
+      </div>
     </div>
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
@@ -1188,6 +1201,8 @@ function openProdModal(id){
   document.getElementById('pf-type').value='patrones';
   document.getElementById('pf-skill').value='Intermedio';
   document.getElementById('pf-status').value='active';
+  document.getElementById('pf-sort-order').value='';
+  document.getElementById('pf-featured').checked=false;
   const ed=document.getElementById('yarn-list-editor');if(ed){ed.innerHTML='';document.getElementById('yarn-empty-hint').style.display='block';}
   ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
   document.getElementById('prod-modal').classList.add('open');
@@ -1203,6 +1218,8 @@ function editProd(id){
   document.getElementById('pf-type').value=p.type||'patrones';
   document.getElementById('pf-skill').value=p.skill||'';
   document.getElementById('pf-status').value=p.status||'active';
+  document.getElementById('pf-sort-order').value=p.sortOrder!=null?p.sortOrder:'';
+  document.getElementById('pf-featured').checked=!!p.featured;
   document.getElementById('pf-desc-es').value=p.descEs||'';
   document.getElementById('pf-desc-en').value=p.descEn||'';
   document.getElementById('pf-kit-price').value=p.kitPrice||'';
@@ -1241,6 +1258,8 @@ function saveProd(){
     type:document.getElementById('pf-type').value,
     skill:document.getElementById('pf-skill').value,
     status:document.getElementById('pf-status').value,
+    sortOrder:parseInt(document.getElementById('pf-sort-order').value)||999,
+    featured:document.getElementById('pf-featured').checked,
     descEs:document.getElementById('pf-desc-es').value,
     descEn:document.getElementById('pf-desc-en').value,
     images:imgs,
