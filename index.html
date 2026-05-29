@@ -47,19 +47,17 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .btn-main:hover{background:var(--pink-text);transform:translateY(-2px);}
 .btn-sec{background:var(--white);color:var(--pink-dark);border:2px solid var(--pink-deep);padding:14px 30px;border-radius:30px;font-size:14.5px;font-weight:700;cursor:pointer;text-decoration:none;font-family:'Nunito',sans-serif;transition:all .2s;}
 .btn-sec:hover{background:var(--pink-mid);}
-.hero-imgs{display:grid;grid-template-columns:1.1fr 1fr;grid-template-rows:auto auto;gap:12px;}
+.hero-imgs{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .hc{background:var(--white);border-radius:20px;overflow:hidden;border:1.5px solid var(--border);box-shadow:0 4px 20px rgba(192,96,144,.08);}
-.hc:nth-child(1){grid-row:1/3;}
 .hc-img{overflow:hidden;}
-.hc:nth-child(1) .hc-img{height:280px;}
-.hc:nth-child(2) .hc-img,.hc:nth-child(3) .hc-img{height:130px;}
+.hc .hc-img{height:260px;}
 .hc-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
 .hc:hover .hc-img img{transform:scale(1.05);}
 .hc-body{padding:10px 14px 14px;}
 .hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
 .hc-body p{font-size:13px;color:var(--pink-dark);font-weight:700;}
 /* NOVEDADES */
-.nov-wrap{max-width:1200px;margin:0 auto;padding:0 2rem 32px;}
+.nov-wrap{max-width:1200px;margin:0 auto;padding:48px 2rem 32px;}
 .nov-title{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .nov-title em{color:var(--pink-dark);font-style:italic;}
 .nov-sub{font-size:13px;color:var(--text-light);margin-bottom:18px;}
@@ -320,10 +318,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
       <div class="hc">
         <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/440D50A3-4213-4246-B9B7-D666F441586B.jpg?v=1774292862" alt="Kit Ramo"></div>
         <div class="hc-body"><h4 data-es="Kit Completo" data-en="Full Kit">Kit Completo</h4><p id="hp2">$950 MXN</p></div>
-      </div>
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/3f93d6d8-3623-4b4d-b4aa-2434406c013b.jpg?v=1748526264" alt="Ramo Stitch"></div>
-        <div class="hc-body"><h4>Ramo Stitch</h4><p id="hp3">$290 MXN</p></div>
       </div>
     </div>
   </div>
@@ -690,7 +684,7 @@ function renderHeroCards(ids){
   const heroImgs=document.querySelector('.hero-imgs');
   if(!heroImgs)return;
   const prods=getProducts();
-  const cards=ids.map(id=>{
+  const cards=ids.slice(0,2).map(id=>{
     const p=prods.find(x=>x.id===id);
     if(!p)return '';
     const img=p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${p.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});" onerror="this.style.display='none'">`:'';
