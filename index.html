@@ -58,6 +58,22 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .hc-body{padding:10px 14px 14px;}
 .hc-body h4{font-size:13px;font-weight:700;margin-bottom:2px;color:var(--text);}
 .hc-body p{font-size:13px;color:var(--pink-dark);font-weight:700;}
+/* NOVEDADES */
+.nov-wrap{max-width:1200px;margin:0 auto;padding:0 2rem 32px;}
+.nov-title{font-family:'Fraunces',serif;font-size:26px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.nov-title em{color:var(--pink-dark);font-style:italic;}
+.nov-sub{font-size:13px;color:var(--text-light);margin-bottom:18px;}
+.nov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.nov-card{background:var(--white);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;position:relative;}
+.nov-card:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
+.nov-card-img{aspect-ratio:4/5;overflow:hidden;position:relative;background:var(--pink-mid);}
+.nov-card-img img{width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;transition:transform .3s;}
+.nov-card:hover .nov-card-img img{transform:scale(1.04);}
+.nov-badge{position:absolute;top:12px;left:12px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:800;letter-spacing:.08em;padding:3px 10px;border-radius:20px;text-transform:uppercase;}
+.nov-body{padding:12px 14px 14px;}
+.nov-name{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px;line-height:1.2;}
+.nov-price{font-size:17px;font-weight:700;color:var(--pink-dark);}
+@media(max-width:700px){.nov-grid{grid-template-columns:repeat(2,1fr);}.nov-wrap{padding:0 1rem 24px;}}
 
 /* STRIP */
 .strip{background:var(--pink-dark);padding:16px 2rem;}
@@ -76,12 +92,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .filter-sub{font-size:14px;color:var(--text-light);margin-bottom:20px;}
 
 /* PRODUCT GRID */
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;max-width:1200px;margin:0 auto;padding:0 2rem 60px;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding:0 2rem 60px;}
 .pcard{background:var(--white);border:1.5px solid var(--border);border-radius:20px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;}
 .pcard:hover{transform:translateY(-4px);box-shadow:0 12px 36px rgba(192,96,144,.15);}
 .pcard.hidden{display:none;}
-.pcard-img{height:200px;overflow:hidden;position:relative;background:var(--pink-mid);}
-.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;}
+.pcard-img{aspect-ratio:3/4;overflow:hidden;position:relative;background:var(--pink-mid);}
+.pcard-img img{width:100%;height:100%;object-fit:cover;transition:transform .3s;position:absolute;top:0;left:0;}
 .pcard:hover .pcard-img img{transform:scale(1.06);}
 .pbadge{position:absolute;top:10px;left:10px;background:var(--pink-dark);color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;}
 .pbadge.kit{background:#60A090;}
@@ -323,14 +339,17 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
   </div>
 </div>
 
+<!-- NOVEDADES -->
+<div id="novedades-wrap" class="nov-wrap"></div>
+
 <!-- FILTER + PRODUCTS -->
 <div id="productos" class="filter-wrap">
-  <h2 class="filter-title" data-es="Todos los <em>productos</em>" data-en="All <em>products</em>">Todos los <em>productos</em></h2>
+  <h2 class="filter-title" data-es="Nuestros <em>patrones</em>" data-en="Our <em>patterns</em>">Nuestros <em>patrones</em></h2>
   <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
   <div class="filter-tabs">
-    <button class="ftab active" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
-    <button class="ftab" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
+    <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
+    <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
     <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
   </div>
 </div>
@@ -778,7 +797,31 @@ function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.
 function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':'Patrón Digital';}
 function typeBadge(t){return t==='kits'?'kit':t==='hilo'?'hilo':t==='amigurumis'?'kit':'';}
 
-let activeFilter='all';
+let activeFilter='patrones';
+
+function renderNovedades(){
+  const wrap=document.getElementById('novedades-wrap');
+  if(!wrap)return;
+  const patrones=getProducts().filter(p=>p.type==='patrones');
+  const newest=[...patrones].sort((a,b)=>b.id-a.id).slice(0,3);
+  if(!newest.length){wrap.innerHTML='';return;}
+  wrap.innerHTML=`
+    <p class="nov-title">✨ Recién <em>llegados</em></p>
+    <p class="nov-sub">${lang==='es'?'Los últimos patrones añadidos a la tienda':'The latest patterns added to the store'}</p>
+    <div class="nov-grid">
+      ${newest.map(p=>`
+        <div class="nov-card" onclick="openM(${p.id})">
+          <div class="nov-card-img">
+            ${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${p.title}" loading="lazy" style="object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});" onerror="this.style.display='none'">` :''}
+            <span class="nov-badge">Nuevo</span>
+          </div>
+          <div class="nov-body">
+            <div class="nov-name">${lang==='en'&&p.titleEn?p.titleEn:p.title}</div>
+            <div class="nov-price">${f(p.price)}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
 
 function renderGrid(filter){
   if(filter!==undefined)activeFilter=filter;
@@ -915,13 +958,16 @@ function openM(id){
   // Add-on / combo section
   const addonSec=document.getElementById('m-addon-section');
   if(addonSec&&!curProd.yarnColorName&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
-    let html=`<div class="addon-section"><div class="addon-title">🎁 ${lang==='es'?'Completa tu kit':'Build your kit'}</div>`;
+    let html=`<div class="addon-section"><div class="addon-title">🎁 ${lang==='es'?'¿Deseas agregar los estambres para este patrón?':'Want to add the yarn kit for this pattern?'}</div>`;
     if(curProd.kitPrice>0){
+      const yl=curProd.yarnList||[];
+      const yarnDots=yl.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${yl.map(y=>{const hex=getYarnHex(y.color);return `<span title="${y.color}" style="width:16px;height:16px;border-radius:50%;background:${hex};border:1.5px solid rgba(0,0,0,.1);display:inline-block;"></span>`;}).join('')}</div>`:'';
       html+=`<div class="addon-row" id="addon-kit" onclick="toggleAddon('kit')">
         <div class="addon-cb" id="cb-kit"></div>
         <div class="addon-info">
-          <strong>🧶 ${lang==='es'?'Kit de estambres':'Yarn Kit'}</strong>
-          <span>${lang==='es'?'Colores Premier Yarns para este patrón':'Premier Yarns colors for this pattern'}</span>
+          <strong>🧶 ${lang==='es'?'Kit de estambres para este patrón':'Yarn Kit for this pattern'}</strong>
+          <span>${lang==='es'?`Incluye los ${yl.length||''} colores ya seleccionados para esta pieza`:`Includes the ${yl.length||''} pre-selected colors for this piece`}</span>
+          ${yarnDots}
         </div>
         <span class="addon-price">+${f(curProd.kitPrice)}</span>
       </div>`;
@@ -1151,6 +1197,7 @@ let _publishedHero=null;
     fetch('data/hero.json?v='+v).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
   ]);
   applyHero();
+  renderNovedades();
   renderGrid();
   updateCartBadge();
   updateWishBadge();
