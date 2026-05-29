@@ -28,5 +28,10 @@
       "es": "+40 patrones",
       "sub_es": "Todos los niveles"
     }
+  ],
+  "featuredProducts": [
+    22,
+    2,
+    9
   ]
 }
