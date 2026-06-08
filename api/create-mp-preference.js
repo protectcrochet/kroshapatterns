@@ -21,7 +21,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    // Convert items to MP format
+    const ref = `KP-${Date.now()}`;
+
+    // Store order in Redis so the webhook can retrieve items and deliver patterns
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      await redis.set(`mp_order:${ref}`, JSON.stringify({
+        items,
+        customerEmail,
+        customerName: customerName || 'Cliente',
+        currency: currency || 'MXN',
+        orderRef: ref,
+      }), { ex: 60 * 60 * 24 * 7 });
+    } catch (kvErr) {
+      console.error('Redis store error (non-fatal):', kvErr);
+    }
+
     const mpItems = items.map(item => ({
       id: String(item.id),
       title: item.title,
@@ -51,7 +70,7 @@ export default async function handler(req, res) {
         },
         auto_return: 'approved',
         statement_descriptor: 'KROSHAPATTERNS',
-        external_reference: `KP-${Date.now()}`,
+        external_reference: ref,
         notification_url: 'https://kroshapatterns.com/api/mp-webhook',
       },
     });
