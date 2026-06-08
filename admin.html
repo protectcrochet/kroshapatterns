@@ -232,7 +232,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </nav>
     <div class="sb-bottom">
       <a href="index.html" target="_blank" class="sb-logout">🌐 Ver tienda</a>
-      <div class="sb-logout" onclick="publishProducts()" style="background:var(--pink);color:#fff;font-weight:700;border-radius:10px;text-align:center;margin-bottom:6px;">🚀 Publicar</div>
+      <div class="sb-logout" onclick="publishProducts()" style="background:var(--pink);color:#fff;font-weight:700;border-radius:10px;text-align:center;margin-bottom:6px;">💾 Guardar en línea</div>
       <div class="sb-logout" onclick="doLogout()">🚪 Cerrar sesión</div>
     </div>
   </div>
@@ -1015,52 +1015,18 @@ function doLogin(){
     document.getElementById('pwd-input').value='';
   }
 }
-const GH_OWNER='protectcrochet', GH_REPO='kroshapatterns', GH_PATH='data/products.json';
-const GH_TOKEN_KEY='krosha_gh_token';
-
 async function publishProducts(){
-  const stored=localStorage.getItem(PRODS_KEY);
-  if(!stored){showToast('No hay productos guardados para publicar.','warn');return;}
-
-  let token=localStorage.getItem(GH_TOKEN_KEY);
-  if(!token){
-    token=prompt('🔑 Pega tu GitHub Token (se guarda en este dispositivo):');
-    if(!token)return;
-    localStorage.setItem(GH_TOKEN_KEY,token.trim());
-    token=token.trim();
-  }
-
+  const prods=getProds();
+  if(!prods.length){showToast('No hay productos guardados.','warn');return;}
   const btn=document.querySelector('.sb-bottom [onclick="publishProducts()"]');
   const orig=btn?btn.textContent:'';
-  if(btn){btn.textContent='⏳ Publicando...';btn.style.pointerEvents='none';}
-
+  if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    // Encode content as base64 (handles UTF-8 / Spanish chars)
-    const bytes=new TextEncoder().encode(stored);
-    const b64=btoa(String.fromCharCode(...bytes));
-
-    // Get current file SHA
-    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
-    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{headers});
-    const getData=await getR.json();
-    if(!getR.ok)throw new Error(getData.message||'Error obteniendo archivo');
-
-    // Commit updated file
-    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,{
-      method:'PUT',headers,
-      body:JSON.stringify({message:'Publicar: actualizar productos desde admin',content:b64,sha:getData.sha})
-    });
-    const putData=await putR.json();
-    if(!putR.ok)throw new Error(putData.message||'Error al publicar');
-
-    showToast('🚀 ¡Publicado! En ~1 min se actualiza en kroshapatterns.com');
+    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify({products:prods})});
+    if(!r.ok)throw new Error((await r.json()).error||'Error');
+    showToast('✅ ¡Guardado! Cambios visibles en segundos en todos los dispositivos');
   }catch(e){
-    showToast('❌ Error: '+e.message,'warn');
-    // If token error, clear it so user can re-enter
-    if(e.message.includes('Bad credential')||e.message.includes('401')){
-      localStorage.removeItem(GH_TOKEN_KEY);
-      showToast('Token inválido. Se borró, intenta de nuevo.','warn');
-    }
+    showToast('❌ Error al guardar: '+e.message,'warn');
   }finally{
     if(btn){btn.textContent=orig;btn.style.pointerEvents='';}
   }
@@ -1074,13 +1040,25 @@ function doLogout(){
 
 // ── DATA ──
 function getProds(){return JSON.parse(localStorage.getItem(PRODS_KEY)||'[]');}
-function saveProds(d){localStorage.setItem(PRODS_KEY,JSON.stringify(d));}
+function saveProds(d){
+  localStorage.setItem(PRODS_KEY,JSON.stringify(d));
+  clearTimeout(saveProds._t);
+  saveProds._t=setTimeout(()=>{
+    fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify({products:d})}).catch(()=>{});
+  },600);
+}
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
 function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
 function saveCusts(d){localStorage.setItem(CUSTS_KEY,JSON.stringify(d));}
 function getHero(){return JSON.parse(localStorage.getItem(HERO_KEY)||JSON.stringify({title1Es:'Tu crochet,',title1En:'Your crochet,',title2Es:'más bonito',title2En:'more beautiful',subEs:'Patrones PDF exclusivos, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.',subEn:'Exclusive PDF patterns, complete kits with materials and premium yarn — all designed by Jennyfer.',annEs:'🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones',annEn:'🎀 Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns',strip:[{icon:'🔐',es:'Acceso protegido',sub_es:'Vía ProtectCrochet'},{icon:'💳',es:'Pago seguro',sub_es:'Stripe · PayPal · Mercado Pago'},{icon:'🌍',es:'Tu moneda',sub_es:'MXN, USD, EUR, DOP'},{icon:'🎀',es:'+40 patrones',sub_es:'Todos los niveles'}]}));}
-function saveHeroData(d){localStorage.setItem(HERO_KEY,JSON.stringify(d));}
+function saveHeroData(d){
+  localStorage.setItem(HERO_KEY,JSON.stringify(d));
+  clearTimeout(saveHeroData._t);
+  saveHeroData._t=setTimeout(()=>{
+    fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify(d)}).catch(()=>{});
+  },600);
+}
 
 // ── INIT ──
 function initApp(){
@@ -1562,27 +1540,16 @@ function saveHero(){
   showToast('🎨 Hero guardado — presiona Publicar Hero para que se vea en todos los dispositivos');
 }
 
-const GH_HERO_PATH='data/hero.json';
 async function publishHero(){
-  let token=localStorage.getItem(GH_TOKEN_KEY);
-  if(!token){token=prompt('🔑 GitHub Token (se guarda solo aquí):');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
   const btn=document.querySelector('[onclick="publishHero()"]');
   const orig=btn?.textContent||'🚀 Publicar Hero';
-  if(btn){btn.textContent='⏳ Publicando…';btn.disabled=true;}
+  if(btn){btn.textContent='⏳ Guardando…';btn.disabled=true;}
   try{
-    const h=getHero();
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify(h,null,2))));
-    const headers={'Authorization':'token '+token,'Content-Type':'application/json'};
-    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{headers});
-    const existing=getR.ok?await getR.json():null;
-    const body={message:'chore: actualizar hero desde admin',content,committer:{name:'KroshaAdmin',email:'jenny@kroshapatterns.com'}};
-    if(existing?.sha)body.sha=existing.sha;
-    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_HERO_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
-    if(!putR.ok){const e=await putR.json();throw new Error(e.message||'Error al publicar');}
-    showToast('🎨 ¡Hero publicado! Visible en todos los dispositivos en ~1 min');
+    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify(getHero())});
+    if(!r.ok)throw new Error((await r.json()).error||'Error');
+    showToast('🎨 ¡Hero guardado! Visible en todos los dispositivos al instante');
   }catch(e){
     showToast('❌ '+e.message);
-    if(e.message.includes('Bad credential'))localStorage.removeItem(GH_TOKEN_KEY);
   }finally{
     if(btn){btn.textContent=orig;btn.disabled=false;}
   }
@@ -1658,10 +1625,15 @@ document.getElementById('confirm-ok-btn').onclick=function(){if(confirmCallback)
 // ── NAVIGATION ──
 // ── INVENTARIO ──
 const INV_KEY='krosha_inventory';
-const GH_INV_PATH='data/inventory.json';
 
 function getInventory(){return JSON.parse(localStorage.getItem(INV_KEY)||'{}');}
-function saveInventory(inv){localStorage.setItem(INV_KEY,JSON.stringify(inv));}
+function saveInventory(inv){
+  localStorage.setItem(INV_KEY,JSON.stringify(inv));
+  clearTimeout(saveInventory._t);
+  saveInventory._t=setTimeout(()=>{
+    fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify(inv)}).catch(()=>{});
+  },600);
+}
 
 function renderInventory(){
   const inv=getInventory();
@@ -1710,27 +1682,14 @@ function setAllStock(){
 }
 
 async function publishInventory(){
-  const inv=getInventory();
-  let token=localStorage.getItem(GH_TOKEN_KEY);
-  if(!token){token=prompt('🔑 GitHub Token:');if(!token)return;localStorage.setItem(GH_TOKEN_KEY,token.trim());token=token.trim();}
   const btn=event.currentTarget;
-  const origTxt=btn.textContent;btn.textContent='⏳ Publicando...';btn.disabled=true;
+  const origTxt=btn.textContent;btn.textContent='⏳ Guardando...';btn.disabled=true;
   try{
-    const content=JSON.stringify(inv,null,2);
-    const bytes=new TextEncoder().encode(content);
-    const b64=btoa(String.fromCharCode(...bytes));
-    const headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
-    const getR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{headers});
-    const getData=await getR.json();
-    const sha=getR.ok&&getData.sha?getData.sha:undefined;
-    const body={message:'Inventario: actualizar stock de estambres',content:b64};
-    if(sha)body.sha=sha;
-    const putR=await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_INV_PATH}`,{method:'PUT',headers,body:JSON.stringify(body)});
-    if(!putR.ok){const e=await putR.json();throw new Error(e.message);}
-    showToast('🚀 ¡Inventario publicado! Se actualiza en ~1 min.');
+    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'},body:JSON.stringify(getInventory())});
+    if(!r.ok)throw new Error((await r.json()).error||'Error');
+    showToast('✅ ¡Inventario guardado! Visible al instante en todos los dispositivos');
   }catch(e){
     showToast('❌ Error: '+e.message,'warn');
-    if(e.message.includes('Bad credential')){localStorage.removeItem(GH_TOKEN_KEY);}
   }finally{btn.textContent=origTxt;btn.disabled=false;}
 }
 
