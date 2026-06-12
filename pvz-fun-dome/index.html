@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fun Dome — Arena Luz vs Sombra</title>
+  <link rel="stylesheet" href="css/hub.css" />
+</head>
+<body>
+  <!-- ===== Domo de fondo ===== -->
+  <div class="dome-scene">
+    <div class="dome-sky"></div>
+    <div class="crowd"></div>
+    <div class="dome">
+      <div class="dome-glass dome-glass--light"></div>
+      <div class="dome-glass dome-glass--shadow"></div>
+      <div class="dome-frame">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="dome-core"></div>
+    </div>
+    <div class="arena-floor"></div>
+  </div>
+
+  <!-- ===== HUD superior: wallet ===== -->
+  <header class="hud">
+    <div class="brand">
+      <span class="brand-mark">◉</span>
+      <span class="brand-text">FUN<span>DOME</span></span>
+    </div>
+    <div class="wallet-box">
+      <div class="balance" id="balanceBox" hidden>
+        <span class="balance-amount" id="balanceAmount">0</span>
+        <span class="balance-symbol">FDT</span>
+      </div>
+      <button class="btn btn--wallet" id="connectBtn">Conectar Wallet</button>
+      <button class="btn btn--claim" id="claimBtn" hidden>Reclamar FDT</button>
+    </div>
+  </header>
+
+  <!-- ===== Panel central ===== -->
+  <main class="hub">
+    <h1 class="title">EL DOMO DE LA DIVERSIÓN</h1>
+    <p class="subtitle">Elige tu bando. Reúne tu escuadrón. Gana <strong>FDT</strong> en la arena.</p>
+
+    <div class="team-picker">
+      <button class="team-card team-card--light" data-team="light">
+        <div class="team-glow"></div>
+        <div class="team-icon">✨</div>
+        <h2>Equipo Luz</h2>
+        <p>Criaturas de luz y cristal</p>
+        <ul class="team-roster" id="rosterLight"></ul>
+      </button>
+
+      <div class="vs">VS</div>
+
+      <button class="team-card team-card--shadow" data-team="shadow">
+        <div class="team-glow"></div>
+        <div class="team-icon">🌑</div>
+        <h2>Equipo Sombra</h2>
+        <p>Criaturas de oscuridad y vacío</p>
+        <ul class="team-roster" id="rosterShadow"></ul>
+      </button>
+    </div>
+
+    <p class="hint" id="hint">Selecciona un equipo para entrar a la arena.</p>
+  </main>
+
+  <!-- ===== Toast de notificaciones ===== -->
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- ethers.js v6 (local) -->
+  <script src="js/vendor/ethers.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/wallet.js"></script>
+  <script src="js/hub.js"></script>
+</body>
+</html>

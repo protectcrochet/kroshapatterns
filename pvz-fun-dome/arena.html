@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fun Dome — Arena</title>
+  <link rel="stylesheet" href="css/arena.css" />
+</head>
+<body>
+  <a class="back-link" href="index.html">← Volver al Domo</a>
+  <div id="game-root"></div>
+
+  <!-- Phaser 3 (local) -->
+  <script src="js/vendor/phaser.min.js"></script>
+  <!-- ethers + lógica compartida (local) -->
+  <script src="js/vendor/ethers.umd.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/wallet.js"></script>
+  <!-- Helpers de dibujo + Escenas -->
+  <script src="js/game/domeArt.js"></script>
+  <script src="js/game/scenes/SelectScene.js"></script>
+  <script src="js/game/scenes/BattleScene.js"></script>
+  <script src="js/game/scenes/ResultScene.js"></script>
+  <script src="js/game/main.js"></script>
+</body>
+</html>
