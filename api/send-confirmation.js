@@ -218,6 +218,7 @@ export default async function handler(req, res) {
           name: customerName || '',
           email: customerEmail,
           products: items.map(i => i.title).join(', '),
+          itemsRaw: items,
           total,
           currency: currency || 'MXN',
           method: payMethod || 'stripe',
