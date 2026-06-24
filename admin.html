@@ -1063,11 +1063,10 @@ function saveHeroData(d){
 // ── INIT ──
 function initApp(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  // seed default products if empty
   if(!getProds().length) seedDefaultProds();
-  renderDashboard();
+  // Load server orders then render dashboard
+  loadServerOrders().then(()=>renderDashboard());
   renderProdsTable();
-  renderOrdersTable();
   renderCustomersTable();
   loadHeroEditor();
   loadSettings();
@@ -1120,16 +1119,16 @@ function seedDefaultProds(){
 
 // ── DASHBOARD ──
 function renderDashboard(){
-  const prods=getProds(),orders=getOrders(),custs=getCusts();
+  const prods=getProds(),orders=getAllOrders(),custs=getCusts();
   document.getElementById('stat-prods').textContent=prods.filter(p=>p.status==='active').length;
   document.getElementById('stat-orders').textContent=orders.length;
   document.getElementById('stat-customers').textContent=custs.length;
   const ol=document.getElementById('dash-orders-list');
   if(orders.length){
-    ol.innerHTML=orders.slice(-5).reverse().map(o=>`
+    ol.innerHTML=orders.slice(0,5).map(o=>`
       <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div><strong>${o.name}</strong><div style="font-size:12px;color:var(--text-light);">${o.products}</div></div>
-        <div style="text-align:right;"><strong>$${o.total} MXN</strong><div class="order-status ${o.status}" style="margin-top:2px;font-size:11px;">${statusLabel(o.status)}</div></div>
+        <div><strong>${o.name||o.email}</strong><div style="font-size:12px;color:var(--text-light);">${o.products||''}</div></div>
+        <div style="text-align:right;"><strong>$${o.total} ${o.currency||'MXN'}</strong><div class="order-status ${o.status}" style="margin-top:2px;font-size:11px;">${statusLabel(o.status)}</div></div>
       </div>`).join('');
   } else ol.innerHTML='<div style="color:var(--text-light);font-size:13px;">No hay pedidos aún.</div>';
   const pl=document.getElementById('dash-prods-list');
@@ -1354,8 +1353,28 @@ async function clientBlobUpload(file){
 
 // ── ORDERS ──
 let orderFilter='',orderStatusFilter='';
+let _serverOrders=[];
+
+async function loadServerOrders(){
+  try{
+    const r=await fetch('/api/orders',{headers:{'x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024'}});
+    if(r.ok){
+      const data=await r.json();
+      if(Array.isArray(data))_serverOrders=data;
+    }
+  }catch(e){console.error('Error loading orders:',e);}
+  renderOrdersTable();
+}
+
+function getAllOrders(){
+  const local=getOrders();
+  const localRefs=new Set(local.map(o=>o.ref));
+  const merged=[...local,..._serverOrders.filter(o=>!localRefs.has(o.ref))];
+  return merged.sort((a,b)=>new Date(b.date||b.id)-new Date(a.date||a.id));
+}
+
 function renderOrdersTable(){
-  const orders=getOrders();
+  const orders=getAllOrders();
   const filtered=orders.filter(o=>{
     const ms=!orderFilter||o.name.toLowerCase().includes(orderFilter.toLowerCase())||o.email.toLowerCase().includes(orderFilter.toLowerCase());
     const mst=!orderStatusFilter||o.status===orderStatusFilter;
@@ -1699,6 +1718,7 @@ function goTab(name,el){
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
   if(name==='inventory')renderInventory();
+  if(name==='orders')loadServerOrders();
 }
 
 // ── TOAST ──

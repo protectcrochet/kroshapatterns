@@ -201,6 +201,35 @@ export default async function handler(req, res) {
       html: emailHtml,
     });
 
+    // Guardar pedido en Redis para el admin
+    try {
+      const { Redis } = await import('@upstash/redis');
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      const raw = await redis.get('krosha:orders');
+      const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+      if (!orders.find(o => o.ref === ref)) {
+        orders.unshift({
+          id: Date.now(),
+          ref,
+          date: new Date().toISOString(),
+          name: customerName || '',
+          email: customerEmail,
+          products: items.map(i => i.title).join(', '),
+          total,
+          currency: currency || 'MXN',
+          method: payMethod || 'stripe',
+          status: 'paid',
+        });
+        if (orders.length > 500) orders.length = 500;
+        await redis.set('krosha:orders', JSON.stringify(orders));
+      }
+    } catch (redisErr) {
+      console.error('Redis order save error (non-fatal):', redisErr);
+    }
+
     // Copia a Jennyfer
     const needsManual = resolvedItems.filter(i => i.deliveryType === 'manual');
     await resend.emails.send({
