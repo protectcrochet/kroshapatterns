@@ -234,7 +234,7 @@ export default async function handler(req, res) {
     const needsManual = resolvedItems.filter(i => i.deliveryType === 'manual');
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
-      to: 'hola@kroshapatterns.com',
+      to: 'kroshapatterns@gmail.com',
       subject: `🛍 Nuevo pedido #${ref} — $${total} ${currency} — ${customerEmail}`,
       html: `<p><strong>Nuevo pedido recibido:</strong></p>
         <p>Cliente: ${customerName} (${customerEmail})</p>

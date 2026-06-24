@@ -80,7 +80,7 @@ export default async function handler(req, res) {
 
       await resend.emails.send({
         from: 'KroshaPatterns <hola@kroshapatterns.com>',
-        to: 'hola@kroshapatterns.com',
+        to: 'kroshapatterns@gmail.com',
         subject: `⚠️ MP pago sin orden ${ref} — entrega manual requerida`,
         html: `<p>Pago MP aprobado pero no se encontraron los ítems en Redis.<br>
                Cliente: ${payerName} (${payerEmail})<br>
