@@ -607,11 +607,8 @@ function _mapProducts(arr){
 }
 
 function getProducts(){
-  const stored=localStorage.getItem(PRODS_KEY);
   let base;
-  if(stored){
-    base=_mapProducts(JSON.parse(stored));
-  } else if(_publishedProducts&&_publishedProducts.length){
+  if(_publishedProducts&&_publishedProducts.length){
     base=_mapProducts(_publishedProducts);
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
@@ -657,9 +654,8 @@ function generateYarnKits(patternProds){
   return result;
 }
 
-// ── LOAD HERO — prioridad: hero.json publicado → localStorage (preview admin) ──
 function applyHero(){
-  const h=_publishedHero||JSON.parse(localStorage.getItem(HERO_KEY)||'null');
+  const h=_publishedHero;
   if(!h)return;
   // announcement bar
   const ann=document.getElementById('nav-ann');
@@ -1185,12 +1181,11 @@ let _publishedHero=null;
 (async()=>{
   const v=Date.now();
   await Promise.all([
-    fetch('/api/products').then(r=>r.ok?r.json():null).then(d=>{
+    fetch('/api/products',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{
       if(Array.isArray(d)&&d.length){_publishedProducts=d;}
-      else return fetch('data/products.json').then(r=>r.ok?r.json():null).then(d2=>{if(Array.isArray(d2)&&d2.length)_publishedProducts=d2;}).catch(()=>{});
-    }).catch(()=>fetch('data/products.json').then(r=>r.ok?r.json():null).then(d2=>{if(Array.isArray(d2)&&d2.length)_publishedProducts=d2;}).catch(()=>{})),
-    fetch('/api/inventory').then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
-    fetch('/api/hero').then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
+    }).catch(()=>{}),
+    fetch('/api/inventory',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
+    fetch('/api/hero',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
   ]);
   applyHero();
   renderNovedades();
@@ -1211,9 +1206,13 @@ const _ro=new IntersectionObserver(entries=>{
 },{threshold:.1});
 document.querySelectorAll('.reveal').forEach(el=>_ro.observe(el));
 
-// Listen for changes from admin (same tab via storage events won't fire, but cross-tab will)
 window.addEventListener('storage', e=>{
-  if(e.key===PRODS_KEY||e.key===HERO_KEY){applyHero();renderGrid();}
+  if(e.key===PRODS_KEY||e.key===HERO_KEY){
+    Promise.all([
+      fetch('/api/products',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)&&d.length)_publishedProducts=d;}),
+      fetch('/api/hero',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}),
+    ]).then(()=>{applyHero();renderGrid();}).catch(()=>{});
+  }
   if(e.key===CART_KEY){updateCartBadge();}
   if(e.key==='krosha_wishlist'){updateWishBadge();}
 });
