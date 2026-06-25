@@ -189,6 +189,12 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 
 @media(max-width:768px){
   .nav-links{display:none;}
+  .nav-right{gap:6px;}
+  .cart-label{display:none;}
+  .btn-cart{padding:9px 13px;font-size:13px;}
+  .lang-toggle{display:none;}
+  .cur-sel{padding:5px 8px;font-size:11px;}
+  .logo{font-size:20px;}
   .hero-inner{grid-template-columns:1fr;}
   .hero h1{font-size:36px;}
   .hero-imgs{display:none;}
@@ -319,7 +325,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <option value="CRC">🇨🇷 CRC</option>
       </select>
       <button class="btn-acct" id="btn-acct" onclick="openAcctModal()" title="Mi cuenta"><span>👤</span><span class="acct-dot"></span></button>
-      <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
+      <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span class="cart-label" data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
     </div>
   </div>
 </nav>
