@@ -86,15 +86,32 @@ export default async function handler(req, res) {
     const data = await r.json();
     if (!r.ok) return res.status(r.status).json({ error: data.message || 'Error envia.com', details: data });
 
-    const ship = data.data?.[0] || data;
+    // envia.com puede devolver data.data[0], data.data (objeto), o data directo
+    const raw = data.data;
+    const ship = Array.isArray(raw) ? (raw[0] || {}) : (raw && typeof raw === 'object' ? raw : data);
+
+    const trackingNumber =
+      ship.trackingNumber || ship.tracking_number || ship.guideNumber ||
+      ship.guide || ship.number || ship.labelId || '';
+
+    const labelUrl =
+      ship.label || ship.labelUrl || ship.label_url ||
+      ship.guideUrl || ship.guide_url || ship.pdfUrl || ship.pdf || '';
+
+    const trackUrl =
+      ship.trackUrl || ship.track_url || ship.trackingUrl || ship.tracking_url || '';
+
+    console.log('envia.com raw ship object:', JSON.stringify(ship));
+
     const shipment = {
-      trackingNumber: ship.trackingNumber,
-      labelUrl:       ship.label || ship.labelUrl,
-      trackUrl:       ship.trackUrl,
+      trackingNumber,
+      labelUrl,
+      trackUrl,
       carrier,
-      service:        service || carrier,
-      price:          ship.totalPrice,
-      createdAt:      new Date().toISOString(),
+      service:   service || carrier,
+      price:     ship.totalPrice || ship.total_price || ship.price,
+      createdAt: new Date().toISOString(),
+      _raw:      ship, // temporal para depuración
     };
 
     // Guardar en el pedido en Redis

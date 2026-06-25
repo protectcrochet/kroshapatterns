@@ -1576,8 +1576,9 @@ async function generateShippingLabel(){
     document.getElementById('shipment-existing').innerHTML=`<div style="background:#D4EFE3;border-radius:8px;padding:10px 12px;font-size:12px;">
       <strong>✅ Guía generada — ${carrier.toUpperCase()}</strong><br>
       Tracking: <strong>${s.trackingNumber||'—'}</strong><br>
-      ${s.labelUrl?`<a href="${s.labelUrl}" target="_blank" style="color:#2E7D52;font-weight:700;">📄 Descargar PDF guía</a>`:''}
+      ${s.labelUrl?`<a href="${s.labelUrl}" target="_blank" style="color:#2E7D52;font-weight:700;">📄 Descargar PDF guía</a>`:'<span style="color:#7A4D65;">PDF no disponible aún</span>'}
       ${s.trackUrl?` · <a href="${s.trackUrl}" target="_blank" style="color:#2E7D52;">🔍 Rastrear</a>`:''}
+      ${!s.trackingNumber&&s._raw?`<br><details style="margin-top:6px;"><summary style="cursor:pointer;color:#555;font-size:11px;">🔍 Ver respuesta envia.com (debug)</summary><pre style="font-size:10px;white-space:pre-wrap;overflow:auto;max-height:120px;background:#f0f0f0;padding:6px;border-radius:4px;">${JSON.stringify(s._raw,null,2)}</pre></details>`:''}
     </div>`;
     showToast('✅ Guía generada — '+carrier.toUpperCase());
     renderOrdersTable();
