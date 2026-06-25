@@ -1183,7 +1183,10 @@ let _publishedHero=null;
 (async()=>{
   const v=Date.now();
   await Promise.all([
-    fetch('/api/products').then(r=>r.ok?r.json():null).then(d=>{if(Array.isArray(d)&&d.length)_publishedProducts=d;}).catch(()=>{}),
+    fetch('/api/products').then(r=>r.ok?r.json():null).then(d=>{
+      if(Array.isArray(d)&&d.length){_publishedProducts=d;}
+      else return fetch('data/products.json').then(r=>r.ok?r.json():null).then(d2=>{if(Array.isArray(d2)&&d2.length)_publishedProducts=d2;}).catch(()=>{});
+    }).catch(()=>fetch('data/products.json').then(r=>r.ok?r.json():null).then(d2=>{if(Array.isArray(d2)&&d2.length)_publishedProducts=d2;}).catch(()=>{})),
     fetch('/api/inventory').then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
     fetch('/api/hero').then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
   ]);
