@@ -218,9 +218,9 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 
 <!-- NAV -->
 <nav class="nav-bar">
-  <div class="nav-ann" id="nav-ann">🎀 Patrones digitales al instante · Pago 100% seguro</div>
+  <div class="nav-ann" id="nav-ann">✨ Patrones digitales al instante · Acceso inmediato · Pago 100% seguro</div>
   <div class="nav-inner">
-    <a href="index.html" class="logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="logo">KroshaPatterns</a>
     <div class="nav-right">
       <div class="lang-toggle">
         <button class="lang-btn active" id="btn-es" onclick="setLang('es')">ES</button>
@@ -265,7 +265,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <!-- PAGE 1: CART -->
 <div class="page active" id="page-cart">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-    <h2 class="cart-title" style="margin-bottom:0;" data-es="Tu carrito 🎀" data-en="Your cart 🎀">Tu carrito 🎀</h2>
+    <h2 class="cart-title" style="margin-bottom:0;" data-es="Tu carrito" data-en="Your cart">Tu carrito</h2>
     <button onclick="clearCart()" style="background:none;border:1.5px solid #F0C8DC;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#C06090;cursor:pointer;font-family:'Nunito',sans-serif;" data-es="Vaciar carrito" data-en="Clear cart">Vaciar carrito</button>
   </div>
   <div class="cart-layout">
@@ -285,13 +285,13 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <h3 data-es="Resumen del pedido" data-en="Order summary">Resumen del pedido</h3>
       <div class="sum-row"><span id="subtotal-label">Subtotal (0 productos)</span><span id="subtotal">$0 MXN</span></div>
       <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val"></span></div>
-      <div class="sum-row" id="sum-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="sum-ship-val" style="color:var(--green);" data-es="🔐 ProtectCrochet" data-en="🔐 ProtectCrochet">🔐 ProtectCrochet</span></div>
+      <div class="sum-row" id="sum-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="sum-ship-val" style="color:var(--green);" data-es="📥 Acceso inmediato" data-en="📥 Instant access">📥 Acceso inmediato</span></div>
       <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$0 MXN</span></div>
-      <div class="digital-badge" data-es="🔐 Acceso vía ProtectCrochet al confirmar pago" data-en="🔐 Access via ProtectCrochet after payment">🔐 Acceso vía ProtectCrochet al confirmar pago</div>
+      <div class="digital-badge" data-es="✅ Acceso inmediato al finalizar tu compra" data-en="✅ Instant access after checkout">✅ Acceso inmediato al finalizar tu compra</div>
       <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
       <div class="trust-badges">
         <div class="trust-badge"><span class="trust-icon">🔒</span><span data-es="Pago 100% seguro y cifrado" data-en="100% secure & encrypted payment">Pago 100% seguro y cifrado</span></div>
-        <div class="trust-badge"><span class="trust-icon">🔐</span><span data-es="Acceso protegido vía ProtectCrochet" data-en="Protected access via ProtectCrochet">Acceso protegido vía ProtectCrochet</span></div>
+        <div class="trust-badge"><span class="trust-icon">📥</span><span data-es="Acceso inmediato a tu patrón" data-en="Instant access to your pattern">Acceso inmediato a tu patrón</span></div>
         <div class="trust-badge"><span class="trust-icon">♻️</span><span data-es="Política de reembolso en 7 días" data-en="7-day refund policy">Política de reembolso en 7 días</span></div>
       </div>
       <div class="pay-icons">
@@ -461,7 +461,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <div class="mini-divider"></div>
       <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$0 MXN</span></div>
       <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount"></span></div>
-      <div class="mini-row" id="ms-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="ms-ship-val" style="color:var(--green);" data-es="ProtectCrochet 🔐" data-en="ProtectCrochet 🔐">ProtectCrochet 🔐</span></div>
+      <div class="mini-row" id="ms-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="ms-ship-val" style="color:var(--green);" data-es="📥 Acceso inmediato" data-en="📥 Instant access">📥 Acceso inmediato</span></div>
       <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$0 MXN</span></div>
     </div>
   </div>
@@ -470,7 +470,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 <!-- PAGE 3: CONFIRMATION -->
 <div class="page" id="page-confirm">
   <div class="confirm-wrap">
-    <div class="confirm-icon">🎀</div>
+    <div class="confirm-icon">✅</div>
     <h1 data-es="¡Pedido confirmado!" data-en="Order confirmed!">¡Pedido confirmado!</h1>
     <p class="sub" data-es="Gracias por tu compra. Tu patrón ya está listo para descargar — te enviamos el enlace a tu correo." data-en="Thank you for your purchase! Your pattern is ready to download — we sent the link to your email.">Gracias por tu compra. Tu patrón ya está listo para descargar — te enviamos el enlace a tu correo.</p>
 
@@ -516,7 +516,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 
 <footer>
   <div class="foot-inner">
-    <a href="index.html" class="foot-logo">🎀 KroshaPatterns</a>
+    <a href="index.html" class="foot-logo">KroshaPatterns</a>
     <div class="foot-copy" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       © 2026 kroshapatterns.com ·
       <span style="background:#635BFF;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:800;font-family:system-ui,sans-serif;">stripe</span>
@@ -671,7 +671,7 @@ function applyCoupon(){
   const v=document.getElementById('coupon-input').value.toUpperCase();
   if(v==='KROSHA10'||v==='KROSHA'){
     hasDiscount=true;renderCart();
-    showToast(lang==='es'?'🎀 ¡Cupón aplicado! 10% de descuento':'🎀 Coupon applied! 10% off');
+    showToast(lang==='es'?'✅ ¡Cupón aplicado! 10% de descuento':'✅ Coupon applied! 10% off');
   } else {
     showToast(lang==='es'?'❌ Código inválido':'❌ Invalid code');
   }
@@ -1306,8 +1306,8 @@ function _updateShipTotals(){
     if(sv){sv.textContent=f(shipCost);sv.style.color='var(--text)';}
     if(msv){msv.textContent=f(shipCost);msv.style.color='var(--text)';}
   } else {
-    if(sv){sv.textContent='🔐 ProtectCrochet';sv.style.color='var(--green)';}
-    if(msv){msv.textContent='ProtectCrochet 🔐';msv.style.color='var(--green)';}
+    if(sv){sv.textContent='📥 Acceso inmediato';sv.style.color='var(--green)';}
+    if(msv){msv.textContent='📥 Acceso inmediato';msv.style.color='var(--green)';}
   }
   // Recalculate total
   const cart=getCartItems();
