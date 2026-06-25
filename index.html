@@ -216,6 +216,30 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .nl-input{padding:14px 22px;border-radius:30px;border:none;font-size:14px;font-family:'Nunito',sans-serif;min-width:260px;outline:none;color:var(--text);flex:1;max-width:320px;}
 .nl-btn{background:#3A1E2E;color:#fff;border:none;padding:14px 28px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;white-space:nowrap;transition:background .2s;}
 .nl-btn:hover{background:#5C0E30;}
+
+/* ── ACCOUNT ── */
+.btn-acct{background:var(--pink-mid);color:var(--pink-text);border:1.5px solid var(--border);width:40px;height:40px;border-radius:50%;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;flex-shrink:0;}
+.btn-acct:hover{background:var(--pink-deep);}
+.acct-dot{position:absolute;top:1px;right:1px;width:9px;height:9px;border-radius:50%;background:#2E7D52;border:2px solid var(--white);display:none;}
+.btn-acct.logged .acct-dot{display:block;}
+.acct-ov{position:fixed;inset:0;background:rgba(58,30,46,.45);backdrop-filter:blur(4px);z-index:1100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.acct-ov.open{opacity:1;pointer-events:all;}
+.acct-modal{background:var(--white);border-radius:24px;padding:36px 32px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;position:relative;transform:translateY(20px);transition:transform .25s;}
+.acct-ov.open .acct-modal{transform:translateY(0);}
+.acct-close{position:absolute;top:16px;right:18px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-light);line-height:1;}
+.acct-tabs{display:flex;gap:4px;background:var(--pink-mid);border-radius:30px;padding:4px;margin-bottom:24px;}
+.acct-tab{flex:1;text-align:center;padding:8px 12px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-mid);transition:all .2s;border:none;background:transparent;font-family:'Nunito',sans-serif;}
+.acct-tab.active{background:var(--pink-dark);color:#fff;}
+.acct-field{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:12px;color:var(--text);background:var(--white);box-sizing:border-box;}
+.acct-field:focus{border-color:var(--pink-dark);}
+.acct-btn{width:100%;background:var(--pink-dark);color:#fff;border:none;padding:13px;border-radius:30px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background .2s;margin-top:4px;}
+.acct-btn:hover{background:var(--pink-text);}
+.acct-err{color:#C0392B;font-size:12px;margin-bottom:10px;display:none;}
+.acct-ok{color:#2E7D52;font-size:12px;margin-bottom:10px;display:none;}
+.order-card{border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;font-size:13px;}
+.order-card .oc-ref{font-weight:700;color:var(--pink-dark);margin-bottom:4px;}
+.order-card .oc-items{color:var(--text-mid);margin-bottom:4px;}
+.order-card .oc-date{color:var(--text-light);font-size:11px;}
 </style>
 </head>
 <body>
@@ -294,6 +318,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
+      <button class="btn-acct" id="btn-acct" onclick="openAcctModal()" title="Mi cuenta"><span>👤</span><span class="acct-dot"></span></button>
       <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
     </div>
   </div>
@@ -596,6 +621,7 @@ function _mapProducts(arr){
     yarnList:p.yarnList||null,
     kitPrice:p.kitPrice||0,
     eyesPrice:p.eyesPrice||0,
+    eyesImg:p.eyesImg||'',
     protectUrl:p.protectUrl||'',
     pdfUrl:p.pdfUrl||'',
     patternSlug:p.patternSlug||'',
@@ -962,8 +988,12 @@ function openM(id){
       </div>`;
     }
     if(curProd.eyesPrice>0){
+      const eyeThumb=curProd.eyesImg
+        ?`<img src="${curProd.eyesImg}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">`
+        :`<div style="width:36px;height:36px;border-radius:8px;background:var(--pink-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👀</div>`;
       html+=`<div class="addon-row" id="addon-eyes" onclick="toggleAddon('eyes')">
         <div class="addon-cb" id="cb-eyes"></div>
+        ${eyeThumb}
         <div class="addon-info">
           <strong>${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
           <span>${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
@@ -1091,7 +1121,7 @@ function addToCart(){
   if(addonEyes&&curProd.eyesPrice){
     const eyesId=`${curProd.id}-eyes`;
     const eeyes=cart.find(i=>i.id===eyesId);
-    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:'',qty:1});
+    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:curProd.eyesImg||'',qty:1});
   }
   Object.entries(addonYarns).forEach(([color,qty])=>{
     const yp=yarnProducts.find(p=>p.yarnColorName===color);
@@ -1216,6 +1246,197 @@ window.addEventListener('storage', e=>{
   if(e.key===CART_KEY){updateCartBadge();}
   if(e.key==='krosha_wishlist'){updateWishBadge();}
 });
+
+// ── ACCOUNT SYSTEM ──
+const SESS_KEY='krosha_session';
+let _session=null;
+
+function _loadSession(){
+  try{_session=JSON.parse(localStorage.getItem(SESS_KEY)||'null');}catch(e){_session=null;}
+  _updateAcctBtn();
+}
+function _saveSession(s){_session=s;localStorage.setItem(SESS_KEY,JSON.stringify(s));_updateAcctBtn();}
+function _clearSession(){_session=null;localStorage.removeItem(SESS_KEY);_updateAcctBtn();}
+function _updateAcctBtn(){
+  const btn=document.getElementById('btn-acct');
+  if(!btn)return;
+  btn.classList.toggle('logged',!!_session);
+}
+
+function openAcctModal(){
+  const el=document.getElementById('acct-ov');
+  if(!el)return;
+  if(_session){
+    showAcctView();
+  } else {
+    showAcctTab('login');
+  }
+  el.classList.add('open');
+}
+function closeAcctModal(){
+  const el=document.getElementById('acct-ov');
+  if(el)el.classList.remove('open');
+}
+
+function showAcctTab(tab){
+  document.getElementById('acct-view-auth').style.display='';
+  document.getElementById('acct-view-account').style.display='none';
+  document.getElementById('acct-form-login').style.display=tab==='login'?'':'none';
+  document.getElementById('acct-form-register').style.display=tab==='register'?'':'none';
+  document.getElementById('acct-tab-login').classList.toggle('active',tab==='login');
+  document.getElementById('acct-tab-register').classList.toggle('active',tab==='register');
+  _clearAcctMsg();
+}
+function showAcctView(){
+  document.getElementById('acct-view-auth').style.display='none';
+  document.getElementById('acct-view-account').style.display='';
+  document.getElementById('acct-name-display').textContent=_session.name||_session.email;
+  document.getElementById('acct-email-display').textContent=_session.email;
+  loadUserOrders();
+}
+function _clearAcctMsg(){
+  ['acct-err-login','acct-ok-login','acct-err-register','acct-ok-register'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.style.display='none';el.textContent='';}
+  });
+}
+
+async function loginUser(){
+  const email=document.getElementById('login-email').value.trim();
+  const pwd=document.getElementById('login-pwd').value;
+  const errEl=document.getElementById('acct-err-login');
+  if(!email||!pwd){errEl.textContent='Completa todos los campos.';errEl.style.display='';return;}
+  const btn=document.getElementById('login-btn');btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email,password:pwd})});
+    const d=await r.json();
+    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al iniciar sesión';errEl.style.display='';return;}
+    _saveSession({email:d.email,name:d.name,token:d.token});
+    await _syncCartOnLogin();
+    showAcctView();
+  }catch(e){errEl.textContent='Error de conexión';errEl.style.display='';}
+  finally{btn.textContent='Iniciar sesión';btn.disabled=false;}
+}
+
+async function registerUser(){
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pwd=document.getElementById('reg-pwd').value;
+  const errEl=document.getElementById('acct-err-register');
+  const okEl=document.getElementById('acct-ok-register');
+  if(!email||!pwd){errEl.textContent='Email y contraseña requeridos.';errEl.style.display='';return;}
+  const btn=document.getElementById('register-btn');btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email,password:pwd,name})});
+    const d=await r.json();
+    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al registrarse';errEl.style.display='';return;}
+    _saveSession({email:d.email,name:d.name,token:d.token});
+    await _syncCartOnLogin();
+    okEl.textContent='¡Cuenta creada! Bienvenida 🎀';okEl.style.display='';
+    setTimeout(()=>showAcctView(),1000);
+  }catch(e){errEl.textContent='Error de conexión';errEl.style.display='';}
+  finally{btn.textContent='Crear cuenta';btn.disabled=false;}
+}
+
+async function logoutUser(){
+  if(_session?.token){
+    fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout',token:_session.token})}).catch(()=>{});
+  }
+  _clearSession();
+  closeAcctModal();
+  showToast('👋 Sesión cerrada');
+}
+
+async function loadUserOrders(){
+  const container=document.getElementById('acct-orders');
+  if(!container||!_session)return;
+  container.innerHTML='<div style="color:var(--text-light);font-size:13px;">Cargando pedidos...</div>';
+  try{
+    const r=await fetch('/api/auth',{headers:{'x-auth-token':_session.token}});
+    if(!r.ok){container.innerHTML='<div style="color:var(--text-light);font-size:13px;">No se pudieron cargar los pedidos.</div>';return;}
+    const orders=await r.json();
+    if(!orders.length){container.innerHTML='<div style="color:var(--text-light);font-size:13px;">Aún no tienes pedidos. 🎀</div>';return;}
+    container.innerHTML=orders.map(o=>`
+      <div class="order-card">
+        <div class="oc-ref">Pedido #${o.ref||o.id}</div>
+        <div class="oc-items">${o.products||''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+          <span style="font-weight:700;color:var(--pink-dark);">$${o.total} ${o.currency||'MXN'}</span>
+          <span style="font-size:11px;padding:2px 10px;border-radius:20px;background:${o.status==='paid'?'#D4EFE3':'#FFF0F5'};color:${o.status==='paid'?'#2E7D52':'#8B3565'};font-weight:700;">${o.status==='paid'?'✓ Pagado':'Pendiente'}</span>
+        </div>
+        <div class="oc-date">${o.date?new Date(o.date).toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}):''}</div>
+      </div>`).join('');
+  }catch(e){container.innerHTML='<div style="color:var(--text-light);font-size:13px;">Error al cargar pedidos.</div>';}
+}
+
+async function _syncCartOnLogin(){
+  if(!_session)return;
+  const localCart=JSON.parse(localStorage.getItem(CART_KEY)||'[]');
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync-cart',token:_session.token,cart:localCart})});
+    const d=await r.json();
+    if(d.ok&&Array.isArray(d.cart)&&d.cart.length>localCart.length){
+      localStorage.setItem(CART_KEY,JSON.stringify(d.cart));
+      updateCartBadge();
+    }
+  }catch(e){}
+}
+
+// Sync cart to Redis when user changes it
+const _origSaveCart=window.saveCart;
+function saveCart(c){
+  localStorage.setItem(CART_KEY,JSON.stringify(c));
+  if(_session?.token){
+    fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'sync-cart',token:_session.token,cart:c})}).catch(()=>{});
+  }
+}
+
+_loadSession();
 </script>
+
+<!-- ACCOUNT MODAL -->
+<div class="acct-ov" id="acct-ov" onclick="if(event.target===this)closeAcctModal()">
+  <div class="acct-modal">
+    <button class="acct-close" onclick="closeAcctModal()">×</button>
+
+    <!-- Auth (login/register) -->
+    <div id="acct-view-auth">
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-style:italic;color:var(--pink-text);text-align:center;margin-bottom:20px;">Mi cuenta</div>
+      <div class="acct-tabs">
+        <button class="acct-tab active" id="acct-tab-login" onclick="showAcctTab('login')">Iniciar sesión</button>
+        <button class="acct-tab" id="acct-tab-register" onclick="showAcctTab('register')">Registrarse</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="acct-form-login">
+        <div class="acct-err" id="acct-err-login"></div>
+        <div class="acct-ok" id="acct-ok-login"></div>
+        <input class="acct-field" id="login-email" type="email" placeholder="Correo electrónico">
+        <input class="acct-field" id="login-pwd" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')loginUser()">
+        <button class="acct-btn" id="login-btn" onclick="loginUser()">Iniciar sesión</button>
+        <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">¿No tienes cuenta? <a onclick="showAcctTab('register')" style="color:var(--pink-dark);cursor:pointer;font-weight:700;">Regístrate</a></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="acct-form-register" style="display:none;">
+        <div class="acct-err" id="acct-err-register"></div>
+        <div class="acct-ok" id="acct-ok-register"></div>
+        <input class="acct-field" id="reg-name" type="text" placeholder="Tu nombre">
+        <input class="acct-field" id="reg-email" type="email" placeholder="Correo electrónico">
+        <input class="acct-field" id="reg-pwd" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')registerUser()">
+        <button class="acct-btn" id="register-btn" onclick="registerUser()">Crear cuenta</button>
+        <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">¿Ya tienes cuenta? <a onclick="showAcctTab('login')" style="color:var(--pink-dark);cursor:pointer;font-weight:700;">Inicia sesión</a></div>
+      </div>
+    </div>
+
+    <!-- Account view -->
+    <div id="acct-view-account" style="display:none;">
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-style:italic;color:var(--pink-text);text-align:center;margin-bottom:4px;">Hola, <span id="acct-name-display"></span> 🎀</div>
+      <div style="text-align:center;font-size:12px;color:var(--text-light);margin-bottom:24px;" id="acct-email-display"></div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">Mis pedidos</div>
+      <div id="acct-orders"></div>
+      <button onclick="logoutUser()" style="width:100%;margin-top:18px;background:none;border:1.5px solid var(--border);border-radius:20px;padding:10px;font-size:13px;font-weight:700;color:var(--text-light);cursor:pointer;font-family:'Nunito',sans-serif;">Cerrar sesión</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

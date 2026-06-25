@@ -264,7 +264,10 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 
 <!-- PAGE 1: CART -->
 <div class="page active" id="page-cart">
-  <h2 class="cart-title" data-es="Tu carrito 🎀" data-en="Your cart 🎀">Tu carrito 🎀</h2>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+    <h2 class="cart-title" style="margin-bottom:0;" data-es="Tu carrito 🎀" data-en="Your cart 🎀">Tu carrito 🎀</h2>
+    <button onclick="clearCart()" style="background:none;border:1.5px solid #F0C8DC;border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:#C06090;cursor:pointer;font-family:'Nunito',sans-serif;" data-es="Vaciar carrito" data-en="Clear cart">Vaciar carrito</button>
+  </div>
   <div class="cart-layout">
     <div>
       <!-- ITEMS — rendered dynamically from localStorage -->
@@ -582,11 +585,11 @@ function renderCart(){
         <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
         <div class="ci-actions">
           <div class="qty-box">
-            <button class="qty-btn" onclick="chQty(this,-1,${item.id})">−</button>
+            <button class="qty-btn" onclick="chQty(this,-1,'${item.id}')">−</button>
             <input class="qty-n" value="${item.qty}" readonly>
-            <button class="qty-btn" onclick="chQty(this,1,${item.id})">+</button>
+            <button class="qty-btn" onclick="chQty(this,1,'${item.id}')">+</button>
           </div>
-          <button class="remove-btn" onclick="removeItem(${item.id})">${lang==='es'?'Eliminar':'Remove'}</button>
+          <button class="remove-btn" onclick="removeItem('${item.id}')">${lang==='es'?'Eliminar':'Remove'}</button>
         </div>
       </div>
       <div class="ci-price">${f(item.price*item.qty)}</div>
@@ -647,16 +650,21 @@ function setLang(l){
 
 function chQty(btn,d,id){
   const cart=getCartItems();
-  const item=cart.find(i=>i.id===id);
+  const item=cart.find(i=>String(i.id)===String(id));
   if(!item)return;
   item.qty=Math.max(1,item.qty+d);
   saveCart(cart);renderCart();updateNavCart();
 }
 
 function removeItem(id){
-  const cart=getCartItems().filter(i=>i.id!==id);
+  const cart=getCartItems().filter(i=>String(i.id)!==String(id));
   saveCart(cart);renderCart();updateNavCart();
   showToast(lang==='es'?'🗑 Eliminado':'🗑 Removed');
+}
+function clearCart(){
+  if(!confirm(lang==='es'?'¿Vaciar todo el carrito?':'Clear entire cart?'))return;
+  saveCart([]);renderCart();updateNavCart();
+  showToast(lang==='es'?'🗑 Carrito vaciado':'🗑 Cart cleared');
 }
 
 function applyCoupon(){
