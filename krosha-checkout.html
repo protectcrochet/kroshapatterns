@@ -947,14 +947,17 @@ async function processMercadoPago(email,name,btn){
 }
 
 // ── ENRICH ITEMS WITH DOWNLOAD URLS ──
+// patternSlug and pdfUrl are already in cart items (saved at add-to-cart time).
+// This function is kept as a no-op fallback for old cart items without those fields.
 function enrichItemsWithDownloads(items){
   try{
     const stored=JSON.parse(localStorage.getItem('krosha_products')||'[]');
     return items.map(item=>{
+      // If already has delivery info, keep it
+      if(item.patternSlug||item.pdfUrl) return item;
+      // Fallback: look up in admin localStorage (only works on admin's own browser)
       const prod=stored.find(p=>p.id===item.id||p.id===parseInt(item.id));
-      if(prod){
-        return{...item,patternSlug:prod.patternSlug||'',pdfUrl:prod.pdfUrl||''};
-      }
+      if(prod) return{...item,patternSlug:prod.patternSlug||'',pdfUrl:prod.pdfUrl||''};
       return item;
     });
   }catch(e){return items;}
