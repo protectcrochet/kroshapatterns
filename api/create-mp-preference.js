@@ -1,6 +1,37 @@
 // api/create-mp-preference.js
 // Vercel Serverless Function — Mercado Pago Checkout Pro
 
+function buildPaymentMethods(paymentType) {
+  if (paymentType === 'oxxo') {
+    // Allow only ticket (OXXO/cash) in Mexico
+    return {
+      excluded_payment_types: [
+        { id: 'credit_card' },
+        { id: 'debit_card' },
+        { id: 'bank_transfer' },
+        { id: 'atm' },
+        { id: 'prepaid_card' },
+        { id: 'digital_currency' },
+        { id: 'digital_wallet' },
+        { id: 'voucher_card' },
+      ],
+    };
+  }
+  if (paymentType === 'card') {
+    // Exclude cash/ticket methods, allow only cards
+    return {
+      excluded_payment_types: [
+        { id: 'ticket' },
+        { id: 'atm' },
+        { id: 'bank_transfer' },
+      ],
+      installments: 1,
+    };
+  }
+  // Default: all methods
+  return { excluded_payment_types: [], installments: 1 };
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://kroshapatterns.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -15,7 +46,7 @@ export default async function handler(req, res) {
       accessToken: process.env.MP_ACCESS_TOKEN,
     });
 
-    const { items, customerEmail, customerName, currency } = req.body;
+    const { items, customerEmail, customerName, currency, paymentType } = req.body;
 
     if (!items?.length || !customerEmail) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -59,10 +90,7 @@ export default async function handler(req, res) {
           email: customerEmail,
           name: customerName || 'Cliente',
         },
-        payment_methods: {
-          excluded_payment_types: [],
-          installments: 1,
-        },
+        payment_methods: buildPaymentMethods(paymentType),
         back_urls: {
           success: 'https://kroshapatterns.com/krosha-checkout.html?status=success&method=mp',
           failure: 'https://kroshapatterns.com/krosha-checkout.html?status=failure',
@@ -75,10 +103,9 @@ export default async function handler(req, res) {
       },
     });
 
-    return res.status(200).json({
-      preferenceId: result.id,
-      initPoint: result.init_point,
-    });
+    const response = { preferenceId: result.id, initPoint: result.init_point };
+    if (paymentType === 'oxxo') response.oxxoPoint = result.init_point;
+    return res.status(200).json(response);
 
   } catch (err) {
     console.error('MP error:', err);
