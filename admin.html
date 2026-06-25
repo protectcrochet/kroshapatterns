@@ -232,7 +232,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </nav>
     <div class="sb-bottom">
       <a href="index.html" target="_blank" class="sb-logout">🌐 Ver tienda</a>
-      <div class="sb-logout" onclick="publishProducts()" style="background:var(--pink);color:#fff;font-weight:700;border-radius:10px;text-align:center;margin-bottom:6px;">💾 Guardar en línea</div>
+      <div class="sb-logout" onclick="saveAll()" id="save-all-btn" style="background:var(--pink);color:#fff;font-weight:700;border-radius:10px;text-align:center;margin-bottom:6px;">💾 Guardar todo</div>
       <div class="sb-logout" onclick="doLogout()">🚪 Cerrar sesión</div>
     </div>
   </div>
@@ -359,8 +359,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="page-header">
         <div class="page-title">Hero <em>& Banners</em> 🎨</div>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-outline" onclick="saveHero()">💾 Guardar</button>
-          <button class="btn btn-pink" onclick="publishHero()">🚀 Publicar Hero</button>
+          <button class="btn btn-pink" onclick="saveHero()">💾 Guardar</button>
         </div>
       </div>
 
@@ -465,7 +464,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-inventory">
       <div class="page-header">
         <div class="page-title">Inventario de Estambres <em>🧶</em></div>
-        <button class="btn btn-pink" onclick="publishInventory()">🚀 Publicar Inventario</button>
+        <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
       </div>
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
@@ -1039,6 +1038,26 @@ function doLogin(){
     document.getElementById('pwd-input').value='';
   }
 }
+async function saveAll(){
+  const btn=document.getElementById('save-all-btn');
+  if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
+  try{
+    const key='krosha2024';
+    const [r1,r2,r3]=await Promise.all([
+      fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({products:getProds()})}),
+      fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify(getHero())}),
+      fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify(getInventory())}),
+    ]);
+    if(!r1.ok||!r2.ok||!r3.ok) throw new Error(`Error HTTP: productos=${r1.status} hero=${r2.status} inv=${r3.status}`);
+    showToast('✅ Todo guardado y aplicado en todos los dispositivos');
+  }catch(e){
+    showToast('❌ '+e.message,'warn');
+    console.error('saveAll error:',e);
+  }finally{
+    if(btn){btn.textContent='💾 Guardar todo';btn.style.pointerEvents='';}
+  }
+}
+
 async function publishProducts(){
   const prods=getProds();
   if(!prods.length){showToast('No hay productos guardados.','warn');return;}
@@ -1070,10 +1089,7 @@ function doLogout(){
 function getProds(){return JSON.parse(localStorage.getItem(PRODS_KEY)||'[]');}
 function saveProds(d){
   localStorage.setItem(PRODS_KEY,JSON.stringify(d));
-  clearTimeout(saveProds._t);
-  saveProds._t=setTimeout(()=>{
-    fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify({products:d})}).catch(()=>{});
-  },600);
+  _scheduleSync();
 }
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
@@ -1082,10 +1098,7 @@ function saveCusts(d){localStorage.setItem(CUSTS_KEY,JSON.stringify(d));}
 function getHero(){return JSON.parse(localStorage.getItem(HERO_KEY)||JSON.stringify({title1Es:'Tu crochet,',title1En:'Your crochet,',title2Es:'más bonito',title2En:'more beautiful',subEs:'Patrones PDF exclusivos, kits completos con materiales y hilos premium — todo diseñado por Jennyfer.',subEn:'Exclusive PDF patterns, complete kits with materials and premium yarn — all designed by Jennyfer.',annEs:'🎀 Acceso vía ProtectCrochet · Envíos a México y República Dominicana · +40 patrones',annEn:'🎀 Access via ProtectCrochet · Shipping to Mexico & Dominican Republic · 40+ patterns',strip:[{icon:'🔐',es:'Acceso protegido',sub_es:'Vía ProtectCrochet'},{icon:'💳',es:'Pago seguro',sub_es:'Stripe · PayPal · Mercado Pago'},{icon:'🌍',es:'Tu moneda',sub_es:'MXN, USD, EUR, DOP'},{icon:'🎀',es:'+40 patrones',sub_es:'Todos los niveles'}]}));}
 function saveHeroData(d){
   localStorage.setItem(HERO_KEY,JSON.stringify(d));
-  clearTimeout(saveHeroData._t);
-  saveHeroData._t=setTimeout(()=>{
-    fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(d)}).catch(()=>{});
-  },600);
+  _scheduleSync();
 }
 
 // ── INIT ──
@@ -1758,10 +1771,12 @@ const INV_KEY='krosha_inventory';
 function getInventory(){return JSON.parse(localStorage.getItem(INV_KEY)||'{}');}
 function saveInventory(inv){
   localStorage.setItem(INV_KEY,JSON.stringify(inv));
-  clearTimeout(saveInventory._t);
-  saveInventory._t=setTimeout(()=>{
-    fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(inv)}).catch(()=>{});
-  },600);
+  _scheduleSync();
+}
+let _syncTimer=null;
+function _scheduleSync(){
+  clearTimeout(_syncTimer);
+  _syncTimer=setTimeout(()=>saveAll(),600);
 }
 
 function renderInventory(){
