@@ -1045,9 +1045,12 @@ async function publishProducts(){
   const orig=btn?btn.textContent:'';
   if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify({products:prods})});
-    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(`HTTP ${r.status}: ${e.error||'Error'}`)}
-    showToast('✅ ¡Guardado! ('+prods.length+' productos) — visible en todos los dispositivos');
+    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify({products:prods})});
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(`HTTP ${r.status}: ${e.error||'Error'}`);}
+    // Verify by reading back
+    const check=await fetch('/api/products').then(x=>x.json()).catch(()=>[]);
+    if(!check.length) throw new Error('Guardado pero Redis devolvió vacío — contacta soporte');
+    showToast('✅ Guardado y verificado: '+check.length+' productos en línea');
   }catch(e){
     showToast('❌ Error al guardar: '+e.message,'warn');
     console.error('publishProducts error:',e);
@@ -1068,7 +1071,7 @@ function saveProds(d){
   localStorage.setItem(PRODS_KEY,JSON.stringify(d));
   clearTimeout(saveProds._t);
   saveProds._t=setTimeout(()=>{
-    fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify({products:d})}).catch(()=>{});
+    fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify({products:d})}).catch(()=>{});
   },600);
 }
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
@@ -1080,7 +1083,7 @@ function saveHeroData(d){
   localStorage.setItem(HERO_KEY,JSON.stringify(d));
   clearTimeout(saveHeroData._t);
   saveHeroData._t=setTimeout(()=>{
-    fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify(d)}).catch(()=>{});
+    fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(d)}).catch(()=>{});
   },600);
 }
 
@@ -1470,7 +1473,7 @@ async function updateOrderStatus(newStatus){
   saveOrders(updated);
   // Save to server
   try{
-    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify(_viewingOrder)});
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(_viewingOrder)});
   }catch(e){}
   renderOrdersTable();
   showToast('Estado actualizado: '+statusLabel(newStatus));
@@ -1670,7 +1673,7 @@ async function publishHero(){
   const orig=btn?.textContent||'🚀 Publicar Hero';
   if(btn){btn.textContent='⏳ Guardando…';btn.disabled=true;}
   try{
-    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify(getHero())});
+    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(getHero())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('🎨 ¡Hero guardado! Visible en todos los dispositivos al instante');
   }catch(e){
@@ -1756,7 +1759,7 @@ function saveInventory(inv){
   localStorage.setItem(INV_KEY,JSON.stringify(inv));
   clearTimeout(saveInventory._t);
   saveInventory._t=setTimeout(()=>{
-    fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify(inv)}).catch(()=>{});
+    fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(inv)}).catch(()=>{});
   },600);
 }
 
@@ -1810,7 +1813,7 @@ async function publishInventory(){
   const btn=event.currentTarget;
   const origTxt=btn.textContent;btn.textContent='⏳ Guardando...';btn.disabled=true;
   try{
-    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha-internal-2024'},body:JSON.stringify(getInventory())});
+    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},body:JSON.stringify(getInventory())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('✅ ¡Inventario guardado! Visible al instante en todos los dispositivos');
   }catch(e){
