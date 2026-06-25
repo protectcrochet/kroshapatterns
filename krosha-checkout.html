@@ -210,6 +210,45 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
   .form-grid{grid-template-columns:1fr;}
   .card-row{grid-template-columns:1fr 1fr;}
 }
+
+@media(max-width:600px){
+  /* Nav */
+  .nav-inner{padding:0 1rem;}
+  .nav-right{gap:6px;}
+  .lang-toggle{display:none;}
+  .cur-sel{padding:5px 8px;font-size:11px;}
+  .logo{font-size:20px;}
+  .cart-label{display:none;}
+  .btn-cart{padding:9px 13px;font-size:13px;}
+
+  /* Page padding */
+  .page{padding:24px 16px 60px;}
+
+  /* Cart title row */
+  .cart-title{font-size:24px;margin-bottom:16px;}
+
+  /* Cart item — stack price below */
+  .cart-item{padding:14px;gap:12px;flex-wrap:wrap;}
+  .ci-img{width:64px;height:64px;}
+  .ci-name{font-size:15px;}
+  .ci-price{width:100%;text-align:left;font-size:16px;padding-top:4px;border-top:1px solid var(--border);margin-top:4px;}
+  .ci-actions{flex-wrap:wrap;gap:8px;}
+
+  /* Coupon row */
+  .coupon-row{flex-direction:column;gap:8px;}
+  .coupon-input{width:100%;}
+  .coupon-btn{width:100%;}
+
+  /* Summary box */
+  .summary-box{padding:18px 16px;}
+  .summary-box h3{font-size:18px;}
+
+  /* Checkout form */
+  .checkout-form{padding:20px 16px;}
+
+  /* Confirmation */
+  .confirm-wrap{padding:30px 16px;}
+}
 </style>
 </head>
 <body>
@@ -246,7 +285,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
-      <button class="btn-cart-nav" onclick="showCartPage()">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="nav-cn">0</span></button>
+      <button class="btn-cart-nav" onclick="showCartPage()">🛍 <span class="cart-label" data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="nav-cn">0</span></button>
     </div>
   </div>
 </nav>
