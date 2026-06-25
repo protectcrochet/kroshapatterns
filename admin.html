@@ -730,7 +730,31 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <button class="modal-close" onclick="closeOrderDetail()">✕</button>
     </div>
     <div id="order-detail-body" style="font-size:14px;line-height:1.8;"></div>
-    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+
+    <!-- SECCIÓN GUÍA DE ENVÍO -->
+    <div id="shipping-section" style="display:none;background:#F5F5FF;border:1.5px solid #D0C8F8;border-radius:14px;padding:16px;margin-top:16px;">
+      <div style="font-size:13px;font-weight:700;color:#3A1E2E;margin-bottom:10px;">🚚 Generar guía de envío</div>
+      <div id="shipment-existing" style="display:none;margin-bottom:10px;"></div>
+      <div id="shipment-form">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:130px;">
+            <label style="font-size:11px;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">PAQUETERÍA</label>
+            <select id="ship-carrier-sel" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+              <option value="fedex">FedEx</option>
+              <option value="dhl">DHL</option>
+              <option value="estafeta">Estafeta</option>
+              <option value="redpack">Redpack</option>
+              <option value="paquetexpress">Paquetexpress</option>
+              <option value="ups">UPS</option>
+            </select>
+          </div>
+          <button class="btn btn-pink" id="gen-guia-btn" onclick="generateShippingLabel()" style="height:36px;">📦 Generar guía</button>
+        </div>
+        <div id="gen-guia-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
       <select id="order-detail-status" style="flex:1;min-width:140px;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:13px;" onchange="updateOrderStatus(this.value)">
         <option value="pending">⏳ Pendiente</option>
         <option value="paid">✅ Pagado</option>
@@ -1476,7 +1500,34 @@ function viewOrder(refOrId){
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-bottom:6px;">
       <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">PRODUCTOS</div>
       <div style="font-size:13px;color:var(--text);">${o.products||'—'}</div>
-    </div>`;
+    </div>
+    ${o.shippingAddress?`
+    <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;">
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">DIRECCIÓN DE ENVÍO</div>
+      <div style="font-size:13px;color:var(--text);">${o.shippingAddress.street} ${o.shippingAddress.number||''}, ${o.shippingAddress.colonia||''}</div>
+      <div style="font-size:13px;color:var(--text);">${o.shippingAddress.city}, ${o.shippingAddress.state} CP ${o.shippingAddress.zip}</div>
+    </div>`:''}`;
+
+  // Mostrar sección de guía solo si tiene dirección física
+  const shipSec=document.getElementById('shipping-section');
+  const shipExisting=document.getElementById('shipment-existing');
+  if(o.shippingAddress){
+    shipSec.style.display='';
+    if(o.shipment){
+      shipExisting.style.display='';
+      shipExisting.innerHTML=`<div style="background:#D4EFE3;border-radius:8px;padding:10px 12px;font-size:12px;">
+        <strong>✅ Guía generada — ${(o.shipment.carrier||'').toUpperCase()}</strong><br>
+        Tracking: <strong>${o.shipment.trackingNumber||'—'}</strong><br>
+        ${o.shipment.labelUrl?`<a href="${o.shipment.labelUrl}" target="_blank" style="color:#2E7D52;font-weight:700;">📄 Descargar PDF</a>`:''}
+        ${o.shipment.trackUrl?` · <a href="${o.shipment.trackUrl}" target="_blank" style="color:#2E7D52;">🔍 Rastrear</a>`:''}
+      </div>`;
+    } else {
+      shipExisting.style.display='none';
+    }
+  } else {
+    shipSec.style.display='none';
+  }
+  document.getElementById('gen-guia-result').innerHTML='';
   document.getElementById('order-detail-status').value=o.status||'paid';
   document.getElementById('order-detail-modal').classList.add('open');
 }
@@ -1497,6 +1548,44 @@ async function updateOrderStatus(newStatus){
   }catch(e){}
   renderOrdersTable();
   showToast('Estado actualizado: '+statusLabel(newStatus));
+}
+
+async function generateShippingLabel(){
+  if(!_viewingOrder)return;
+  const carrier=document.getElementById('ship-carrier-sel').value;
+  const btn=document.getElementById('gen-guia-btn');
+  const result=document.getElementById('gen-guia-result');
+  btn.textContent='⏳ Generando...';btn.disabled=true;
+  result.innerHTML='';
+  try{
+    const r=await fetch('/api/shipping',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':'krosha2024'},
+      body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),carrier}),
+    });
+    const d=await r.json();
+    if(!r.ok||!d.ok){
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía'}</span>`;
+      return;
+    }
+    const s=d.shipment;
+    _viewingOrder.shipment=s;
+    _viewingOrder.status='shipped';
+    document.getElementById('order-detail-status').value='shipped';
+    document.getElementById('shipment-existing').style.display='';
+    document.getElementById('shipment-existing').innerHTML=`<div style="background:#D4EFE3;border-radius:8px;padding:10px 12px;font-size:12px;">
+      <strong>✅ Guía generada — ${carrier.toUpperCase()}</strong><br>
+      Tracking: <strong>${s.trackingNumber||'—'}</strong><br>
+      ${s.labelUrl?`<a href="${s.labelUrl}" target="_blank" style="color:#2E7D52;font-weight:700;">📄 Descargar PDF guía</a>`:''}
+      ${s.trackUrl?` · <a href="${s.trackUrl}" target="_blank" style="color:#2E7D52;">🔍 Rastrear</a>`:''}
+    </div>`;
+    showToast('✅ Guía generada — '+carrier.toUpperCase());
+    renderOrdersTable();
+  }catch(e){
+    result.innerHTML=`<span style="color:var(--red);">❌ Error de conexión</span>`;
+  }finally{
+    btn.textContent='📦 Generar guía';btn.disabled=false;
+  }
 }
 
 async function resendOrderAccess(){

@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { customerEmail, customerName, items, total, currency, payMethod, orderRef } = req.body;
+    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress } = req.body;
 
     if (!customerEmail || !items?.length) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -223,6 +223,7 @@ export default async function handler(req, res) {
           currency: currency || 'MXN',
           method: payMethod || 'stripe',
           status: 'paid',
+          shippingAddress: shippingAddress || null,
         });
         if (orders.length > 500) orders.length = 500;
         await redis.set('krosha:orders', JSON.stringify(orders));

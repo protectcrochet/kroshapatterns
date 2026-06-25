@@ -1020,6 +1020,16 @@ async function sendConfirmationEmail(email,name,items,total,payMethod){
         customerEmail:email,customerName:name,
         items,total,currency:cur,payMethod,
         orderRef:ref,
+        shippingAddress:hasPhysicalItems()?{
+          street:document.getElementById('ship-street')?.value?.trim()||'',
+          number:'',
+          colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
+          city:document.getElementById('ship-city')?.value?.trim()||'',
+          state:document.getElementById('ship-state')?.value?.trim()||'',
+          zip:document.getElementById('ship-zip')?.value?.trim()||'',
+          phone:document.getElementById('checkout-phone')?.value?.trim()||'',
+          country:'MX',
+        }:null,
       }),
     });
     const d=await r.json().catch(()=>({}));
