@@ -451,14 +451,24 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <div class="form-section">
           <h3>💳 <span data-es="Método de pago" data-en="Payment method">Método de pago</span></h3>
           <div class="pay-methods">
-            <div class="pay-method sel" onclick="selPay(this,'stripe')">
+            <div class="pay-method sel" id="pm-mp" onclick="selPay(this,'mp')">
               <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+              <div style="width:52px;height:32px;background:#009EE3;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="color:#fff;font-weight:800;font-size:9.5px;font-family:system-ui,sans-serif;text-align:center;line-height:1.2;padding:2px;">Mercado<br>Pago</span>
+              </div>
+              <div class="pay-method-info">
+                <h4>Mercado Pago</h4>
+                <p data-es="Tarjeta, OXXO, transferencia — México y LATAM" data-en="Card, OXXO, transfer — Mexico & LATAM">Tarjeta, OXXO, transferencia — México y LATAM</p>
+              </div>
+            </div>
+            <div class="pay-method" onclick="selPay(this,'stripe')">
+              <div class="pay-radio"></div>
               <div style="width:52px;height:32px;background:#635BFF;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                 <span style="color:#fff;font-weight:800;font-size:13px;font-family:system-ui,sans-serif;letter-spacing:-.5px;">stripe</span>
               </div>
               <div class="pay-method-info">
                 <h4>Stripe</h4>
-                <p data-es="Visa, Mastercard, Amex — Pago seguro" data-en="Visa, Mastercard, Amex — Secure payment">Visa, Mastercard, Amex — Pago seguro</p>
+                <p data-es="Visa, Mastercard, Amex — Pago internacional" data-en="Visa, Mastercard, Amex — International payment">Visa, Mastercard, Amex — Pago internacional</p>
               </div>
             </div>
             <div class="pay-method" onclick="selPay(this,'paypal')">
@@ -469,16 +479,6 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               <div class="pay-method-info">
                 <h4>PayPal</h4>
                 <p data-es="Pago internacional — Protección al comprador" data-en="International payment — Buyer protection">Pago internacional — Protección al comprador</p>
-              </div>
-            </div>
-            <div class="pay-method" onclick="selPay(this,'mp')">
-              <div class="pay-radio"></div>
-              <div style="width:52px;height:32px;background:#009EE3;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <span style="color:#fff;font-weight:800;font-size:9.5px;font-family:system-ui,sans-serif;text-align:center;line-height:1.2;padding:2px;">Mercado<br>Pago</span>
-              </div>
-              <div class="pay-method-info">
-                <h4>Mercado Pago</h4>
-                <p data-es="OXXO, tiendas de conveniencia, tarjeta — ideal para México y LATAM" data-en="OXXO, convenience stores, card — ideal for Mexico and LATAM">OXXO, tiendas, tarjeta — ideal para México y LATAM</p>
               </div>
             </div>
           </div>
@@ -578,7 +578,7 @@ const countryToCurrency={
   UY:'UYU',BO:'BOB',PY:'PYG',GT:'GTQ',HN:'HNL',
   NI:'NIO',CR:'CRC',PA:'USD',VE:'USD',EC:'USD',SV:'USD',
 };
-let cur='MXN', lang='es', hasDiscount=false, selPayMethod='stripe';
+let cur='MXN', lang='es', hasDiscount=false, selPayMethod='mp';
 let stripeInst=null, stripeCard=null;
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
@@ -788,13 +788,25 @@ function selPay(el,method){
     loadPayPalBtn();
   } else if(method==='mp'){
     container.innerHTML=`
-      <div style="background:#fff7e6;border-radius:12px;padding:16px 18px;border:1.5px solid #ffe0a0;display:flex;align-items:center;gap:12px;">
-        <span style="font-size:28px;">🏪</span>
-        <div>
-          <div style="font-weight:700;color:#7a5200;font-size:14px;">${lang==='es'?'Serás redirigida a Mercado Pago':'You will be redirected to Mercado Pago'}</div>
-          <div style="font-size:12px;color:#a07020;margin-top:2px;">${lang==='es'?'OXXO · Tarjeta · Transferencia · y más':'OXXO · Card · Transfer · and more'}</div>
+      <div style="background:#E8F6FD;border-radius:12px;padding:16px 18px;border:1.5px solid #b0ddf7;">
+        <div style="font-size:12px;font-weight:700;color:#006FA6;margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;">¿Cómo quieres pagar?</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button onclick="confirmOrderMP('card')" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #b0ddf7;border-radius:10px;padding:12px 14px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#006FA6;text-align:left;">
+            <span style="font-size:20px;">💳</span>
+            <span>${lang==='es'?'Pagar con tarjeta de crédito / débito':'Pay with credit / debit card'}</span>
+          </button>
+          <button onclick="confirmOrderMP('oxxo')" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #b0ddf7;border-radius:10px;padding:12px 14px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#006FA6;text-align:left;">
+            <span style="font-size:20px;">🏪</span>
+            <span>${lang==='es'?'Pagar en OXXO':'Pay at OXXO'}</span>
+          </button>
+          <button onclick="confirmOrderMP(null)" style="display:flex;align-items:center;gap:10px;background:#009EE3;border:none;border-radius:10px;padding:12px 14px;cursor:pointer;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#fff;text-align:left;">
+            <span style="font-size:20px;">📱</span>
+            <span>${lang==='es'?'Abrir app Mercado Pago (más opciones)':'Open Mercado Pago app (more options)'}</span>
+          </button>
         </div>
       </div>`;
+    // Ocultar el botón genérico de confirmar — los botones de MP lo reemplazan
+    btn.style.display='none';
   }
 }
 
@@ -949,6 +961,41 @@ async function processStripe(email,name,btn){
     else showToast('⚠️ '+e.message);
     btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
     btn.disabled=false;btn.style.opacity='1';
+  }
+}
+
+// ── MERCADO PAGO — botones directos por tipo ──
+async function confirmOrderMP(paymentType){
+  // Validate form first
+  const email=document.getElementById('checkout-email')?.value?.trim();
+  const name=document.getElementById('checkout-name')?.value?.trim();
+  if(!email||!name){showToast(lang==='es'?'⚠️ Completa nombre y correo':'⚠️ Fill name and email');return;}
+
+  // Disable all MP buttons while loading
+  const mpBtns=document.querySelectorAll('#card-fields button');
+  mpBtns.forEach(b=>{b.disabled=true;b.style.opacity='.6';});
+  const label=lang==='es'?'Cargando...':'Loading...';
+  if(mpBtns[0])mpBtns[0].textContent=label;
+
+  try{
+    const items=enrichItemsWithDownloads(getCartItems());
+    const total=getCartTotal();
+    const body={items,customerEmail:email,customerName:name,currency:cur};
+    if(paymentType)body.paymentType=paymentType; // 'card' | 'oxxo' | null
+    const res=await fetch('/api/create-mp-preference',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||'Error Mercado Pago');
+    localStorage.setItem('krosha_pending_email',email);
+    localStorage.setItem('krosha_pending_name',name);
+    localStorage.setItem('krosha_pending_total',total);
+    localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
+    localStorage.setItem('krosha_pending_cur',cur);
+    // Usa initPoint directo (abre app MP si está instalada) o link específico
+    const url=(paymentType==='oxxo'&&data.oxxoPoint)||data.initPoint;
+    window.location.href=url;
+  }catch(e){
+    showToast('⚠️ '+e.message);
+    mpBtns.forEach(b=>{b.disabled=false;b.style.opacity='1';});
   }
 }
 
