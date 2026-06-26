@@ -651,7 +651,7 @@ function renderCart(){
 
 function updateSummary(sub){
   const disc=hasDiscount?Math.round(sub*.1):0;
-  const total=sub-disc+shipCost;
+  const total=sub-disc+_effectiveShipCost();
   const cart=getCartItems();
   const sl=document.getElementById('subtotal-label');
   if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${cart.length} ${lang==='es'?'producto':'item'}${cart.length!==1?'s':''})`;
@@ -667,7 +667,7 @@ function updateSummary(sub){
 
 function renderMiniSummary(cart,sub){
   const disc=hasDiscount?Math.round(sub*.1):0;
-  const total=sub-disc+shipCost;
+  const total=sub-disc+_effectiveShipCost();
   const mi=document.getElementById('mini-items');
   if(mi)mi.innerHTML=cart.map((item,i)=>`
     <div class="mini-item">
@@ -1335,11 +1335,13 @@ let shipCost=0, _shipRates=[], _selRateIdx=0;
 function hasPhysicalItems(){
   const cart=getCartItems();
   return cart.some(i=>{
+    if((i.shipContrib||0)>0)return true; // tiene aportación de envío → es físico
     const t=String(i.id);
     return t.includes('-kit')||t.includes('-eyes')||
       (i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('kit')||
       i.title.toLowerCase().includes('estambre')||
+      i.title.toLowerCase().includes('ovillo')||
       i.title.toLowerCase().includes('hilo')||
       i.title.toLowerCase().includes('ojos');
   });
