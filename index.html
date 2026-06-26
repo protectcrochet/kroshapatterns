@@ -1291,9 +1291,29 @@ function showAcctTab(tab){
   document.getElementById('acct-view-account').style.display='none';
   document.getElementById('acct-form-login').style.display=tab==='login'?'':'none';
   document.getElementById('acct-form-register').style.display=tab==='register'?'':'none';
+  document.getElementById('acct-form-reset').style.display=tab==='reset'?'':'none';
   document.getElementById('acct-tab-login').classList.toggle('active',tab==='login');
-  document.getElementById('acct-tab-register').classList.toggle('active',tab==='register');
+  document.getElementById('acct-tab-register').classList.toggle('active',tab==='register'&&tab!=='reset');
   _clearAcctMsg();
+}
+
+async function resetPassword(){
+  const email=document.getElementById('reset-email').value.trim();
+  const pwd=document.getElementById('reset-pwd').value;
+  const errEl=document.getElementById('acct-err-reset');
+  const okEl=document.getElementById('acct-ok-reset');
+  if(!email||!pwd){errEl.textContent='Completa los dos campos.';errEl.style.display='block';return;}
+  if(pwd.length<6){errEl.textContent='La contraseña debe tener al menos 6 caracteres.';errEl.style.display='block';return;}
+  const btn=document.getElementById('reset-btn');btn.textContent='⏳';btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'reset-password',email,password:pwd})});
+    const d=await r.json();
+    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al cambiar contraseña';errEl.style.display='block';return;}
+    okEl.textContent='✅ Contraseña actualizada. Ya puedes iniciar sesión.';okEl.style.display='block';
+    setTimeout(()=>showAcctTab('login'),2000);
+  }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='block';}
+  finally{btn.textContent='Cambiar contraseña';btn.disabled=false;}
 }
 function showAcctView(){
   document.getElementById('acct-view-auth').style.display='none';
@@ -1422,6 +1442,18 @@ _loadSession();
         <input class="acct-field" id="login-pwd" type="password" placeholder="Contraseña" onkeydown="if(event.key==='Enter')loginUser()">
         <button class="acct-btn" id="login-btn" onclick="loginUser()">Iniciar sesión</button>
         <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);">¿No tienes cuenta? <a onclick="showAcctTab('register')" style="color:var(--pink-dark);cursor:pointer;font-weight:700;">Regístrate</a></div>
+        <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--text-light);">¿Olvidaste tu contraseña? <a onclick="showAcctTab('reset')" style="color:var(--pink-dark);cursor:pointer;font-weight:700;">Cambiarla</a></div>
+      </div>
+
+      <!-- RESET PASSWORD -->
+      <div id="acct-form-reset" style="display:none;">
+        <div style="font-size:13px;color:var(--text-mid);margin-bottom:14px;">Escribe tu correo y una nueva contraseña.</div>
+        <div class="acct-err" id="acct-err-reset"></div>
+        <div class="acct-ok" id="acct-ok-reset"></div>
+        <input class="acct-field" id="reset-email" type="email" placeholder="Correo electrónico">
+        <input class="acct-field" id="reset-pwd" type="password" placeholder="Nueva contraseña" onkeydown="if(event.key==='Enter')resetPassword()">
+        <button class="acct-btn" id="reset-btn" onclick="resetPassword()">Cambiar contraseña</button>
+        <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-light);"><a onclick="showAcctTab('login')" style="color:var(--pink-dark);cursor:pointer;font-weight:700;">← Volver al login</a></div>
       </div>
 
       <!-- REGISTER -->

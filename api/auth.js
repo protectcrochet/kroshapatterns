@@ -43,9 +43,9 @@ export default async function handler(req, res) {
     if (action === 'login') {
       if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
       const raw = await redis.get(`krosha:user:${email.toLowerCase()}`);
-      if (!raw) return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+      if (!raw) return res.status(401).json({ error: 'No encontramos una cuenta con ese correo. ¿Ya te registraste?' });
       const user = typeof raw === 'string' ? JSON.parse(raw) : raw;
-      if (user.passwordHash !== hashPwd(password)) return res.status(401).json({ error: 'Email o contraseña incorrectos' });
+      if (user.passwordHash !== hashPwd(password)) return res.status(401).json({ error: 'Contraseña incorrecta. Intenta de nuevo.' });
       const tok = makeToken(email);
       await redis.set(`krosha:session:${tok}`, email.toLowerCase(), { ex: 30 * 24 * 3600 });
       return res.status(200).json({ ok: true, token: tok, email: user.email, name: user.name });
@@ -64,6 +64,17 @@ export default async function handler(req, res) {
     // ── LOGOUT ──
     if (action === 'logout') {
       if (token) await redis.del(`krosha:session:${token}`);
+      return res.status(200).json({ ok: true });
+    }
+
+    // ── RESET PASSWORD (sin verificación — solo para uso propio) ──
+    if (action === 'reset-password') {
+      if (!email || !password) return res.status(400).json({ error: 'Email y nueva contraseña requeridos' });
+      const raw = await redis.get(`krosha:user:${email.toLowerCase()}`);
+      if (!raw) return res.status(404).json({ error: 'No existe cuenta con ese correo' });
+      const user = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      user.passwordHash = hashPwd(password);
+      await redis.set(`krosha:user:${email.toLowerCase()}`, JSON.stringify(user));
       return res.status(200).json({ ok: true });
     }
 
