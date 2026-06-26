@@ -1312,16 +1312,16 @@ async function loginUser(){
   const email=document.getElementById('login-email').value.trim();
   const pwd=document.getElementById('login-pwd').value;
   const errEl=document.getElementById('acct-err-login');
-  if(!email||!pwd){errEl.textContent='Completa todos los campos.';errEl.style.display='';return;}
+  if(!email||!pwd){errEl.textContent='Completa todos los campos.';errEl.style.display='block';return;}
   const btn=document.getElementById('login-btn');btn.textContent='⏳';btn.disabled=true;
   try{
     const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'login',email,password:pwd})});
     const d=await r.json();
-    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al iniciar sesión';errEl.style.display='';return;}
+    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al iniciar sesión';errEl.style.display='block';return;}
     _saveSession({email:d.email,name:d.name,token:d.token});
     await _syncCartOnLogin();
     showAcctView();
-  }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='';}
+  }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='block';}
   finally{btn.textContent='Iniciar sesión';btn.disabled=false;}
 }
 
@@ -1331,17 +1331,17 @@ async function registerUser(){
   const pwd=document.getElementById('reg-pwd').value;
   const errEl=document.getElementById('acct-err-register');
   const okEl=document.getElementById('acct-ok-register');
-  if(!email||!pwd){errEl.textContent='Email y contraseña requeridos.';errEl.style.display='';return;}
+  if(!email||!pwd){errEl.textContent='Email y contraseña requeridos.';errEl.style.display='block';return;}
   const btn=document.getElementById('register-btn');btn.textContent='⏳';btn.disabled=true;
   try{
     const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'register',email,password:pwd,name})});
     const d=await r.json();
-    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al registrarse';errEl.style.display='';return;}
+    if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al registrarse';errEl.style.display='block';return;}
     _saveSession({email:d.email,name:d.name,token:d.token});
     await _syncCartOnLogin();
-    okEl.textContent='¡Cuenta creada! Bienvenida 🎀';okEl.style.display='';
+    okEl.textContent='¡Cuenta creada! Bienvenida 🎀';okEl.style.display='block';
     setTimeout(()=>showAcctView(),1000);
-  }catch(e){errEl.textContent='Error de conexión';errEl.style.display='';}
+  }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='block';}
   finally{btn.textContent='Crear cuenta';btn.disabled=false;}
 }
 
