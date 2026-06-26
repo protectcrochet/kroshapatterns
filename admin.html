@@ -690,6 +690,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <label>Foto Ojos de Seguridad (URL)</label>
           <input type="text" id="pf-eyes-img" placeholder="https://... (imagen del par de ojos)">
         </div>
+        <div class="field">
+          <label>Aportación de envío por pieza (MXN) <span style="font-weight:400;color:var(--text-light);">— ej: 10 para ovillos</span></label>
+          <input type="number" id="pf-ship-contrib" placeholder="0 = sin aportación" min="0">
+        </div>
       </div>
     </div>
     <!-- ENTREGA DIGITAL -->
@@ -1271,6 +1275,7 @@ function editProd(id){
   document.getElementById('pf-kit-price').value=p.kitPrice||'';
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-eyes-img').value=p.eyesImg||'';
+  document.getElementById('pf-ship-contrib').value=p.shipContrib||'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
   const pdfRow=document.getElementById('pdf-preview-row');
@@ -1313,6 +1318,7 @@ function saveProd(){
     kitPrice:parseFloat(document.getElementById('pf-kit-price').value)||0,
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     eyesImg:document.getElementById('pf-eyes-img').value.trim(),
+    shipContrib:parseFloat(document.getElementById('pf-ship-contrib').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
     imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',
