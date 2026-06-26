@@ -67,6 +67,37 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ── GET PROFILE (name + savedAddresses) ──
+    if (action === 'get-profile') {
+      if (!token) return res.status(401).json({ error: 'Sin token' });
+      const em = await redis.get(`krosha:session:${token}`);
+      if (!em) return res.status(401).json({ error: 'Sesión expirada' });
+      const raw = await redis.get(`krosha:user:${em}`);
+      const user = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+      return res.status(200).json({ ok: true, name: user.name || '', savedAddresses: user.savedAddresses || [] });
+    }
+
+    // ── SAVE ADDRESS ──
+    if (action === 'save-address') {
+      if (!token) return res.status(401).json({ error: 'Sin token' });
+      const { address } = req.body || {};
+      if (!address?.street) return res.status(400).json({ error: 'Dirección requerida' });
+      const em = await redis.get(`krosha:session:${token}`);
+      if (!em) return res.status(401).json({ error: 'Sesión expirada' });
+      const raw = await redis.get(`krosha:user:${em}`);
+      const user = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+      const addrs = user.savedAddresses || [];
+      // Evitar duplicados exactos
+      const isDup = addrs.some(a => a.street === address.street && a.zip === address.zip);
+      if (!isDup) {
+        addrs.unshift(address);
+        if (addrs.length > 5) addrs.length = 5; // máximo 5 direcciones
+        user.savedAddresses = addrs;
+        await redis.set(`krosha:user:${em}`, JSON.stringify(user));
+      }
+      return res.status(200).json({ ok: true });
+    }
+
     // ── SYNC CART ──
     if (action === 'sync-cart') {
       if (!token) return res.status(401).json({ error: 'Sin token' });

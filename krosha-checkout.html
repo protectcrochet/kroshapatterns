@@ -351,20 +351,23 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <!-- Contact -->
         <div class="form-section">
           <h3>📧 <span data-es="Información de contacto" data-en="Contact information">Información de contacto</span></h3>
+          <div id="autofill-banner" style="display:none;background:#F0F8FF;border:1px solid #b0d4f7;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#1a5276;">
+            👤 <span id="autofill-msg">Datos cargados de tu cuenta</span>
+          </div>
           <div class="form-grid full">
             <div class="field">
               <label data-es="CORREO ELECTRÓNICO" data-en="EMAIL">CORREO ELECTRÓNICO</label>
-              <input type="email" placeholder="tu@email.com">
+              <input type="email" id="checkout-email" placeholder="tu@email.com">
             </div>
           </div>
           <div class="form-grid" style="margin-top:12px;">
             <div class="field">
-              <label data-es="NOMBRE" data-en="FIRST NAME">NOMBRE</label>
-              <input type="text" id="fname" placeholder="Jennyfer">
+              <label data-es="NOMBRE COMPLETO" data-en="FULL NAME">NOMBRE COMPLETO</label>
+              <input type="text" id="checkout-name" placeholder="Tu nombre completo">
             </div>
             <div class="field">
-              <label data-es="APELLIDO" data-en="LAST NAME">APELLIDO</label>
-              <input type="text" placeholder="García">
+              <label data-es="TELÉFONO (opcional)" data-en="PHONE (optional)">TELÉFONO (opcional)</label>
+              <input type="tel" id="checkout-phone" placeholder="10 dígitos">
             </div>
           </div>
         </div>
@@ -416,6 +419,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
             <div style="background:var(--blush);border-radius:12px;padding:13px 15px;border:1px solid var(--border);margin-bottom:12px;font-size:12.5px;color:var(--text-mid);">
               📦 <strong>Envío físico detectado</strong> — Por favor ingresa tu dirección de entrega.
             </div>
+            <!-- Selector de dirección guardada (solo si está logueada) -->
+            <div id="saved-addr-box" style="display:none;margin-bottom:12px;"></div>
             <div class="form-grid full" style="margin-bottom:12px;">
               <div class="field">
                 <label data-es="CALLE Y NÚMERO" data-en="STREET & NUMBER">CALLE Y NÚMERO</label>
@@ -441,6 +446,13 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
                 <label data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
                 <input type="text" id="ship-zip" placeholder="06600" maxlength="10" oninput="autoQuoteShipping()">
               </div>
+            </div>
+            <!-- Guardar dirección (solo si está logueada) -->
+            <div id="save-addr-check" style="display:none;margin-top:10px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-mid);cursor:pointer;">
+                <input type="checkbox" id="chk-save-addr" style="width:16px;height:16px;accent-color:var(--pink-text);">
+                <span data-es="Guardar esta dirección en mi cuenta" data-en="Save this address to my account">Guardar esta dirección en mi cuenta</span>
+              </label>
             </div>
           </div>
           <!-- SHIPPING INFO — shown only for physical items -->
@@ -720,7 +732,64 @@ function goToCheckout(){
   document.getElementById('page-cart').classList.remove('active');
   document.getElementById('page-checkout').classList.add('active');
   updateShipping();
+  _prefillFromSession();
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function _prefillFromSession(){
+  try{
+    const sess=JSON.parse(localStorage.getItem('krosha_session')||'null');
+    if(!sess||!sess.email)return;
+    const emailEl=document.getElementById('checkout-email');
+    const nameEl=document.getElementById('checkout-name');
+    if(emailEl&&!emailEl.value)emailEl.value=sess.email;
+    if(nameEl&&!nameEl.value&&sess.name)nameEl.value=sess.name;
+    const banner=document.getElementById('autofill-banner');
+    if(banner){banner.style.display='';document.getElementById('autofill-msg').textContent='Datos cargados de tu cuenta — '+(sess.name||sess.email);}
+    // Mostrar checkbox guardar dirección (siempre que esté logueada)
+    const chkBox=document.getElementById('save-addr-check');
+    if(chkBox)chkBox.style.display='';
+    // Cargar direcciones guardadas si hay
+    if(sess.token)_loadSavedAddresses(sess.token);
+  }catch(e){}
+}
+
+async function _loadSavedAddresses(token){
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'get-profile',token})});
+    const d=await r.json();
+    if(!d.ok||!d.savedAddresses?.length)return;
+    // Mostrar checkbox guardar dirección
+    const chkBox=document.getElementById('save-addr-check');
+    if(chkBox)chkBox.style.display='';
+    // Mostrar selector de direcciones guardadas
+    const box=document.getElementById('saved-addr-box');
+    if(!box)return;
+    const opts=d.savedAddresses.map((a,i)=>`<option value="${i}">${a.street}, ${a.colonia?a.colonia+', ':''}${a.city} ${a.zip}</option>`).join('');
+    box.style.display='';
+    box.innerHTML=`<div style="background:#F0F8FF;border:1px solid #b0d4f7;border-radius:10px;padding:10px 14px;font-size:13px;">
+      <label style="font-weight:700;color:#1a5276;display:block;margin-bottom:6px;">📍 Usar dirección guardada</label>
+      <select id="saved-addr-sel" style="width:100%;border:1.5px solid #b0d4f7;border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;"
+        onchange="_fillSavedAddress(${JSON.stringify(d.savedAddresses)},this.value)">
+        <option value="">— Ingresar nueva dirección —</option>
+        ${opts}
+      </select>
+    </div>`;
+    window._savedAddresses=d.savedAddresses;
+  }catch(e){}
+}
+
+function _fillSavedAddress(addrs,idx){
+  if(idx==='')return;
+  const a=addrs[parseInt(idx)];
+  if(!a)return;
+  document.getElementById('ship-street').value=a.street||'';
+  document.getElementById('ship-colonia').value=a.colonia||'';
+  document.getElementById('ship-city').value=a.city||'';
+  document.getElementById('ship-state').value=a.state||'';
+  document.getElementById('ship-zip').value=a.zip||'';
+  if(a.zip)autoQuoteShipping();
 }
 
 function goBackToCart(){
@@ -771,7 +840,7 @@ function selPay(el,method){
       <div style="padding:16px;background:var(--pink-bg);border-radius:12px;border:1.5px solid var(--border);">
         <div class="field" style="margin-bottom:12px;">
           <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mid);">${lang==='es'?'NOMBRE EN TARJETA':'NAME ON CARD'}</label>
-          <input type="text" id="card-name" placeholder="${lang==='es'?'Jennyfer García':'Jennyfer García'}"
+          <input type="text" id="card-name" placeholder="${lang==='es'?'Nombre como aparece en tu tarjeta':'Name as it appears on your card'}"
             style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;background:#fff;margin-top:5px;">
         </div>
         <div class="field">
@@ -900,8 +969,8 @@ function loadMPSDK(cb){loadScript('https://sdk.mercadopago.com/js/v2',cb);}
 
 // ── CONFIRM ORDER ──
 async function confirmOrder(){
-  const email=document.querySelector('input[type="email"]')?.value?.trim()||'';
-  const name=document.getElementById('fname')?.value?.trim()||'Cliente';
+  const email=document.getElementById('checkout-email')?.value?.trim()||'';
+  const name=document.getElementById('checkout-name')?.value?.trim()||'Cliente';
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
 
   const btn=document.getElementById('confirm-btn');
@@ -1080,11 +1149,32 @@ async function sendConfirmationEmail(email,name,items,total,payMethod){
       }),
     });
     const d=await r.json().catch(()=>({}));
+    // Guardar dirección en cuenta si el usuario marcó el checkbox
+    if(hasPhysicalItems()&&document.getElementById('chk-save-addr')?.checked){
+      _saveAddressToAccount();
+    }
     return{ref:d.orderRef||ref,downloadToken:d.downloadToken||null};
   }catch(e){
     console.log('Email error:',e);
     return{ref:`KP-${Date.now().toString().slice(-6)}`,downloadToken:null};
   }
+}
+
+async function _saveAddressToAccount(){
+  try{
+    const sess=JSON.parse(localStorage.getItem('krosha_session')||'null');
+    if(!sess?.token)return;
+    const addr={
+      street:document.getElementById('ship-street')?.value?.trim()||'',
+      colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
+      city:document.getElementById('ship-city')?.value?.trim()||'',
+      state:document.getElementById('ship-state')?.value?.trim()||'',
+      zip:document.getElementById('ship-zip')?.value?.trim()||'',
+      phone:document.getElementById('checkout-phone')?.value?.trim()||'',
+    };
+    await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'save-address',token:sess.token,address:addr})});
+  }catch(e){}
 }
 
 // ── SUCCESS ──
@@ -1177,8 +1267,8 @@ function loadMP(callback){
 
 // ── CONFIRM ORDER — REAL PAYMENTS ──
 async function confirmOrder(){
-  const email=document.querySelector('input[type="email"]').value;
-  const name=document.getElementById('fname').value||'Cliente';
+  const email=document.getElementById('checkout-email')?.value?.trim()||'';
+  const name=document.getElementById('checkout-name')?.value?.trim()||'Cliente';
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
 
   // Validate shipping address if physical items
