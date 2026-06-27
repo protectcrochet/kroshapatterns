@@ -955,9 +955,7 @@ function getCartTotal(){
   const cart=getCartItems();
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
-  const contrib=cart.reduce((s,i)=>s+(i.shipContrib||0)*i.qty,0);
-  const effective=shipCost>0?Math.max(0,shipCost-contrib):0;
-  return Math.round((sub-disc+effective)*(rates[cur]||1)*100)/100;
+  return Math.round((sub-disc+_effectiveShipCost())*(rates[cur]||1)*100)/100;
 }
 
 // ── LOAD SDKs ──
@@ -1338,7 +1336,6 @@ let shipCost=0, _shipRates=[], _selRateIdx=0;
 function hasPhysicalItems(){
   const cart=getCartItems();
   return cart.some(i=>{
-    if((i.shipContrib||0)>0)return true; // tiene aportación de envío → es físico
     const t=String(i.id);
     return t.includes('-kit')||t.includes('-eyes')||
       (i.img&&i.img.startsWith('yarn:'))||
@@ -1488,32 +1485,40 @@ function selectShipRate(idx){
   _updateShipTotals();
 }
 
-function _shipContribTotal(){
-  // Sum shipContrib * qty for all items in cart
-  return getCartItems().reduce((s,i)=>s+(i.shipContrib||0)*i.qty,0);
+const SHIP_SUBSIDY_PER_SKEIN = 10; // $10 MXN de subsidio por ovillo/estambre
+
+function _countSkeins(){
+  // Detecta ovillos/estambres automáticamente por imagen o título
+  return getCartItems()
+    .filter(i=>(i.img&&i.img.startsWith('yarn:'))||
+      i.title.toLowerCase().includes('estambre')||
+      i.title.toLowerCase().includes('ovillo'))
+    .reduce((s,i)=>s+i.qty, 0);
 }
 
 function _effectiveShipCost(){
   if(shipCost<=0)return 0;
-  return Math.max(0, shipCost - _shipContribTotal());
+  const subsidy=_countSkeins()*SHIP_SUBSIDY_PER_SKEIN;
+  return Math.max(0, shipCost-subsidy);
 }
 
 function _updateShipTotals(){
   const sv=document.getElementById('sum-ship-val');
   const msv=document.getElementById('ms-ship-val');
-  const shipRow=document.getElementById('sum-ship-row');
-  const contrib=_shipContribTotal();
+  const skeins=_countSkeins();
+  const subsidy=skeins*SHIP_SUBSIDY_PER_SKEIN;
   const effective=_effectiveShipCost();
   if(shipCost>0){
-    const contribNote=contrib>0?` <span style="font-size:11px;color:var(--green);">(-$${contrib} incluido)</span>`:'';
-    const display=effective===0?`<span style="color:var(--green);">¡Envío cubierto!</span>`:`${f(effective)}${contribNote}`;
+    const subsidyNote=subsidy>0?` <span style="font-size:11px;color:var(--green);">(-$${subsidy} de ${skeins} ovillo${skeins!==1?'s':''})</span>`:'';
+    const display=effective===0
+      ?`<span style="color:var(--green);">¡Envío cubierto!</span>`
+      :`${f(effective)}${subsidyNote}`;
     if(sv){sv.innerHTML=display;sv.style.color='var(--text)';}
     if(msv){msv.innerHTML=display;msv.style.color='var(--text)';}
   } else {
     if(sv){sv.innerHTML='📥 Acceso inmediato';sv.style.color='var(--green)';}
     if(msv){msv.innerHTML='📥 Acceso inmediato';msv.style.color='var(--green)';}
   }
-  // Total usa el costo efectivo (ya descontada la aportación)
   const cart=getCartItems();
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
