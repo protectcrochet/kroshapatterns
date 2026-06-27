@@ -632,7 +632,6 @@ function _mapProducts(arr){
     kitPrice:p.kitPrice||0,
     eyesPrice:p.eyesPrice||0,
     eyesImg:p.eyesImg||'',
-    shipContrib:p.shipContrib||0,
     protectUrl:p.protectUrl||'',
     pdfUrl:p.pdfUrl||'',
     patternSlug:p.patternSlug||'',
@@ -1100,7 +1099,7 @@ function qAdd(id){
   const existing=cart.find(i=>i.id===id);
   const imgVal=p.yarnColorName?(getYarnImg(p.yarnColorName)||`yarn:${getYarnHex(p.yarnColorName)}`):p.images[0]||'';
   const label=p.yarnColorName?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title);
-  if(existing)existing.qty++;else cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty:1,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipContrib:p.shipContrib||0});
+  if(existing)existing.qty++;else cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty:1,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''});
   saveCart(cart);updateCartBadge();
   showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
 }
@@ -1121,7 +1120,7 @@ function addToCart(){
   if(!curProd)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===curProd.id);
-  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipContrib:curProd.shipContrib||0});
+  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||''});
   if(addonKit&&curProd.kitPrice){
     const kitId=`${curProd.id}-kit`;
     const ekit=cart.find(i=>i.id===kitId);
