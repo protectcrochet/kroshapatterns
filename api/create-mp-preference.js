@@ -103,7 +103,7 @@ export default async function handler(req, res) {
       },
     });
 
-    const response = { preferenceId: result.id, initPoint: result.init_point };
+    const response = { preferenceId: result.id, initPoint: result.init_point, orderRef: ref };
     if (paymentType === 'oxxo') response.oxxoPoint = result.init_point;
     return res.status(200).json(response);
 

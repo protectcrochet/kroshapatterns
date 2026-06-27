@@ -1061,6 +1061,7 @@ async function confirmOrderMP(paymentType){
     localStorage.setItem('krosha_pending_total',total);
     localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
     localStorage.setItem('krosha_pending_cur',cur);
+    if(data.orderRef)localStorage.setItem('krosha_pending_ref',data.orderRef);
     // Usa initPoint directo (abre app MP si está instalada) o link específico
     const url=(paymentType==='oxxo'&&data.oxxoPoint)||data.initPoint;
     window.location.href=url;
@@ -1098,6 +1099,7 @@ async function processMercadoPago(email,name,btn){
     localStorage.setItem('krosha_pending_total',total);
     localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
     localStorage.setItem('krosha_pending_cur',cur);
+    if(data.orderRef)localStorage.setItem('krosha_pending_ref',data.orderRef);
 
     // Redirect to MP Checkout Pro — real payment page
     btn.textContent=lang==='es'?'Redirigiendo a Mercado Pago...':'Redirecting to Mercado Pago...';
@@ -1128,9 +1130,9 @@ function enrichItemsWithDownloads(items){
 }
 
 // ── SEND EMAIL ──
-async function sendConfirmationEmail(email,name,items,total,payMethod){
+async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
   try{
-    const ref=`KP-${Date.now().toString().slice(-6)}`;
+    const ref=orderRef||`KP-${Date.now().toString().slice(-6)}`;
     const r=await fetch('/api/send-confirmation',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -1226,12 +1228,13 @@ async function checkReturnStatus(){
     const savedCur=localStorage.getItem('krosha_pending_cur')||'MXN';
     // Use saved items (cart may already be cleared after redirect)
     const savedItems=JSON.parse(localStorage.getItem('krosha_pending_items')||'[]');
+    const savedRef=localStorage.getItem('krosha_pending_ref')||'';
     const items=savedItems.length?savedItems:getCartItems();
     cur=savedCur;
     const payLabel=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
     let ref='',downloadToken=null;
-    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel);ref=r.ref;downloadToken=r.downloadToken;}
-    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur'].forEach(k=>localStorage.removeItem(k));
+    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel,savedRef);ref=r.ref;downloadToken=r.downloadToken;}
+    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur','krosha_pending_ref'].forEach(k=>localStorage.removeItem(k));
     setTimeout(()=>{
       showSuccess(payLabel,ref,items,total,downloadToken);
     },300);

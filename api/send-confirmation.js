@@ -42,6 +42,20 @@ export default async function handler(req, res) {
 
     const ref = orderRef || `KP-${Date.now().toString().slice(-6)}`;
 
+    // ── Dedup: si el pedido ya existe en Redis, no reenviar correo ──
+    if (orderRef) {
+      try {
+        const { Redis } = await import('@upstash/redis');
+        const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
+        const raw = await redis.get('krosha:orders');
+        const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+        if (orders.find(o => o.ref === ref)) {
+          console.log(`Dedup: pedido ${ref} ya procesado, omitiendo correo.`);
+          return res.status(200).json({ success: true, orderRef: ref, duplicate: true });
+        }
+      } catch (e) { /* no bloquear si Redis falla */ }
+    }
+
     // ── Resolver URLs de entrega por item ──
     const resolvedItems = await Promise.all(items.map(async (item) => {
       if (item.patternSlug) {
