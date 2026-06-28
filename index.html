@@ -250,6 +250,23 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .order-card .oc-ref{font-weight:700;color:var(--pink-dark);margin-bottom:4px;}
 .order-card .oc-items{color:var(--text-mid);margin-bottom:4px;}
 .order-card .oc-date{color:var(--text-light);font-size:11px;}
+.trial-badge{position:absolute;top:10px;left:10px;background:#22c55e;color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;z-index:2;letter-spacing:.05em;}
+.discount-banner{background:linear-gradient(90deg,#C06090,#9333ea);color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;display:none;align-items:center;justify-content:center;gap:10px;position:relative;}
+.discount-banner .db-close{background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.trial-modal{display:none;position:fixed;inset:0;background:rgba(58,30,46,.85);z-index:400;align-items:center;justify-content:center;}
+.trial-modal.open{display:flex;}
+.trial-modal-box{background:#fff;border-radius:24px;padding:36px 32px;max-width:420px;width:90%;text-align:center;}
+.trial-modal-box h3{font-family:'Fraunces',serif;font-size:26px;color:#8B3565;margin-bottom:10px;}
+.trial-modal-box p{font-size:14px;color:#7A4D65;margin-bottom:20px;line-height:1.6;}
+.trial-modal-box .btn-trial-dl{display:block;background:#22c55e;color:#fff;text-decoration:none;padding:14px 24px;border-radius:30px;font-weight:700;font-size:15px;margin-bottom:14px;}
+.trial-modal-box .btn-trial-dl:hover{background:#16a34a;}
+.trial-discount-box{background:linear-gradient(135deg,#fdf0f5,#ede9fe);border:2px dashed #C06090;border-radius:16px;padding:18px;margin-top:4px;}
+.trial-discount-box .tdb-title{font-size:20px;font-weight:700;color:#C06090;margin-bottom:6px;}
+.trial-discount-box .tdb-desc{font-size:13px;color:#7A4D65;line-height:1.5;}
+.btn-trial-close{background:none;border:none;color:#B48EA8;font-size:13px;cursor:pointer;margin-top:14px;font-family:'Nunito',sans-serif;}
+.mbtn-trial{width:100%;background:#22c55e;color:#fff;border:none;padding:16px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;margin-bottom:10px;transition:background .2s;}
+.mbtn-trial:hover{background:#16a34a;}
+.mbtn-trial:disabled{background:#9ca3af;cursor:default;}
 </style>
 </head>
 <body>
@@ -295,6 +312,11 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 
 <!-- NAV -->
 <nav class="nav-bar">
+<!-- DISCOUNT BANNER -->
+<div class="discount-banner" id="discount-banner">
+  <span>🎉 ¡25% de descuento en tu primera compra por ser cuenta nueva!</span>
+  <button class="db-close" onclick="document.getElementById('discount-banner').style.display='none'">×</button>
+</div>
   <div class="nav-ann" id="nav-ann" data-es="🎀 Acceso vía ProtectCrochet · Envíos a México y USA · +40 patrones" data-en="🎀 Access via ProtectCrochet · Shipping to Mexico & USA · 40+ patterns">🎀 Acceso vía ProtectCrochet · Envíos a México y USA · +40 patrones</div>
   <div class="nav-inner">
     <a href="#" class="logo">KroshaPatterns</a>
@@ -874,6 +896,7 @@ function renderCard(p,i,wish){
           :`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
         :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" style="object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});transform-origin:${p.imagePosition||'50% 20%'};" onerror="this.style.display='none'">`
       }
+      ${p.isTrial?'<span class="trial-badge">🎁 GRATIS</span>':''}
       <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
       <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">${wish.includes(p.id)?'♥':'♡'}</button>
     </div>
@@ -1038,6 +1061,34 @@ function openM(id){
     if(fmtEl)fmtEl.textContent='PDF Digital';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  }
+  // Trial pattern: override buttons
+  if(curProd.isTrial) {
+    let trialBtn=document.getElementById('mbtn-trial');
+    if(!trialBtn){
+      trialBtn=document.createElement('button');
+      trialBtn.id='mbtn-trial';
+      trialBtn.className='mbtn-trial';
+      btnBuy.parentNode.insertBefore(trialBtn,btnBuy);
+    }
+    btnBuy.style.display='none';
+    btnAdd.style.display='none';
+    if(!_session){
+      trialBtn.textContent=lang==='es'?'🎁 Regístrate y obtén este patrón GRATIS':'🎁 Sign up and get this pattern FREE';
+      trialBtn.onclick=()=>{closeM();openAcctModal();};
+      trialBtn.disabled=false;
+    } else if(_benefits&&!_benefits.trialUsed){
+      trialBtn.textContent=lang==='es'?'🎁 Obtener GRATIS (patrón de prueba)':'🎁 Get FREE (trial pattern)';
+      trialBtn.onclick=claimTrial;
+      trialBtn.disabled=false;
+    } else {
+      trialBtn.style.display='none';
+      btnBuy.style.display='';
+      btnAdd.style.display='';
+    }
+  } else {
+    const old=document.getElementById('mbtn-trial');
+    if(old)old.style.display='none';
   }
   document.getElementById('ov').classList.add('open');
 }
@@ -1340,6 +1391,7 @@ async function loginUser(){
     if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al iniciar sesión';errEl.style.display='block';return;}
     _saveSession({email:d.email,name:d.name,token:d.token});
     await _syncCartOnLogin();
+    _loadBenefits();
     showAcctView();
   }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='block';}
   finally{btn.textContent='Iniciar sesión';btn.disabled=false;}
@@ -1359,7 +1411,8 @@ async function registerUser(){
     if(!r.ok||!d.ok){errEl.textContent=d.error||'Error al registrarse';errEl.style.display='block';return;}
     _saveSession({email:d.email,name:d.name,token:d.token});
     await _syncCartOnLogin();
-    okEl.textContent='¡Cuenta creada! Bienvenida 🎀';okEl.style.display='block';
+    _loadBenefits();
+    okEl.textContent='¡Cuenta creada! Bienvenida 🎀 — ¡Tu patrón de prueba y 25% OFF te esperan!';okEl.style.display='block';
     setTimeout(()=>showAcctView(),1000);
   }catch(e){errEl.textContent='Error de conexión: '+e.message;errEl.style.display='block';}
   finally{btn.textContent='Crear cuenta';btn.disabled=false;}
@@ -1428,6 +1481,56 @@ function saveCart(c){
 }
 
 _loadSession();
+// ── TRIAL + DISCOUNT SYSTEM ──
+const BENEFITS_KEY='krosha_benefits';
+let _benefits=null;
+
+async function _loadBenefits(){
+  if(!_session)return;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'check-benefits',token:_session.token})});
+    const d=await r.json();
+    if(d.ok){
+      _benefits={trialUsed:d.trialUsed,hasNewAccountDiscount:d.hasNewAccountDiscount};
+      localStorage.setItem(BENEFITS_KEY,JSON.stringify(_benefits));
+      _showDiscountBanner();
+    }
+  }catch(e){}
+}
+
+function _showDiscountBanner(){
+  const banner=document.getElementById('discount-banner');
+  if(banner&&_benefits?.hasNewAccountDiscount){
+    banner.style.display='flex';
+    // Also store for checkout page to pick up
+    localStorage.setItem('krosha_new_account_discount','true');
+  }
+}
+
+async function claimTrial(){
+  const btn=document.getElementById('mbtn-trial');
+  if(!btn)return;
+  btn.textContent=lang==='es'?'Procesando...':'Processing...';
+  btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'use-trial',token:_session.token})});
+    const d=await r.json();
+    if(d.ok&&d.pdfUrl){
+      _benefits={..._benefits,trialUsed:true};
+      localStorage.setItem(BENEFITS_KEY,JSON.stringify(_benefits));
+      closeM();
+      document.getElementById('trial-pdf-link').href=d.pdfUrl;
+      document.getElementById('trial-modal').classList.add('open');
+    } else {
+      btn.textContent=d.error||(lang==='es'?'Error':'Error');
+      btn.disabled=false;
+    }
+  }catch(e){
+    btn.textContent=lang==='es'?'Error de red':'Network error';
+    btn.disabled=false;
+  }
+}
+if(_session)_loadBenefits();
 </script>
 
 <!-- ACCOUNT MODAL -->
@@ -1492,6 +1595,20 @@ _loadSession();
       <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">🛍 Mis compras</div>
       <div id="acct-orders"></div>
     </div>
+  </div>
+</div>
+<!-- TRIAL SUCCESS MODAL -->
+<div class="trial-modal" id="trial-modal">
+  <div class="trial-modal-box">
+    <div style="font-size:48px;margin-bottom:12px;">🎀</div>
+    <h3>¡Tu patrón de prueba está listo!</h3>
+    <p>Descárgalo ahora. Es tuyo sin costo como regalo de bienvenida.</p>
+    <a id="trial-pdf-link" href="#" target="_blank" class="btn-trial-dl">📥 Descargar patrón gratis</a>
+    <div class="trial-discount-box">
+      <div class="tdb-title">🎁 25% de descuento</div>
+      <div class="tdb-desc">Como cuenta nueva tienes <strong>25% OFF</strong> en tu primera compra.<br>¡Aplica automáticamente al comprar!</div>
+    </div>
+    <button class="btn-trial-close" onclick="document.getElementById('trial-modal').classList.remove('open')">Cerrar</button>
   </div>
 </div>
 </body>
