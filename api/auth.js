@@ -1,6 +1,8 @@
 // api/auth.js — Registro, login y pedidos de clientes
 import { createHash } from 'crypto';
 
+const TRIAL_PDF_URL = 'https://pnlq7kq61hbxlar5.public.blob.vercel-storage.com/krosha-1780021456738-annie_la_conejita_esp_1.pdf';
+
 function hashPwd(pwd){ return createHash('sha256').update(pwd+'krosha_salt_2024').digest('hex'); }
 function makeToken(email){ return Buffer.from(`${email}:${Date.now()}:${Math.random()}`).toString('base64url'); }
 
@@ -32,7 +34,14 @@ export default async function handler(req, res) {
       if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
       const existing = await redis.get(`krosha:user:${email.toLowerCase()}`);
       if (existing) return res.status(400).json({ error: 'Este email ya tiene una cuenta' });
-      const user = { email: email.toLowerCase(), name: name || '', passwordHash: hashPwd(password), createdAt: new Date().toISOString() };
+      const user = { 
+        email: email.toLowerCase(), 
+        name: name || '', 
+        passwordHash: hashPwd(password), 
+        createdAt: new Date().toISOString(),
+        trialUsed: false,
+        hasNewAccountDiscount: true
+      };
       await redis.set(`krosha:user:${email.toLowerCase()}`, JSON.stringify(user));
       const tok = makeToken(email);
       await redis.set(`krosha:session:${tok}`, email.toLowerCase(), { ex: 30 * 24 * 3600 });
@@ -119,6 +128,30 @@ export default async function handler(req, res) {
       }
       const saved = await redis.get(`krosha:cart:${em}`);
       return res.status(200).json({ ok: true, cart: saved ? (typeof saved === 'string' ? JSON.parse(saved) : saved) : [] });
+    }
+
+    // ── USE TRIAL ──
+    if (action === 'use-trial') {
+      if (!token) return res.status(401).json({ error: 'Sin token' });
+      const em = await redis.get(`krosha:session:${token}`);
+      if (!em) return res.status(401).json({ error: 'Sesión expirada' });
+      const raw = await redis.get(`krosha:user:${em}`);
+      if (!raw) return res.status(404).json({ error: 'Usuario no encontrado' });
+      const user = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (user.trialUsed) return res.status(400).json({ error: 'El patrón de prueba ya fue utilizado', alreadyUsed: true });
+      user.trialUsed = true;
+      await redis.set(`krosha:user:${em}`, JSON.stringify(user));
+      return res.status(200).json({ ok: true, pdfUrl: TRIAL_PDF_URL, hasNewAccountDiscount: user.hasNewAccountDiscount || false });
+    }
+
+    // ── CHECK BENEFITS ──
+    if (action === 'check-benefits') {
+      if (!token) return res.status(401).json({ error: 'Sin token' });
+      const em = await redis.get(`krosha:session:${token}`);
+      if (!em) return res.status(401).json({ error: 'Sesión expirada' });
+      const raw = await redis.get(`krosha:user:${em}`);
+      const user = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
+      return res.status(200).json({ ok: true, trialUsed: user.trialUsed || false, hasNewAccountDiscount: user.hasNewAccountDiscount || false });
     }
   }
 
