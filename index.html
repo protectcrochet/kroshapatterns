@@ -731,7 +731,7 @@ function renderHeroCards(ids){
     const p=prods.find(x=>x.id===id);
     if(!p)return '';
     const img=p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${p.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});" onerror="this.style.display='none'">`:'';
-    const price=p.price?`$${p.price} MXN`:'';
+    const price=p.price?f(p.price):'';
     return `<div class="hc" onclick="openM(${p.id})" style="cursor:pointer;">
       <div class="hc-img">${img}</div>
       <div class="hc-body"><h4>${p.title}</h4><p>${price}</p></div>
@@ -1220,14 +1220,8 @@ function nlSub(){
 function setC(){
   cur=document.getElementById('cur').value;
   renderGrid();
-  // update hero prices
-  const products=getProducts();
-  const p1=products.find(p=>p.type==='patrones');
-  const p2=products.find(p=>p.type==='kits');
-  const p3=products.find(p=>p.type==='patrones'&&p.id!==(p1&&p1.id));
-  if(p1)document.getElementById('hp1').textContent=f(p1.price);
-  if(p2)document.getElementById('hp2').textContent=f(p2.price);
-  if(p3)document.getElementById('hp3').textContent=f(p3.price);
+  renderNovedades();
+  applyHero();
 }
 
 function setLang(l){
