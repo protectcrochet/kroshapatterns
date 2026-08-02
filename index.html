@@ -1219,6 +1219,7 @@ function nlSub(){
 
 function setC(){
   cur=document.getElementById('cur').value;
+  localStorage.setItem('krosha_cur',cur);
   renderGrid();
   renderNovedades();
   applyHero();
@@ -1241,6 +1242,7 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 // ── IP CURRENCY DETECTION ──
 async function detectCurrencyFromIP(){
+  if(localStorage.getItem('krosha_cur'))return;
   try{
     const r=await fetch('https://ip-api.com/json/?fields=countryCode');
     const d=await r.json();
@@ -1250,6 +1252,7 @@ async function detectCurrencyFromIP(){
         cur=detected;
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
+        localStorage.setItem('krosha_cur',cur);
         renderGrid();setC();
       }
     }
@@ -1261,6 +1264,13 @@ let _publishedHero=null;
 
 // ── INIT ──
 (async()=>{
+  // Restore saved currency preference before first render
+  const savedCur=localStorage.getItem('krosha_cur');
+  if(savedCur&&rates[savedCur]){
+    cur=savedCur;
+    const sel=document.getElementById('cur');
+    if(sel)sel.value=cur;
+  }
   const v=Date.now();
   await Promise.all([
     fetch('/api/products',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{

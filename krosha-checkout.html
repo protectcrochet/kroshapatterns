@@ -499,6 +499,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           <div class="card-fields" id="card-fields"></div>
         </div>
 
+        <div id="mxn-notice" style="display:none;margin:0 0 12px;background:#FFF8EC;border:1.5px solid #F5D0A0;border-radius:14px;padding:13px 16px;font-size:12.5px;line-height:1.6;color:#7A5A20;"></div>
         <button class="btn-checkout" onclick="confirmOrder()" id="confirm-btn" data-es="Confirmar y pagar" data-en="Confirm & pay">Confirmar y pagar</button>
         <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--text-light);" data-es="🔒 Pago cifrado con SSL · Nunca almacenamos tus datos" data-en="🔒 SSL encrypted payment · We never store your data">🔒 Pago cifrado con SSL · Nunca almacenamos tus datos</div>
       </div>
@@ -686,7 +687,26 @@ function renderMiniSummary(cart,sub){
 }
 
 function updatePrices(){renderCart();}
-function setC(){cur=document.getElementById('cur').value;renderCart();}
+function setC(){cur=document.getElementById('cur').value;localStorage.setItem('krosha_cur',cur);renderCart();updateMxnNotice();}
+
+function updateMxnNotice(){
+  const notice=document.getElementById('mxn-notice');
+  if(!notice)return;
+  if(cur==='MXN'){notice.style.display='none';return;}
+  const cart=getCartItems();
+  if(!cart.length){notice.style.display='none';return;}
+  const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
+  const disc=hasDiscount?Math.round(sub*.1):0;
+  const totalMXN=Math.round((sub-disc+_effectiveShipCost())*100)/100;
+  const sym=syms[cur]||'';
+  const conv=totalMXN*(rates[cur]||1);
+  const convStr=sym+(conv<10?conv.toFixed(2):Math.round(conv))+' '+cur;
+  const mxnStr='$'+totalMXN.toLocaleString('es-MX')+' MXN';
+  notice.innerHTML=lang==='es'
+    ?`<strong style="display:block;margin-bottom:3px;">ℹ️ El cobro se realiza en pesos mexicanos (MXN)</strong>El procesador de pago opera en MXN. El monto es <strong>${mxnStr}</strong> — equivalente aproximado a <strong>${convStr}</strong> según el tipo de cambio actual.`
+    :`<strong style="display:block;margin-bottom:3px;">ℹ️ Payment is charged in Mexican pesos (MXN)</strong>The payment processor charges in MXN. The amount is <strong>${mxnStr}</strong> — approximately <strong>${convStr}</strong> at the current exchange rate.`;
+  notice.style.display='block';
+}
 
 function setLang(l){
   lang=l;
@@ -696,6 +716,7 @@ function setLang(l){
   const ci=document.getElementById('coupon-input');
   if(ci)ci.placeholder=l==='es'?'Código de descuento':'Discount code';
   renderCart();
+  updateMxnNotice();
 }
 
 function chQty(btn,d,id){
@@ -1634,10 +1655,13 @@ function _updateShipTotals(){
   const total=sub-disc+effective;
   const t=document.getElementById('total');if(t)t.textContent=f(total);
   const mt=document.getElementById('ms-total');if(mt)mt.textContent=f(total);
+  updateMxnNotice();
 }
 
 // ── IP CURRENCY DETECTION ──
 async function detectCurrencyFromIP(){
+  // Skip if user already has a saved preference
+  if(localStorage.getItem('krosha_cur'))return;
   try{
     const r=await fetch('https://ip-api.com/json/?fields=countryCode');
     const d=await r.json();
@@ -1647,6 +1671,7 @@ async function detectCurrencyFromIP(){
         cur=detected;
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
+        localStorage.setItem('krosha_cur',cur);
         // Auto-select country
         const csel=document.getElementById('country-sel');
         if(csel){
@@ -1658,6 +1683,16 @@ async function detectCurrencyFromIP(){
     }
   }catch(e){}
 }
+
+// ── LOAD SAVED CURRENCY ──
+(function(){
+  const saved=localStorage.getItem('krosha_cur');
+  if(saved&&rates[saved]){
+    cur=saved;
+    const sel=document.getElementById('cur');
+    if(sel)sel.value=cur;
+  }
+})();
 
 // init
 setStep(1);
