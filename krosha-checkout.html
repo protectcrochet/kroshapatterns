@@ -324,7 +324,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <h3 data-es="Resumen del pedido" data-en="Order summary">Resumen del pedido</h3>
       <div class="sum-row"><span id="subtotal-label">Subtotal (0 productos)</span><span id="subtotal">$0 MXN</span></div>
       <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val"></span></div>
-      <div class="sum-row" id="sum-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="sum-ship-val" style="color:var(--green);" data-es="📥 Acceso inmediato" data-en="📥 Instant access">📥 Acceso inmediato</span></div>
+      <div class="sum-row" id="sum-ship-row"><span data-es="Envío" data-en="Shipping">Envío</span><span id="sum-ship-val" data-es="—" data-en="—">—</span></div>
       <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$0 MXN</span></div>
       <div class="digital-badge" data-es="✅ Acceso inmediato al finalizar tu compra" data-en="✅ Instant access after checkout">✅ Acceso inmediato al finalizar tu compra</div>
       <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
@@ -511,7 +511,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <div class="mini-divider"></div>
       <div class="mini-row"><span data-es="Subtotal" data-en="Subtotal">Subtotal</span><span id="ms-subtotal">$0 MXN</span></div>
       <div class="mini-row" id="ms-discount-row" style="display:none;color:var(--green);"><span data-es="Descuento" data-en="Discount">Descuento</span><span id="ms-discount"></span></div>
-      <div class="mini-row" id="ms-ship-row"><span data-es="Entrega" data-en="Delivery">Entrega</span><span id="ms-ship-val" style="color:var(--green);" data-es="📥 Acceso inmediato" data-en="📥 Instant access">📥 Acceso inmediato</span></div>
+      <div class="mini-row" id="ms-ship-row"><span data-es="Envío" data-en="Shipping">Envío</span><span id="ms-ship-val" data-es="—" data-en="—">—</span></div>
       <div class="mini-row total"><span data-es="Total" data-en="Total">Total</span><span id="ms-total">$0 MXN</span></div>
     </div>
   </div>
@@ -543,7 +543,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <span class="val" id="confirm-pay">💳 Stripe</span>
       </div>
       <div class="confirm-row">
-        <span class="label" data-es="Entrega" data-en="Delivery">Entrega</span>
+        <span class="label" data-es="Envío" data-en="Shipping">Envío</span>
         <span class="val" style="color:var(--green);" data-es="📥 Descarga inmediata" data-en="📥 Instant download">📥 Descarga inmediata</span>
       </div>
     </div>
@@ -1572,8 +1572,8 @@ function _updateShipTotals(){
     if(sv){sv.innerHTML=display;sv.style.color='var(--text)';}
     if(msv){msv.innerHTML=display;msv.style.color='var(--text)';}
   } else {
-    if(sv){sv.innerHTML='📥 Acceso inmediato';sv.style.color='var(--green)';}
-    if(msv){msv.innerHTML='📥 Acceso inmediato';msv.style.color='var(--green)';}
+    if(sv){sv.innerHTML='—';sv.style.color='var(--text-light)';}
+    if(msv){msv.innerHTML='—';msv.style.color='var(--text-light)';}
   }
   const cart=getCartItems();
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
