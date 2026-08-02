@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress } = req.body;
+    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress, shippingRate, shippingPackage } = req.body;
 
     if (!customerEmail || !items?.length) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -238,6 +238,8 @@ export default async function handler(req, res) {
           method: payMethod || 'stripe',
           status: 'paid',
           shippingAddress: shippingAddress || null,
+          shippingRate: shippingRate || null,
+          shippingPackage: shippingPackage || null,
         });
         if (orders.length > 500) orders.length = 500;
         await redis.set('krosha:orders', JSON.stringify(orders));
@@ -248,10 +250,27 @@ export default async function handler(req, res) {
 
     // Copia a Jennyfer
     const needsManual = resolvedItems.filter(i => i.deliveryType === 'manual');
+    const hasPhysical = !!shippingAddress;
+
+    const enviaBlock = hasPhysical ? `
+<div style="background:#e8f4fd;border:2px solid #2a6fad;border-radius:10px;padding:16px;margin-top:20px;font-family:monospace;font-size:13px;line-height:1.8;">
+  <div style="font-family:Arial,sans-serif;font-weight:bold;color:#1a4f82;font-size:14px;margin-bottom:10px;">📦 DATOS PARA ENVIA.COM</div>
+  <b>Destinatario:</b> ${customerName}<br>
+  ${shippingAddress.phone ? `<b>Teléfono:</b> ${shippingAddress.phone}<br>` : ''}
+  <b>Calle:</b> ${shippingAddress.street}<br>
+  ${shippingAddress.colonia ? `<b>Colonia:</b> ${shippingAddress.colonia}<br>` : ''}
+  <b>Ciudad:</b> ${shippingAddress.city}<br>
+  ${shippingAddress.state ? `<b>Estado:</b> ${shippingAddress.state}<br>` : ''}
+  <b>CP:</b> ${shippingAddress.zip}<br>
+  <b>País:</b> ${shippingAddress.country}<br>
+  ${shippingPackage ? `<br><b>Paquete:</b> ${shippingPackage.peso} kg · ${shippingPackage.largo}×${shippingPackage.ancho}×${shippingPackage.alto} cm<br>` : ''}
+  ${shippingRate ? `<b>Carrier:</b> ${shippingRate.carrier?.toUpperCase()} — ${shippingRate.serviceDescription || shippingRate.service}<br><b>Días:</b> ${shippingRate.days}<br><b>Costo cotizado:</b> $${shippingRate.price} MXN<br>` : ''}
+</div>` : '';
+
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: 'kroshapatterns@gmail.com',
-      subject: `🛍 Nuevo pedido #${ref} — $${total} ${currency} — ${customerEmail}`,
+      subject: `🛍 Nuevo pedido #${ref} — $${total} ${currency}${hasPhysical ? ' 📦 FÍSICO' : ''} — ${customerEmail}`,
       html: `<p><strong>Nuevo pedido recibido:</strong></p>
         <p>Cliente: ${customerName} (${customerEmail})</p>
         <p>Total: $${total} ${currency}</p>
@@ -260,7 +279,8 @@ export default async function handler(req, res) {
           `${i.title} — ${i.deliveryType === 'protect' ? '✅ ProtectCrochet OK' : i.deliveryType === 'pdf' ? '✅ PDF' : '⚠️ ENTREGA MANUAL'}`
         ).join('<br>')}</p>
         ${needsManual.length ? `<p style="color:red;font-weight:bold;">⚠️ ENTREGA MANUAL REQUERIDA:<br>${needsManual.map(i => i.title).join('<br>')}</p>` : ''}
-        <p>Ref: #${ref}</p>`,
+        <p>Ref: #${ref}</p>
+        ${enviaBlock}`,
     });
 
     return res.status(200).json({ success: true, orderRef: ref, downloadToken });

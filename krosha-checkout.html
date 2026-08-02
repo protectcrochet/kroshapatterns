@@ -1117,6 +1117,8 @@ async function confirmOrderMP(paymentType){
     localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
     localStorage.setItem('krosha_pending_cur',cur);
     if(data.orderRef)localStorage.setItem('krosha_pending_ref',data.orderRef);
+    if(_shipRates[_selRateIdx])localStorage.setItem('krosha_pending_rate',JSON.stringify(_shipRates[_selRateIdx]));
+    if(_lastShipPackage)localStorage.setItem('krosha_pending_pkg',JSON.stringify(_lastShipPackage));
     // Usa initPoint directo (abre app MP si está instalada) o link específico
     const url=(paymentType==='oxxo'&&data.oxxoPoint)||data.initPoint;
     window.location.href=url;
@@ -1159,6 +1161,8 @@ async function processMercadoPago(email,name,btn){
     localStorage.setItem('krosha_pending_items',JSON.stringify(getCartItems()));
     localStorage.setItem('krosha_pending_cur',cur);
     if(data.orderRef)localStorage.setItem('krosha_pending_ref',data.orderRef);
+    if(_shipRates[_selRateIdx])localStorage.setItem('krosha_pending_rate',JSON.stringify(_shipRates[_selRateIdx]));
+    if(_lastShipPackage)localStorage.setItem('krosha_pending_pkg',JSON.stringify(_lastShipPackage));
 
     // Redirect to MP Checkout Pro — real payment page
     btn.textContent=lang==='es'?'Redirigiendo a Mercado Pago...':'Redirecting to Mercado Pago...';
@@ -1189,9 +1193,12 @@ function enrichItemsWithDownloads(items){
 }
 
 // ── SEND EMAIL ──
-async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
+async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef,_savedShipData){
   try{
     const ref=orderRef||`KP-${Date.now().toString().slice(-6)}`;
+    const isPhys=hasPhysicalItems();
+    const shipRate=_savedShipData?.rate||(isPhys?(_shipRates[_selRateIdx]||null):null);
+    const shipPkg=_savedShipData?.pkg||(isPhys?_lastShipPackage:null);
     const r=await fetch('/api/send-confirmation',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -1199,7 +1206,7 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
         customerEmail:email,customerName:name,
         items,total,currency:cur,payMethod,
         orderRef:ref,
-        shippingAddress:hasPhysicalItems()?{
+        shippingAddress:isPhys?{
           street:document.getElementById('ship-street')?.value?.trim()||'',
           number:'',
           colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
@@ -1209,6 +1216,8 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
           phone:document.getElementById('checkout-phone')?.value?.trim()||'',
           country:document.getElementById('country-sel')?.value||'MX',
         }:null,
+        shippingRate:shipRate||null,
+        shippingPackage:shipPkg||null,
       }),
     });
     const d=await r.json().catch(()=>({}));
@@ -1292,8 +1301,10 @@ async function checkReturnStatus(){
     cur=savedCur;
     const payLabel=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
     let ref='',downloadToken=null;
-    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel,savedRef);ref=r.ref;downloadToken=r.downloadToken;}
-    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur','krosha_pending_ref'].forEach(k=>localStorage.removeItem(k));
+    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel,savedRef,{rate:savedRate,pkg:savedPkg});ref=r.ref;downloadToken=r.downloadToken;}
+    const savedRate=JSON.parse(localStorage.getItem('krosha_pending_rate')||'null');
+    const savedPkg=JSON.parse(localStorage.getItem('krosha_pending_pkg')||'null');
+    ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur','krosha_pending_ref','krosha_pending_rate','krosha_pending_pkg'].forEach(k=>localStorage.removeItem(k));
     setTimeout(()=>{
       showSuccess(payLabel,ref,items,total,downloadToken);
     },300);
@@ -1407,7 +1418,7 @@ function showToast(msg){
 }
 
 // ── SHIPPING ──
-let shipCost=0, _shipRates=[], _selRateIdx=0;
+let shipCost=0, _shipRates=[], _selRateIdx=0, _lastShipPackage=null;
 
 function _autoRecotizar(){
   // Solo re-cotiza si ya hay tarifas cargadas (el usuario ya cotizó antes) y hay CP válido
@@ -1575,6 +1586,7 @@ async function cotizarEnvio(){
     const largo=maxLargo>0?maxLargo:25;
     const ancho=maxAncho>0?maxAncho:25;
     const alto=maxAlto>0?maxAlto:37;
+    _lastShipPackage={peso,largo,ancho,alto};
     const r=await fetch('/api/envia-quote',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
