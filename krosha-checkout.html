@@ -1503,13 +1503,22 @@ async function cotizarEnvio(){
         maxAlto=Math.max(maxAlto,i.boxAlto||0);
       }
     });
-    // Dimensiones de ovillos: 3 por capa, cada capa 30×20×9 cm, 0.25 kg c/u
+    // Dimensiones según cantidad de ovillos: bolsa para 3-6, caja para 9+
     if(totalSkeins>0){
-      const capas=Math.ceil(totalSkeins/3);
       pesoTotal+=totalSkeins*0.25;
-      maxLargo=Math.max(maxLargo,30);
-      maxAncho=Math.max(maxAncho,20);
-      maxAlto=Math.max(maxAlto,capas*9);
+      let yL,yA,yAlt;
+      if(totalSkeins<=3){
+        yL=50;yA=25;yAlt=5;          // bolsa 50×25 cm
+      } else if(totalSkeins<=6){
+        yL=50;yA=35;yAlt=8;          // bolsa 50×35 cm
+      } else if(totalSkeins<=9){
+        yL=35;yA=30;yAlt=25;         // caja mediana
+      } else {
+        yL=50;yA=35;yAlt=30;         // caja grande
+      }
+      maxLargo=Math.max(maxLargo,yL);
+      maxAncho=Math.max(maxAncho,yA);
+      maxAlto=Math.max(maxAlto,yAlt);
     }
     // Fallback si el carrito no tiene items físicos con dimensiones conocidas
     const peso=pesoTotal>0?pesoTotal:1;
