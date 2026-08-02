@@ -6,10 +6,47 @@ const ENVIA_BASE = 'https://api.envia.com';
 const CARRIERS_MX   = ['fedex','dhl','estafeta','redpack','paquetexpress','ups','sendex','99minutos','ampm'];
 const CARRIERS_INTL = ['fedex','dhl','ups'];
 
-// Envia.com requires a non-empty state for international destinations.
-// For US, derive from ZIP prefix. For other countries, use the country code.
+function getMXState(zip) {
+  const n = parseInt(zip, 10);
+  if (n >= 1000  && n <= 16999) return 'CDMX';
+  if (n >= 20000 && n <= 20999) return 'AGS';
+  if (n >= 21000 && n <= 22999) return 'BC';
+  if (n >= 23000 && n <= 23999) return 'BCS';
+  if (n >= 24000 && n <= 24999) return 'CAMP';
+  if (n >= 25000 && n <= 27999) return 'COAH';
+  if (n >= 28000 && n <= 28999) return 'COL';
+  if (n >= 29000 && n <= 30999) return 'CHIS';
+  if (n >= 31000 && n <= 33999) return 'CHIH';
+  if (n >= 34000 && n <= 35999) return 'DGO';
+  if (n >= 36000 && n <= 38999) return 'GTO';
+  if (n >= 39000 && n <= 40999) return 'GRO';
+  if (n >= 41000 && n <= 43999) return 'HGO';
+  if (n >= 44000 && n <= 49999) return 'JAL';
+  if (n >= 50000 && n <= 57999) return 'MEX';
+  if (n >= 58000 && n <= 61999) return 'MICH';
+  if (n >= 62000 && n <= 62999) return 'MOR';
+  if (n >= 63000 && n <= 63999) return 'NAY';
+  if (n >= 64000 && n <= 67999) return 'NL';
+  if (n >= 68000 && n <= 71999) return 'OAX';
+  if (n >= 72000 && n <= 75999) return 'PUE';
+  if (n >= 76000 && n <= 76999) return 'QRO';
+  if (n >= 77000 && n <= 77999) return 'QROO';
+  if (n >= 78000 && n <= 79999) return 'SLP';
+  if (n >= 80000 && n <= 82999) return 'SIN';
+  if (n >= 83000 && n <= 85999) return 'SON';
+  if (n >= 86000 && n <= 86999) return 'TAB';
+  if (n >= 87000 && n <= 89999) return 'TAMPS';
+  if (n >= 90000 && n <= 90999) return 'TLAX';
+  if (n >= 91000 && n <= 96999) return 'VER';
+  if (n >= 97000 && n <= 97999) return 'YUC';
+  if (n >= 98000 && n <= 99999) return 'ZAC';
+  return 'CDMX';
+}
+
+// Envia.com requires a non-empty state for all destinations.
+// For MX: derive from ZIP prefix. For US: derive from ZIP prefix. For others: use country code.
 function getDestState(country, zip) {
-  if (country === 'MX') return '';
+  if (country === 'MX') return getMXState(zip);
   if (country === 'US') {
     const n = parseInt(zip, 10);
     if (n >= 35004 && n <= 36925) return 'AL';
