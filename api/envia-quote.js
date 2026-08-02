@@ -79,7 +79,9 @@ export default async function handler(req, res) {
     });
     const data = await r.json();
 
+    console.log('Envia.com raw response:', JSON.stringify(data).slice(0, 2000));
     const items = data.data || (Array.isArray(data) ? data : []);
+    console.log('Items found:', items.length, 'first item:', JSON.stringify(items[0] || {}).slice(0, 500));
     const rates = items
       .filter(r => r.totalPrice || r.price)
       .map(r => ({
@@ -121,7 +123,7 @@ export default async function handler(req, res) {
     }
 
     rates.sort((a, b) => a.price - b.price);
-    return res.status(200).json({ ok: true, rates, internacional: !isMX });
+    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: rates.length === 0 ? data : undefined });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
