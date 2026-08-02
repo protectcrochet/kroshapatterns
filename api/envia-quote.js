@@ -4,7 +4,7 @@
 const ENVIA_BASE = 'https://api.envia.com';
 
 // Carriers domésticos (México) + internacionales
-const CARRIERS_MX   = ['fedex','dhl','estafeta','redpack','paquetexpress','ups','sendex'];
+const CARRIERS_MX   = ['fedex','dhl','estafeta','redpack','paquetexpress','ups','sendex','99minutos','ampm'];
 const CARRIERS_INTL = ['fedex','dhl','ups']; // Solo estos hacen envíos globales
 
 export default async function handler(req, res) {
