@@ -1300,11 +1300,11 @@ async function checkReturnStatus(){
     const items=savedItems.length?savedItems:getCartItems();
     cur=savedCur;
     const payLabel=method==='mp'?'🏪 Mercado Pago':'🅿️ PayPal';
-    let ref='',downloadToken=null;
-    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel,savedRef,{rate:savedRate,pkg:savedPkg});ref=r.ref;downloadToken=r.downloadToken;}
     const savedRate=JSON.parse(localStorage.getItem('krosha_pending_rate')||'null');
     const savedPkg=JSON.parse(localStorage.getItem('krosha_pending_pkg')||'null');
     ['krosha_pending_email','krosha_pending_name','krosha_pending_total','krosha_pending_items','krosha_pending_cur','krosha_pending_ref','krosha_pending_rate','krosha_pending_pkg'].forEach(k=>localStorage.removeItem(k));
+    let ref='',downloadToken=null;
+    if(email){const r=await sendConfirmationEmail(email,name,items,total,payLabel,savedRef,{rate:savedRate,pkg:savedPkg});ref=r.ref;downloadToken=r.downloadToken;}
     setTimeout(()=>{
       showSuccess(payLabel,ref,items,total,downloadToken);
     },300);
