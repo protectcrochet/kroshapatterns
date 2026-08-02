@@ -702,7 +702,16 @@ function chQty(btn,d,id){
   const cart=getCartItems();
   const item=cart.find(i=>String(i.id)===String(id));
   if(!item)return;
-  item.qty=Math.max(1,item.qty+d);
+  const isYarn=(item.img&&item.img.startsWith('yarn:'))||
+    item.title.toLowerCase().includes('estambre')||
+    item.title.toLowerCase().includes('ovillo');
+  const minQty=isYarn?3:1;
+  const newQty=item.qty+d;
+  if(newQty<minQty){
+    if(isYarn)showToast(lang==='es'?'⚠️ Mínimo 3 ovillos por pedido':'⚠️ Minimum 3 skeins per order');
+    return;
+  }
+  item.qty=newQty;
   saveCart(cart);renderCart();updateNavCart();
 }
 
@@ -1467,17 +1476,31 @@ async function cotizarEnvio(){
 
   try{
     const cart=getCartItems();
-    // Calcular peso total y dimensiones máximas del carrito
+    // Contar ovillos/estambres (dimensiones calculadas por cantidad)
+    let totalSkeins=0;
     let pesoTotal=0, maxLargo=0, maxAncho=0, maxAlto=0;
     cart.forEach(i=>{
-      if(i.boxPeso>0){
+      const isYarn=(i.img&&i.img.startsWith('yarn:'))||
+        i.title.toLowerCase().includes('estambre')||
+        i.title.toLowerCase().includes('ovillo');
+      if(isYarn){
+        totalSkeins+=i.qty;
+      } else if(i.boxPeso>0){
         pesoTotal+=i.boxPeso*i.qty;
         maxLargo=Math.max(maxLargo,i.boxLargo||0);
         maxAncho=Math.max(maxAncho,i.boxAncho||0);
         maxAlto=Math.max(maxAlto,i.boxAlto||0);
       }
     });
-    // Fallback a valores por defecto si no hay dimensiones configuradas
+    // Dimensiones de ovillos: 3 por capa, cada capa 30×20×9 cm, 0.25 kg c/u
+    if(totalSkeins>0){
+      const capas=Math.ceil(totalSkeins/3);
+      pesoTotal+=totalSkeins*0.25;
+      maxLargo=Math.max(maxLargo,30);
+      maxAncho=Math.max(maxAncho,20);
+      maxAlto=Math.max(maxAlto,capas*9);
+    }
+    // Fallback si el carrito no tiene items físicos con dimensiones conocidas
     const peso=pesoTotal>0?pesoTotal:1;
     const largo=maxLargo>0?maxLargo:25;
     const ancho=maxAncho>0?maxAncho:25;

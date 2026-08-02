@@ -1105,21 +1105,29 @@ function qAdd(id){
   const existing=cart.find(i=>i.id===id);
   const imgVal=p.yarnColorName?(getYarnImg(p.yarnColorName)||`yarn:${getYarnHex(p.yarnColorName)}`):p.images[0]||'';
   const label=p.yarnColorName?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title);
-  if(existing)existing.qty++;else cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty:1,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''});
-  saveCart(cart);updateCartBadge();
-  showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
+  const isYarn=!!(p.yarnColorName||p.type==='hilo');
+  if(existing){
+    existing.qty++;
+  } else {
+    const qty=isYarn?3:1;
+    cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipSubsidy:p.shipSubsidy||0,boxLargo:p.boxLargo||0,boxAncho:p.boxAncho||0,boxAlto:p.boxAlto||0,boxPeso:p.boxPeso||0});
+    if(isYarn)showToast(lang==='es'?`🧶 ${label} ×3 agregado (mínimo 3)`:`🧶 ${label} ×3 added (min. 3)`);
+  }
+  if(!isYarn||existing)saveCart(cart),updateCartBadge(),showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
+  else saveCart(cart),updateCartBadge();
 }
 
-function addYarnToCart(colorName){addYarnQtyToCart(colorName,1);}
+function addYarnToCart(colorName){addYarnQtyToCart(colorName,3);}
 function addYarnQtyToCart(colorName,qty){
   const yp=yarnProducts.find(p=>p.yarnColorName===colorName);
   if(!yp)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===yp.id);
   if(existing)existing.qty+=qty;
-  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty});
+  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty:Math.max(3,qty),shipSubsidy:0});
   saveCart(cart);updateCartBadge();
-  showToast(`🧶 ${colorName} ×${qty} ${lang==='es'?'agregado':'added'}`);
+  const total=existing?existing.qty:Math.max(3,qty);
+  showToast(`🧶 ${colorName} ×${total} ${lang==='es'?'en carrito':'in cart'}`);
 }
 
 function addToCart(){
