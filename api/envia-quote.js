@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     destination: {
       name: 'Cliente', company: '', email: 'cliente@email.com', phone: '5550000000',
       street: 'Calle Destino 1', number: '1', district: 'Centro',
-      city: 'Ciudad', state: isMX ? 'MX' : '', country: pais_destino, postalCode: cp_destino,
+      city: 'Ciudad', state: '', country: pais_destino, postalCode: cp_destino,
     },
     packages: [{
       content: 'Kit crochet', amount: 1, type: 'box',

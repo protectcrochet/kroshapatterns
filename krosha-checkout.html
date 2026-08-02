@@ -1075,19 +1075,20 @@ async function confirmOrderMP(paymentType){
 
   // Validate shipping address + rate if physical items
   if(hasPhysicalItems()){
+    const shipCountry=document.getElementById('country-sel')?.value||'MX';
+    const isMXship=shipCountry==='MX';
     const street=document.getElementById('ship-street')?.value?.trim();
     const colonia=document.getElementById('ship-colonia')?.value?.trim();
     const city=document.getElementById('ship-city')?.value?.trim();
     const state=document.getElementById('ship-state')?.value?.trim();
-    const zip=document.getElementById('ship-zip')?.value?.trim();
-    if(!street||!colonia||!city||!state||!zip){
+    const zip=document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim();
+    if(!street||!city||!zip||(isMXship&&(!colonia||!state))){
       showToast(lang==='es'?'⚠️ Completa todos los campos de dirección':'⚠️ Fill all address fields');
       document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
     if(shipCost<=0){
       showToast(lang==='es'?'⚠️ Selecciona una opción de envío primero':'⚠️ Select a shipping option first');
-      document.getElementById('ship-zip')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
   }
@@ -1204,9 +1205,9 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
           colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
           city:document.getElementById('ship-city')?.value?.trim()||'',
           state:document.getElementById('ship-state')?.value?.trim()||'',
-          zip:document.getElementById('ship-zip')?.value?.trim()||'',
+          zip:document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim()||'',
           phone:document.getElementById('checkout-phone')?.value?.trim()||'',
-          country:'MX',
+          country:document.getElementById('country-sel')?.value||'MX',
         }:null,
       }),
     });
@@ -1342,19 +1343,21 @@ async function confirmOrder(){
 
   // Validate shipping address if physical items
   if(hasPhysicalItems()){
+    const shipCountry=document.getElementById('country-sel')?.value||'MX';
+    const isMXship=shipCountry==='MX';
     const street=document.getElementById('ship-street')?.value?.trim();
     const colonia=document.getElementById('ship-colonia')?.value?.trim();
     const city=document.getElementById('ship-city')?.value?.trim();
     const state=document.getElementById('ship-state')?.value?.trim();
-    const zip=document.getElementById('ship-zip')?.value?.trim();
-    if(!street||!colonia||!city||!state||!zip){
+    const zip=document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim();
+    const missingFields=!street||!city||!zip||(isMXship&&(!colonia||!state));
+    if(missingFields){
       showToast(lang==='es'?'⚠️ Completa todos los campos de dirección':'⚠️ Fill all address fields');
       document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
     if(shipCost<=0){
       showToast(lang==='es'?'⚠️ Selecciona una opción de envío primero':'⚠️ Select a shipping option first');
-      document.getElementById('ship-zip')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
   }
@@ -1458,7 +1461,7 @@ function updateShipping(){
       <div style="display:flex;gap:8px;">
         <input id="intl-zip" type="text" placeholder="${cpHint}" maxlength="12"
           style="flex:1;border:1.5px solid ${bdColor};border-radius:10px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;background:#fff;color:var(--text);"
-          oninput="autoQuoteShipping()">
+          oninput="autoQuoteShipping();var sz=document.getElementById('ship-zip');if(sz)sz.value=this.value;">
       </div>
     </div>`:''}
     <button onclick="cotizarEnvio()" style="background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">
@@ -1468,9 +1471,24 @@ function updateShipping(){
   </div>`;
   box.innerHTML=html;
   box.style.display='block';
+  // Update address form labels/placeholders for international vs domestic
+  const coloniaLabel=document.querySelector('label[for="ship-colonia"],#ship-colonia')?.closest('.field')?.querySelector('label');
+  const stateLabel=document.querySelector('label[for="ship-state"],#ship-state')?.closest('.field')?.querySelector('label');
+  const zipInput=document.getElementById('ship-zip');
+  if(!isMX){
+    if(coloniaLabel)coloniaLabel.textContent='COLONIA / BARRIO (opcional)';
+    if(stateLabel)stateLabel.textContent='ESTADO / PROVINCIA (opcional)';
+    if(zipInput)zipInput.placeholder='Ej. 90210, 28001, C1043, K1A 0A9';
+  } else {
+    if(coloniaLabel)coloniaLabel.textContent=lang==='es'?'COLONIA / BARRIO':'NEIGHBORHOOD';
+    if(stateLabel)stateLabel.textContent=lang==='es'?'ESTADO / PROVINCIA':'STATE / PROVINCE';
+    if(zipInput)zipInput.placeholder='06600';
+  }
   // Auto-quote if zip already filled
-  const zip=document.getElementById('ship-zip')?.value?.trim();
-  if(zip&&_cpValidForCountry(zip,country)) cotizarEnvio();
+  const existingZip=isMX
+    ? document.getElementById('ship-zip')?.value?.trim()
+    : (document.getElementById('intl-zip')?.value?.trim()||document.getElementById('ship-zip')?.value?.trim());
+  if(existingZip&&_cpValidForCountry(existingZip,country)) cotizarEnvio();
 }
 
 // Valida que el CP tenga formato mínimo según el país
@@ -1497,6 +1515,11 @@ function autoQuoteShipping(){
 
 async function cotizarEnvio(){
   const {cp, country, isMX}=_getCPAndCountry();
+  if(country==='OTHER'){
+    const el=document.getElementById('envia-results');
+    if(el)el.innerHTML=`<div style="background:#fff8ec;border-radius:10px;padding:14px;font-size:12.5px;color:#7a5200;border:1.5px solid #ffe0a0;">✈️ Para envíos a otros países no listados, escríbenos a <strong>jenny@kroshapatterns.com</strong> y te cotizamos personalmente.</div>`;
+    return;
+  }
   if(!cp||!_cpValidForCountry(cp,country)){
     showToast(isMX?'⚠️ Ingresa un código postal válido (5 dígitos)':'⚠️ Ingresa el código postal de destino');
     (document.getElementById('ship-zip')||document.getElementById('intl-zip'))?.focus();
