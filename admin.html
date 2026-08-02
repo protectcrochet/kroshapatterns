@@ -690,6 +690,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <label>Foto Ojos de Seguridad (URL)</label>
           <input type="text" id="pf-eyes-img" placeholder="https://... (imagen del par de ojos)">
         </div>
+        <div class="field">
+          <label>Subsidio de envío por unidad (MXN) <span style="font-weight:400;color:var(--text-light);">— cuánto se descuenta del costo de envío por cada pieza (0 = sin subsidio)</span></label>
+          <input type="number" id="pf-ship-subsidy" placeholder="0" min="0" max="9999">
+        </div>
       </div>
     </div>
     <!-- ENTREGA DIGITAL -->
@@ -1241,7 +1245,7 @@ function openProdModal(id){
   fillYarnSelects();
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   setImgPos('50% 20%',1);
   document.getElementById('pdf-preview-row').style.display='none';
   document.getElementById('pf-type').value='patrones';
@@ -1271,6 +1275,7 @@ function editProd(id){
   document.getElementById('pf-kit-price').value=p.kitPrice||'';
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-eyes-img').value=p.eyesImg||'';
+  document.getElementById('pf-ship-subsidy').value=p.shipSubsidy!=null?p.shipSubsidy:'';
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
   const pdfRow=document.getElementById('pdf-preview-row');
@@ -1313,6 +1318,7 @@ function saveProd(){
     kitPrice:parseFloat(document.getElementById('pf-kit-price').value)||0,
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     eyesImg:document.getElementById('pf-eyes-img').value.trim(),
+    shipSubsidy:parseFloat(document.getElementById('pf-ship-subsidy').value)||0,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
     imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',

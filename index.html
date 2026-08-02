@@ -1120,22 +1120,22 @@ function addToCart(){
   if(!curProd)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===curProd.id);
-  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||''});
+  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipSubsidy:curProd.shipSubsidy||0});
   if(addonKit&&curProd.kitPrice){
     const kitId=`${curProd.id}-kit`;
     const ekit=cart.find(i=>i.id===kitId);
-    if(ekit)ekit.qty++;else cart.push({id:kitId,title:`Kit Estambres — ${curProd.title}`,price:curProd.kitPrice,img:curProd.images[0]||'',qty:1});
+    if(ekit)ekit.qty++;else cart.push({id:kitId,title:`Kit Estambres — ${curProd.title}`,price:curProd.kitPrice,img:curProd.images[0]||'',qty:1,shipSubsidy:curProd.kitShipSubsidy||0});
   }
   if(addonEyes&&curProd.eyesPrice){
     const eyesId=`${curProd.id}-eyes`;
     const eeyes=cart.find(i=>i.id===eyesId);
-    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:curProd.eyesImg||'/images/IMG_5938.jpg',qty:1});
+    if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:curProd.eyesImg||'/images/IMG_5938.jpg',qty:1,shipSubsidy:0});
   }
   Object.entries(addonYarns).forEach(([color,qty])=>{
     const yp=yarnProducts.find(p=>p.yarnColorName===color);
     if(!yp)return;
     const ey=cart.find(i=>i.id===yp.id);
-    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} 200g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty});
+    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} 200g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty,shipSubsidy:yp.shipSubsidy||10});
   });
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);

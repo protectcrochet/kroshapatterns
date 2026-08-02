@@ -1513,7 +1513,7 @@ function _renderRatesList(){
           <div style="font-size:12.5px;font-weight:700;color:var(--text);">${r.carrier.toUpperCase()} — ${r.serviceDescription||r.service}</div>
           ${daysStr?`<div style="font-size:11px;color:var(--text-light);">${daysStr}</div>`:''}
         </div>
-        <div style="white-space:nowrap;text-align:right;">${(()=>{const sub=(_countSkeins()*SHIP_SUBSIDY_PER_SKEIN)+(_countAccesorios()*SHIP_SUBSIDY_PER_ACCESORIO);const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
+        <div style="white-space:nowrap;text-align:right;">${(()=>{const sub=_totalShipSubsidy();const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
       </div>`;
     }).join('');
 }
@@ -1525,42 +1525,30 @@ function selectShipRate(idx){
   _updateShipTotals();
 }
 
-const SHIP_SUBSIDY_PER_SKEIN = 10;      // $10 MXN por ovillo/estambre
-const SHIP_SUBSIDY_PER_ACCESORIO = 50;  // $50 MXN por accesorio (ojos, kits, bowls)
-
-function _countSkeins(){
-  return getCartItems()
-    .filter(i=>(i.img&&i.img.startsWith('yarn:'))||
+function _totalShipSubsidy(){
+  // Suma shipSubsidy de cada item del carrito (campo guardado en el producto desde el admin)
+  // Fallback: si el producto no tiene shipSubsidy pero parece ovillo, usa $10
+  return getCartItems().reduce((total, i)=>{
+    let subsidy=0;
+    if(i.shipSubsidy!=null && i.shipSubsidy>0){
+      subsidy=i.shipSubsidy;
+    } else if((i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('estambre')||
-      i.title.toLowerCase().includes('ovillo'))
-    .reduce((s,i)=>s+i.qty, 0);
-}
-
-function _countAccesorios(){
-  return getCartItems()
-    .filter(i=>{
-      const t=i.title.toLowerCase();
-      const id=String(i.id||'');
-      return id.includes('-kit')||t.includes('kit')||t.includes('bowl');
-    })
-    .reduce((s,i)=>s+i.qty, 0);
+      i.title.toLowerCase().includes('ovillo')){
+      subsidy=10;
+    }
+    return total+(subsidy*i.qty);
+  },0);
 }
 
 function _effectiveShipCost(){
   if(shipCost<=0)return 0;
-  const subsidy=(_countSkeins()*SHIP_SUBSIDY_PER_SKEIN)+
-                (_countAccesorios()*SHIP_SUBSIDY_PER_ACCESORIO);
-  return Math.max(0, shipCost-subsidy);
+  return Math.max(0, shipCost-_totalShipSubsidy());
 }
 
 function _updateShipTotals(){
   const sv=document.getElementById('sum-ship-val');
   const msv=document.getElementById('ms-ship-val');
-  const skeins=_countSkeins();
-  const accesorios=_countAccesorios();
-  const subsidySkeins=skeins*SHIP_SUBSIDY_PER_SKEIN;
-  const subsidyAcc=accesorios*SHIP_SUBSIDY_PER_ACCESORIO;
-  const subsidy=subsidySkeins+subsidyAcc;
   const effective=_effectiveShipCost();
   if(shipCost>0){
     const display=effective===0
