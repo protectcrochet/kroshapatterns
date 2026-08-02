@@ -1563,12 +1563,9 @@ function _updateShipTotals(){
   const subsidy=subsidySkeins+subsidyAcc;
   const effective=_effectiveShipCost();
   if(shipCost>0){
-    let note='';
-    if(subsidySkeins>0) note+=` <span style="font-size:11px;color:var(--green);">(-$${subsidySkeins} de ${skeins} ovillo${skeins!==1?'s':''})</span>`;
-    if(subsidyAcc>0) note+=` <span style="font-size:11px;color:var(--green);">(-$${subsidyAcc} de ${accesorios} accesorio${accesorios!==1?'s':''})</span>`;
     const display=effective===0
       ?`<span style="color:var(--green);">¡Envío gratis!</span>`
-      :`${f(effective)}${note}`;
+      :f(effective);
     if(sv){sv.innerHTML=display;sv.style.color='var(--text)';}
     if(msv){msv.innerHTML=display;msv.style.color='var(--text)';}
   } else {
