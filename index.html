@@ -1253,6 +1253,7 @@ async function detectCurrencyFromIP(){
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
         localStorage.setItem('krosha_cur',cur);
+        localStorage.setItem('krosha_country',d.countryCode);
         renderGrid();setC();
       }
     }

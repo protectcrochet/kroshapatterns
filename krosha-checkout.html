@@ -385,7 +385,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           <div style="margin-top:12px;">
             <div class="field">
               <label data-es="PAÍS / REGIÓN" data-en="COUNTRY / REGION">PAÍS / REGIÓN</label>
-              <select id="country-sel" onchange="updateShipping()">
+              <select id="country-sel" onchange="localStorage.setItem('krosha_country',this.value);updateShipping()">
                 <option value="MX">🇲🇽 México</option>
                 <option value="DO">🇩🇴 República Dominicana</option>
                 <option value="US">🇺🇸 Estados Unidos</option>
@@ -1672,6 +1672,7 @@ async function detectCurrencyFromIP(){
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
         localStorage.setItem('krosha_cur',cur);
+        localStorage.setItem('krosha_country',d.countryCode);
         // Auto-select country
         const csel=document.getElementById('country-sel');
         if(csel){
@@ -1684,13 +1685,21 @@ async function detectCurrencyFromIP(){
   }catch(e){}
 }
 
-// ── LOAD SAVED CURRENCY ──
+// ── LOAD SAVED CURRENCY + COUNTRY ──
 (function(){
-  const saved=localStorage.getItem('krosha_cur');
-  if(saved&&rates[saved]){
-    cur=saved;
+  const savedCur=localStorage.getItem('krosha_cur');
+  if(savedCur&&rates[savedCur]){
+    cur=savedCur;
     const sel=document.getElementById('cur');
     if(sel)sel.value=cur;
+  }
+  const savedCountry=localStorage.getItem('krosha_country');
+  if(savedCountry){
+    const csel=document.getElementById('country-sel');
+    if(csel){
+      const opt=[...csel.options].find(o=>o.value===savedCountry);
+      if(opt)csel.value=savedCountry;
+    }
   }
 })();
 
