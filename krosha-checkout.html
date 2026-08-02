@@ -1595,7 +1595,11 @@ async function cotizarEnvio(){
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');
     if(!data.rates||!data.rates.length){
-      el.innerHTML='';
+      if(isMX){
+        el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">⚠️ No encontramos tarifas para <strong>${cp}</strong>. Verifica el código postal o intenta de nuevo.</div>`;
+      } else {
+        el.innerHTML='';
+      }
       return;
     }
     _shipRates=data.rates;
