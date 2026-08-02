@@ -1495,10 +1495,11 @@ async function cotizarEnvio(){
         i.title.toLowerCase().includes('estambre')||
         i.title.toLowerCase().includes('ovillo');
       const isDigital=!!(i.patternSlug||i.pdfUrl);
+      const isEyes=String(i.id).includes('-eyes')||i.title.toLowerCase().includes('ojos');
       if(isYarn){
         totalSkeins+=i.qty;
-      } else if(!isDigital){
-        // Accesorio físico (ojos, bowl, kit, etc.) — tenga o no dimensiones configuradas
+      } else if(!isDigital&&!isEyes){
+        // Accesorio voluminoso (bowl, kit, etc.) — requiere caja
         hayAccesorios=true;
         if(i.boxPeso>0){
           pesoTotal+=i.boxPeso*i.qty;
