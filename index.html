@@ -379,6 +379,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
   <div class="filter-tabs">
     <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
+    <button class="ftab" onclick="filterProds('estambres',this)" data-es="Estambres" data-en="Yarn">Estambres</button>
     <button class="ftab" onclick="filterProds('accesorios',this)" data-es="Accesorios" data-en="Accessories">Accesorios</button>
     <button class="ftab" onclick="filterProds('amigurumis',this)" data-es="Muñequitas" data-en="Dolls">Muñequitas</button>
     <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
@@ -682,7 +683,7 @@ function generateYarnKits(patternProds){
       title:`Kit Estambres ${shortName}`,
       titleEn:`Yarn Kit ${shortName}`,
       price,
-      type:'kits',
+      type:'estambres',
       skill:'',
       images:pat.images||[],
       desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,
@@ -832,8 +833,8 @@ const yarnProducts=YARN_COLORS.map((c,i)=>({
 }));
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
-function typeLabel(t){return t==='kits'?'Kit Crochet':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':t==='accesorios'?'Accesorio':'Patrón Digital';}
-function typeBadge(t){return t==='kits'?'kit':t==='hilo'?'hilo':t==='amigurumis'?'kit':t==='accesorios'?'acc':'';}
+function typeLabel(t){return t==='kits'?'Kit Crochet':t==='estambres'?'Kit Estambres':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':t==='accesorios'?'Accesorio':'Patrón Digital';}
+function typeBadge(t){return t==='kits'?'kit':t==='estambres'?'hilo':t==='hilo'?'hilo':t==='amigurumis'?'kit':t==='accesorios'?'acc':'';}
 
 let activeFilter='patrones';
 
