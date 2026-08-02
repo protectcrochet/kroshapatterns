@@ -428,9 +428,9 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
                 <input type="text" id="ship-street" placeholder="Av. Reforma 123">
               </div>
             </div>
-            <div class="form-grid" style="margin-bottom:12px;">
-              <div class="field">
-                <label data-es="COLONIA / BARRIO" data-en="NEIGHBORHOOD">COLONIA / BARRIO</label>
+            <div class="form-grid" style="margin-bottom:12px;" id="ship-colonia-row">
+              <div class="field" id="ship-colonia-field">
+                <label id="lbl-colonia" data-es="COLONIA / BARRIO" data-en="NEIGHBORHOOD">COLONIA / BARRIO</label>
                 <input type="text" id="ship-colonia" placeholder="Centro">
               </div>
               <div class="field">
@@ -440,12 +440,12 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
             </div>
             <div class="form-grid">
               <div class="field">
-                <label data-es="ESTADO / PROVINCIA" data-en="STATE / PROVINCE">ESTADO / PROVINCIA</label>
+                <label id="lbl-state" data-es="ESTADO / PROVINCIA" data-en="STATE / PROVINCE">ESTADO / PROVINCIA</label>
                 <input type="text" id="ship-state" placeholder="CDMX">
               </div>
               <div class="field">
-                <label data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
-                <input type="text" id="ship-zip" placeholder="06600" maxlength="10" oninput="autoQuoteShipping()">
+                <label id="lbl-zip" data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
+                <input type="text" id="ship-zip" placeholder="06600" maxlength="12" oninput="autoQuoteShipping()">
               </div>
             </div>
             <!-- Guardar dirección (solo si está logueada) -->
@@ -1081,7 +1081,7 @@ async function confirmOrderMP(paymentType){
     const colonia=document.getElementById('ship-colonia')?.value?.trim();
     const city=document.getElementById('ship-city')?.value?.trim();
     const state=document.getElementById('ship-state')?.value?.trim();
-    const zip=document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim();
+    const zip=document.getElementById('ship-zip')?.value?.trim();
     if(!street||!city||!zip||(isMXship&&(!colonia||!state))){
       showToast(lang==='es'?'⚠️ Completa todos los campos de dirección':'⚠️ Fill all address fields');
       document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
@@ -1205,7 +1205,7 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef){
           colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
           city:document.getElementById('ship-city')?.value?.trim()||'',
           state:document.getElementById('ship-state')?.value?.trim()||'',
-          zip:document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim()||'',
+          zip:document.getElementById('ship-zip')?.value?.trim()||'',
           phone:document.getElementById('checkout-phone')?.value?.trim()||'',
           country:document.getElementById('country-sel')?.value||'MX',
         }:null,
@@ -1349,7 +1349,7 @@ async function confirmOrder(){
     const colonia=document.getElementById('ship-colonia')?.value?.trim();
     const city=document.getElementById('ship-city')?.value?.trim();
     const state=document.getElementById('ship-state')?.value?.trim();
-    const zip=document.getElementById('ship-zip')?.value?.trim()||document.getElementById('intl-zip')?.value?.trim();
+    const zip=document.getElementById('ship-zip')?.value?.trim();
     const missingFields=!street||!city||!zip||(isMXship&&(!colonia||!state));
     if(missingFields){
       showToast(lang==='es'?'⚠️ Completa todos los campos de dirección':'⚠️ Fill all address fields');
@@ -1451,19 +1451,10 @@ function updateShipping(){
   const title=isMX?'Cotiza tu envío en tiempo real':'Cotiza tu envío internacional';
   const hint=isMX
     ?'Ingresa tu código postal (5 dígitos) y verás tarifas reales de las principales paqueterías.'
-    :'Ingresa tu código postal de destino. Cotizamos con DHL, FedEx y UPS para enviarte desde México.';
-  const cpHint=isMX?'Ej. 44100':'Ej. 90210 (EE.UU.), 28001 (España)';
+    :'Cotizamos en tiempo real con DHL, FedEx y UPS usando el código postal de tu dirección.';
   const html=`<div style="background:${bgColor};border-radius:14px;padding:16px;border:1.5px solid ${bdColor};">
     <div style="font-weight:700;color:${txColor};font-size:13.5px;margin-bottom:5px;">${icon} ${title}</div>
     <div style="font-size:12px;color:${stColor};margin-bottom:10px;">${hint}</div>
-    ${!isMX?`<div style="margin-bottom:10px;">
-      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:${stColor};display:block;margin-bottom:5px;">Código postal de destino</label>
-      <div style="display:flex;gap:8px;">
-        <input id="intl-zip" type="text" placeholder="${cpHint}" maxlength="12"
-          style="flex:1;border:1.5px solid ${bdColor};border-radius:10px;padding:10px 13px;font-size:13px;font-family:'Nunito',sans-serif;outline:none;background:#fff;color:var(--text);"
-          oninput="autoQuoteShipping();var sz=document.getElementById('ship-zip');if(sz)sz.value=this.value;">
-      </div>
-    </div>`:''}
     <button onclick="cotizarEnvio()" style="background:var(--pink-dark);color:#fff;border:none;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;">
       ${isMX?'🚚':'✈️'} Ver tarifas disponibles
     </button>
@@ -1471,23 +1462,28 @@ function updateShipping(){
   </div>`;
   box.innerHTML=html;
   box.style.display='block';
+  // Show/hide colonia field and adjust grid for non-MX countries
+  const coloniaField=document.getElementById('ship-colonia-field');
+  const coloniaRow=document.getElementById('ship-colonia-row');
+  if(coloniaField)coloniaField.style.display=isMX?'':'none';
+  if(coloniaRow)coloniaRow.style.gridTemplateColumns=isMX?'':'1fr';
   // Update address form labels/placeholders for international vs domestic
-  const coloniaLabel=document.querySelector('label[for="ship-colonia"],#ship-colonia')?.closest('.field')?.querySelector('label');
-  const stateLabel=document.querySelector('label[for="ship-state"],#ship-state')?.closest('.field')?.querySelector('label');
+  const coloniaLabel=document.getElementById('lbl-colonia');
+  const stateLabel=document.getElementById('lbl-state');
+  const zipLabel=document.getElementById('lbl-zip');
   const zipInput=document.getElementById('ship-zip');
   if(!isMX){
-    if(coloniaLabel)coloniaLabel.textContent='COLONIA / BARRIO (opcional)';
     if(stateLabel)stateLabel.textContent='ESTADO / PROVINCIA (opcional)';
+    if(zipLabel)zipLabel.textContent='ZIP / CÓDIGO POSTAL';
     if(zipInput)zipInput.placeholder='Ej. 90210, 28001, C1043, K1A 0A9';
   } else {
     if(coloniaLabel)coloniaLabel.textContent=lang==='es'?'COLONIA / BARRIO':'NEIGHBORHOOD';
     if(stateLabel)stateLabel.textContent=lang==='es'?'ESTADO / PROVINCIA':'STATE / PROVINCE';
+    if(zipLabel)zipLabel.textContent=lang==='es'?'CÓDIGO POSTAL':'ZIP / POSTAL CODE';
     if(zipInput)zipInput.placeholder='06600';
   }
-  // Auto-quote if zip already filled
-  const existingZip=isMX
-    ? document.getElementById('ship-zip')?.value?.trim()
-    : (document.getElementById('intl-zip')?.value?.trim()||document.getElementById('ship-zip')?.value?.trim());
+  // Auto-quote if ship-zip already filled
+  const existingZip=document.getElementById('ship-zip')?.value?.trim();
   if(existingZip&&_cpValidForCountry(existingZip,country)) cotizarEnvio();
 }
 
@@ -1502,9 +1498,7 @@ function _cpValidForCountry(cp, country){
 function _getCPAndCountry(){
   const country=document.getElementById('country-sel')?.value||'MX';
   const isMX=country==='MX';
-  const cp=isMX
-    ? document.getElementById('ship-zip')?.value?.trim()
-    : document.getElementById('intl-zip')?.value?.trim();
+  const cp=document.getElementById('ship-zip')?.value?.trim();
   return {cp, country, isMX};
 }
 
@@ -1522,7 +1516,7 @@ async function cotizarEnvio(){
   }
   if(!cp||!_cpValidForCountry(cp,country)){
     showToast(isMX?'⚠️ Ingresa un código postal válido (5 dígitos)':'⚠️ Ingresa el código postal de destino');
-    (document.getElementById('ship-zip')||document.getElementById('intl-zip'))?.focus();
+    document.getElementById('ship-zip')?.focus();
     return;
   }
   const el=document.getElementById('envia-results');
