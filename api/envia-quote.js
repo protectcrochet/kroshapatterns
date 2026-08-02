@@ -67,37 +67,58 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json',
   };
 
-  try {
-    // Cotizar todos los carriers compatibles en paralelo
-    const results = await Promise.allSettled(
-      CARRIERS.map(carrier =>
-        fetch(`${ENVIA_BASE}/ship/rate/`, {
-          method: 'POST', headers,
-          body: JSON.stringify(makeBody(carrier)),
-        }).then(r => r.json())
-      )
-    );
+  // Cuerpo sin carrier especificado → Envia.com devuelve TODAS las paqueterías disponibles de la cuenta
+  const body = makeBody(null);
+  delete body.shipment.carrier;
 
-    // Combinar y normalizar resultados
-    const rates = [];
-    results.forEach((result, i) => {
-      if (result.status === 'fulfilled') {
-        const val = result.value;
-        const items = val.data || (Array.isArray(val) ? val : null);
-        if (items && items.length) {
-          items.forEach(r => {
+  try {
+    // Una sola llamada — Envia.com devuelve todos los carriers contratados
+    const r = await fetch(`${ENVIA_BASE}/ship/rate/`, {
+      method: 'POST', headers,
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+
+    const items = data.data || (Array.isArray(data) ? data : []);
+    const rates = items
+      .filter(r => r.totalPrice || r.price)
+      .map(r => ({
+        carrier: r.carrier || '',
+        service: r.service || '',
+        serviceDescription: r.serviceDescription || r.service || '',
+        days: r.deliveryEstimate || r.days || '?',
+        price: r.totalPrice || r.price,
+        currency: 'MXN',
+      }));
+
+    // Si la respuesta sin carrier no trajo nada, intenta por separado con cada carrier
+    if (!rates.length) {
+      const CARRIERS = isMX ? CARRIERS_MX : CARRIERS_INTL;
+      const results = await Promise.allSettled(
+        CARRIERS.map(carrier =>
+          fetch(`${ENVIA_BASE}/ship/rate/`, {
+            method: 'POST', headers,
+            body: JSON.stringify(makeBody(carrier)),
+          }).then(r => r.json())
+        )
+      );
+      results.forEach((result, i) => {
+        if (result.status === 'fulfilled') {
+          const val = result.value;
+          const items = val.data || (Array.isArray(val) ? val : []);
+          items.filter(r => r.totalPrice || r.price).forEach(r => {
             rates.push({
               carrier: r.carrier || CARRIERS[i],
-              service: r.service,
-              serviceDescription: r.serviceDescription || r.service,
+              service: r.service || '',
+              serviceDescription: r.serviceDescription || r.service || '',
               days: r.deliveryEstimate || r.days || '?',
               price: r.totalPrice || r.price,
               currency: 'MXN',
             });
           });
         }
-      }
-    });
+      });
+    }
 
     rates.sort((a, b) => a.price - b.price);
     return res.status(200).json({ ok: true, rates, internacional: !isMX });
