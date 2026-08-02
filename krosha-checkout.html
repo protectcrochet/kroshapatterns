@@ -1589,8 +1589,9 @@ async function cotizarEnvio(){
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');
     if(!data.rates||!data.rates.length){
+      const dbg=data._debug?`<details style="margin-top:8px;font-size:11px;"><summary style="cursor:pointer;color:#666;">Ver respuesta API</summary><pre style="overflow:auto;max-height:200px;font-size:10px;background:#f5f5f5;padding:8px;border-radius:6px;">${JSON.stringify(data._debug,null,2)}</pre></details>`:'';
       el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">
-        ⚠️ No encontramos tarifas para el CP <strong>${cp}</strong>. Verifica que sea correcto o contáctanos.</div>`;
+        ⚠️ No encontramos tarifas para <strong>${country} ${cp}</strong>. Puede que el destino no esté disponible con tus carriers actuales en Envia.com.${dbg}</div>`;
       return;
     }
     _shipRates=data.rates;

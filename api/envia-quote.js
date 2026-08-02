@@ -78,6 +78,7 @@ export default async function handler(req, res) {
       body: JSON.stringify(body),
     });
     const data = await r.json();
+    console.log('[envia-quote]', pais_destino, cp_destino, 'status:', r.status, 'data:', JSON.stringify(data).slice(0,1000));
 
     const items = data.data || (Array.isArray(data) ? data : []);
     const rates = items
