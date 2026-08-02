@@ -1488,24 +1488,28 @@ async function cotizarEnvio(){
   try{
     const cart=getCartItems();
     // Contar ovillos/estambres (dimensiones calculadas por cantidad)
-    let totalSkeins=0;
+    let totalSkeins=0, hayAccesorios=false;
     let pesoTotal=0, maxLargo=0, maxAncho=0, maxAlto=0;
     cart.forEach(i=>{
       const isYarn=(i.img&&i.img.startsWith('yarn:'))||
         i.title.toLowerCase().includes('estambre')||
         i.title.toLowerCase().includes('ovillo');
+      const isDigital=!!(i.patternSlug||i.pdfUrl);
       if(isYarn){
         totalSkeins+=i.qty;
-      } else if(i.boxPeso>0){
-        pesoTotal+=i.boxPeso*i.qty;
-        maxLargo=Math.max(maxLargo,i.boxLargo||0);
-        maxAncho=Math.max(maxAncho,i.boxAncho||0);
-        maxAlto=Math.max(maxAlto,i.boxAlto||0);
+      } else if(!isDigital){
+        // Accesorio físico (ojos, bowl, kit, etc.) — tenga o no dimensiones configuradas
+        hayAccesorios=true;
+        if(i.boxPeso>0){
+          pesoTotal+=i.boxPeso*i.qty;
+          maxLargo=Math.max(maxLargo,i.boxLargo||0);
+          maxAncho=Math.max(maxAncho,i.boxAncho||0);
+          maxAlto=Math.max(maxAlto,i.boxAlto||0);
+        } else {
+          pesoTotal+=0.3*i.qty; // peso estimado si no está configurado
+        }
       }
     });
-    // Dimensiones según cantidad de ovillos
-    // Si hay accesorios en el mismo pedido → obligatorio caja
-    const hayAccesorios=pesoTotal>0; // pesoTotal solo cuenta accesorios (se suma antes)
     if(totalSkeins>0){
       pesoTotal+=totalSkeins*0.25;
       let yL,yA,yAlt;
