@@ -1513,7 +1513,7 @@ function _renderRatesList(){
           <div style="font-size:12.5px;font-weight:700;color:var(--text);">${r.carrier.toUpperCase()} — ${r.serviceDescription||r.service}</div>
           ${daysStr?`<div style="font-size:11px;color:var(--text-light);">${daysStr}</div>`:''}
         </div>
-        <div style="white-space:nowrap;text-align:right;">${(()=>{const sk=_countSkeins();const sub=sk*SHIP_SUBSIDY_PER_SKEIN;const disc=Math.max(0,r.price-sub);if(sk>0&&sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
+        <div style="white-space:nowrap;text-align:right;">${(()=>{const sub=(_countSkeins()*SHIP_SUBSIDY_PER_SKEIN)+(_countAccesorios()*SHIP_SUBSIDY_PER_ACCESORIO);const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
       </div>`;
     }).join('');
 }
@@ -1525,10 +1525,10 @@ function selectShipRate(idx){
   _updateShipTotals();
 }
 
-const SHIP_SUBSIDY_PER_SKEIN = 10; // $10 MXN de subsidio por ovillo/estambre
+const SHIP_SUBSIDY_PER_SKEIN = 10;      // $10 MXN por ovillo/estambre
+const SHIP_SUBSIDY_PER_ACCESORIO = 50;  // $50 MXN por accesorio (ojos, kits, bowls)
 
 function _countSkeins(){
-  // Detecta ovillos/estambres automáticamente por imagen o título
   return getCartItems()
     .filter(i=>(i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('estambre')||
@@ -1536,9 +1536,21 @@ function _countSkeins(){
     .reduce((s,i)=>s+i.qty, 0);
 }
 
+function _countAccesorios(){
+  return getCartItems()
+    .filter(i=>{
+      const t=i.title.toLowerCase();
+      const id=String(i.id||'');
+      return id.includes('-eyes')||id.includes('-kit')||
+        t.includes('ojos')||t.includes('kit')||t.includes('bowl');
+    })
+    .reduce((s,i)=>s+i.qty, 0);
+}
+
 function _effectiveShipCost(){
   if(shipCost<=0)return 0;
-  const subsidy=_countSkeins()*SHIP_SUBSIDY_PER_SKEIN;
+  const subsidy=(_countSkeins()*SHIP_SUBSIDY_PER_SKEIN)+
+                (_countAccesorios()*SHIP_SUBSIDY_PER_ACCESORIO);
   return Math.max(0, shipCost-subsidy);
 }
 
@@ -1546,13 +1558,18 @@ function _updateShipTotals(){
   const sv=document.getElementById('sum-ship-val');
   const msv=document.getElementById('ms-ship-val');
   const skeins=_countSkeins();
-  const subsidy=skeins*SHIP_SUBSIDY_PER_SKEIN;
+  const accesorios=_countAccesorios();
+  const subsidySkeins=skeins*SHIP_SUBSIDY_PER_SKEIN;
+  const subsidyAcc=accesorios*SHIP_SUBSIDY_PER_ACCESORIO;
+  const subsidy=subsidySkeins+subsidyAcc;
   const effective=_effectiveShipCost();
   if(shipCost>0){
-    const subsidyNote=subsidy>0?` <span style="font-size:11px;color:var(--green);">(-$${subsidy} de ${skeins} ovillo${skeins!==1?'s':''})</span>`:'';
+    let note='';
+    if(subsidySkeins>0) note+=` <span style="font-size:11px;color:var(--green);">(-$${subsidySkeins} de ${skeins} ovillo${skeins!==1?'s':''})</span>`;
+    if(subsidyAcc>0) note+=` <span style="font-size:11px;color:var(--green);">(-$${subsidyAcc} de ${accesorios} accesorio${accesorios!==1?'s':''})</span>`;
     const display=effective===0
-      ?`<span style="color:var(--green);">¡Envío cubierto!</span>`
-      :`${f(effective)}${subsidyNote}`;
+      ?`<span style="color:var(--green);">¡Envío gratis!</span>`
+      :`${f(effective)}${note}`;
     if(sv){sv.innerHTML=display;sv.style.color='var(--text)';}
     if(msv){msv.innerHTML=display;msv.style.color='var(--text)';}
   } else {
