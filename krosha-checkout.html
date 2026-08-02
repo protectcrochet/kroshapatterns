@@ -1467,11 +1467,25 @@ async function cotizarEnvio(){
 
   try{
     const cart=getCartItems();
-    const peso=Math.max(0.3, cart.length*0.25);
+    // Calcular peso total y dimensiones máximas del carrito
+    let pesoTotal=0, maxLargo=0, maxAncho=0, maxAlto=0;
+    cart.forEach(i=>{
+      if(i.boxPeso>0){
+        pesoTotal+=i.boxPeso*i.qty;
+        maxLargo=Math.max(maxLargo,i.boxLargo||0);
+        maxAncho=Math.max(maxAncho,i.boxAncho||0);
+        maxAlto=Math.max(maxAlto,i.boxAlto||0);
+      }
+    });
+    // Fallback a valores por defecto si no hay dimensiones configuradas
+    const peso=pesoTotal>0?pesoTotal:1;
+    const largo=maxLargo>0?maxLargo:25;
+    const ancho=maxAncho>0?maxAncho:25;
+    const alto=maxAlto>0?maxAlto:37;
     const r=await fetch('/api/envia-quote',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso:1, largo:25, ancho:25, alto:37}),
+      body:JSON.stringify({cp_destino:cp, pais_destino:country, peso, largo, ancho, alto}),
     });
     const data=await r.json();
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');

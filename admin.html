@@ -695,6 +695,49 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <input type="number" id="pf-ship-subsidy" placeholder="0" min="0" max="9999">
         </div>
       </div>
+      <!-- CAJA DE ENVÍO -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;">📐 Caja de envío</div>
+        <div class="form-grid">
+          <div class="field" style="grid-column:1/-1;">
+            <label>Plantilla de caja</label>
+            <select id="pf-box-template" onchange="applyBoxTemplate(this.value)" style="width:100%;">
+              <option value="">— Sin envío físico (patrón digital) —</option>
+              <option value="kit25">KIT 25 CM — 19×27×10 cm | 1 kg</option>
+              <option value="p27">27 pulgadas — 32×52×36 cm | 5 kg</option>
+              <option value="p18">18 pulgadas — 37×25×25 cm | 2 kg</option>
+              <option value="p22">22 pulgadas — 25×43×35 cm | 4 kg</option>
+              <option value="p14">14 pulgadas — 22×33×23 cm | 2 kg</option>
+              <option value="kc">Kit Crochet — 10×30×30 cm | 2 kg</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+        </div>
+        <div id="pf-box-custom" style="display:none;margin-top:10px;">
+          <div class="form-grid">
+            <div class="field">
+              <label>Largo (cm)</label>
+              <input type="number" id="pf-box-largo" placeholder="25" min="1" oninput="syncCustomBox()">
+            </div>
+            <div class="field">
+              <label>Ancho (cm)</label>
+              <input type="number" id="pf-box-ancho" placeholder="25" min="1" oninput="syncCustomBox()">
+            </div>
+            <div class="field">
+              <label>Alto (cm)</label>
+              <input type="number" id="pf-box-alto" placeholder="10" min="1" oninput="syncCustomBox()">
+            </div>
+            <div class="field">
+              <label>Peso (kg)</label>
+              <input type="number" id="pf-box-peso" placeholder="1" min="0.1" step="0.1" oninput="syncCustomBox()">
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="pf-box-largo-val">
+        <input type="hidden" id="pf-box-ancho-val">
+        <input type="hidden" id="pf-box-alto-val">
+        <input type="hidden" id="pf-box-peso-val">
+      </div>
     </div>
     <!-- ENTREGA DIGITAL -->
     <div style="margin-top:18px;background:#f0f8f4;border-radius:12px;padding:16px;border:1px solid #b0ddc8;">
@@ -1245,7 +1288,9 @@ function openProdModal(id){
   fillYarnSelects();
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy','pf-box-largo','pf-box-ancho','pf-box-alto','pf-box-peso','pf-box-largo-val','pf-box-ancho-val','pf-box-alto-val','pf-box-peso-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('pf-box-template').value='';
+  document.getElementById('pf-box-custom').style.display='none';
   setImgPos('50% 20%',1);
   document.getElementById('pdf-preview-row').style.display='none';
   document.getElementById('pf-type').value='patrones';
@@ -1276,6 +1321,8 @@ function editProd(id){
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-eyes-img').value=p.eyesImg||'';
   document.getElementById('pf-ship-subsidy').value=p.shipSubsidy!=null?p.shipSubsidy:'';
+  document.getElementById('pf-box-template').value=p.boxTemplate||'';
+  applyBoxTemplate(p.boxTemplate||'',p);
   document.getElementById('pf-pattern-slug').value=p.patternSlug||'';
   document.getElementById('pf-pdf-url').value=p.pdfUrl||'';
   const pdfRow=document.getElementById('pdf-preview-row');
@@ -1324,6 +1371,11 @@ function saveProd(){
     imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',
     imageZoom:parseFloat(document.getElementById('pf-img-zoom').value)||1,
     yarnList:getYarnList(),
+    boxTemplate:document.getElementById('pf-box-template').value||'',
+    boxLargo:parseFloat(document.getElementById('pf-box-largo-val').value)||0,
+    boxAncho:parseFloat(document.getElementById('pf-box-ancho-val').value)||0,
+    boxAlto:parseFloat(document.getElementById('pf-box-alto-val').value)||0,
+    boxPeso:parseFloat(document.getElementById('pf-box-peso-val').value)||0,
   };
   if(!prod.nameEs){showToast('⚠️ El nombre es obligatorio');return;}
   let prods=getProds();
@@ -1368,6 +1420,43 @@ function setImgPos(pos,zoom){
   document.getElementById('pf-img-zoom').value=z;
   const posImg=document.getElementById('pos-preview-img');
   if(posImg){posImg.style.objectPosition=x+'% '+y+'%';posImg.style.transform='scale('+z+')';posImg.style.transformOrigin=x+'% '+y+'%';}
+}
+
+const BOX_TEMPLATES={
+  kit25:{largo:19,ancho:27,alto:10,peso:1},
+  p27:  {largo:32,ancho:52,alto:36,peso:5},
+  p18:  {largo:37,ancho:25,alto:25,peso:2},
+  p22:  {largo:25,ancho:43,alto:35,peso:4},
+  p14:  {largo:22,ancho:33,alto:23,peso:2},
+  kc:   {largo:10,ancho:30,alto:30,peso:2},
+};
+function applyBoxTemplate(tpl, overrides){
+  const customDiv=document.getElementById('pf-box-custom');
+  const t=BOX_TEMPLATES[tpl];
+  if(tpl==='custom'){
+    customDiv.style.display='block';
+    const o=overrides||{};
+    if(o.boxLargo){document.getElementById('pf-box-largo').value=o.boxLargo;}
+    if(o.boxAncho){document.getElementById('pf-box-ancho').value=o.boxAncho;}
+    if(o.boxAlto){document.getElementById('pf-box-alto').value=o.boxAlto;}
+    if(o.boxPeso){document.getElementById('pf-box-peso').value=o.boxPeso;}
+    syncCustomBox();
+  } else if(t){
+    customDiv.style.display='none';
+    document.getElementById('pf-box-largo-val').value=t.largo;
+    document.getElementById('pf-box-ancho-val').value=t.ancho;
+    document.getElementById('pf-box-alto-val').value=t.alto;
+    document.getElementById('pf-box-peso-val').value=t.peso;
+  } else {
+    customDiv.style.display='none';
+    ['pf-box-largo-val','pf-box-ancho-val','pf-box-alto-val','pf-box-peso-val'].forEach(id=>document.getElementById(id).value='');
+  }
+}
+function syncCustomBox(){
+  document.getElementById('pf-box-largo-val').value=document.getElementById('pf-box-largo').value;
+  document.getElementById('pf-box-ancho-val').value=document.getElementById('pf-box-ancho').value;
+  document.getElementById('pf-box-alto-val').value=document.getElementById('pf-box-alto').value;
+  document.getElementById('pf-box-peso-val').value=document.getElementById('pf-box-peso').value;
 }
 
 function triggerUpload(n){

@@ -640,6 +640,11 @@ function _mapProducts(arr){
     featured:!!p.featured,
     sortOrder:p.sortOrder!=null?p.sortOrder:999,
     shipSubsidy:p.shipSubsidy||0,
+    boxTemplate:p.boxTemplate||'',
+    boxLargo:p.boxLargo||0,
+    boxAncho:p.boxAncho||0,
+    boxAlto:p.boxAlto||0,
+    boxPeso:p.boxPeso||0,
   }));
 }
 
@@ -1121,7 +1126,7 @@ function addToCart(){
   if(!curProd)return;
   const cart=getCart();
   const existing=cart.find(i=>i.id===curProd.id);
-  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipSubsidy:curProd.shipSubsidy||0});
+  if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
   if(addonKit&&curProd.kitPrice){
     const kitId=`${curProd.id}-kit`;
     const ekit=cart.find(i=>i.id===kitId);
