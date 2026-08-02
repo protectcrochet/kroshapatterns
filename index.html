@@ -380,6 +380,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
     <button class="ftab" onclick="filterProds('kits',this)" data-es="Kits" data-en="Kits">Kits</button>
     <button class="ftab" onclick="filterProds('accesorios',this)" data-es="Accesorios" data-en="Accessories">Accesorios</button>
+    <button class="ftab" onclick="filterProds('amigurumis',this)" data-es="Muñequitas" data-en="Dolls">Muñequitas</button>
     <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
     <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
   </div>
@@ -839,9 +840,9 @@ let activeFilter='patrones';
 function renderNovedades(){
   const wrap=document.getElementById('novedades-wrap');
   if(!wrap)return;
-  const patrones=getProducts().filter(p=>p.type==='patrones');
-  const featured=patrones.filter(p=>p.featured).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999)).slice(0,3);
-  const show=featured.length?featured:[...patrones].sort((a,b)=>b.id-a.id).slice(0,3);
+  const all=getProducts().filter(p=>['patrones','accesorios','amigurumis'].includes(p.type));
+  const featured=all.filter(p=>p.featured).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999)).slice(0,3);
+  const show=featured.length?featured:[...all].sort((a,b)=>b.id-a.id).slice(0,3);
   if(!show.length){wrap.innerHTML='';return;}
   const wish=getWish();
   wrap.innerHTML=`
