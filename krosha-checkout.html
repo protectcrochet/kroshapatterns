@@ -1541,8 +1541,7 @@ function _countAccesorios(){
     .filter(i=>{
       const t=i.title.toLowerCase();
       const id=String(i.id||'');
-      return id.includes('-eyes')||id.includes('-kit')||
-        t.includes('ojos')||t.includes('kit')||t.includes('bowl');
+      return id.includes('-kit')||t.includes('kit')||t.includes('bowl');
     })
     .reduce((s,i)=>s+i.qty, 0);
 }
