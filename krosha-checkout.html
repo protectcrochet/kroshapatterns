@@ -713,11 +713,13 @@ function chQty(btn,d,id){
   }
   item.qty=newQty;
   saveCart(cart);renderCart();updateNavCart();
+  _autoRecotizar();
 }
 
 function removeItem(id){
   const cart=getCartItems().filter(i=>String(i.id)!==String(id));
   saveCart(cart);renderCart();updateNavCart();
+  _autoRecotizar();
   showToast(lang==='es'?'🗑 Eliminado':'🗑 Removed');
 }
 function clearCart(){
@@ -1381,6 +1383,15 @@ function showToast(msg){
 
 // ── SHIPPING ──
 let shipCost=0, _shipRates=[], _selRateIdx=0;
+
+function _autoRecotizar(){
+  // Solo re-cotiza si ya hay tarifas cargadas (el usuario ya cotizó antes) y hay CP válido
+  if(!_shipRates.length)return;
+  const {cp,country}=_getCPAndCountry();
+  if(!cp||!_cpValidForCountry(cp,country))return;
+  if(!hasPhysicalItems()){_shipRates=[];shipCost=0;_updateShipTotals();return;}
+  cotizarEnvio();
+}
 
 function hasPhysicalItems(){
   const cart=getCartItems();
