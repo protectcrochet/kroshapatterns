@@ -285,6 +285,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
+      <script>(function(){var v=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');if(v){var s=document.getElementById('cur');if(s)s.value=v;}})();</script>
       <button class="btn-cart-nav" onclick="showCartPage()">🛍 <span class="cart-label" data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="nav-cn">0</span></button>
     </div>
   </div>
@@ -385,7 +386,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           <div style="margin-top:12px;">
             <div class="field">
               <label data-es="PAÍS / REGIÓN" data-en="COUNTRY / REGION">PAÍS / REGIÓN</label>
-              <select id="country-sel" onchange="localStorage.setItem('krosha_country',this.value);updateShipping()">
+              <select id="country-sel" onchange="sessionStorage.setItem('krosha_country',this.value);localStorage.setItem('krosha_country',this.value);updateShipping()">
                 <option value="MX">🇲🇽 México</option>
                 <option value="DO">🇩🇴 República Dominicana</option>
                 <option value="US">🇺🇸 Estados Unidos</option>
@@ -687,7 +688,7 @@ function renderMiniSummary(cart,sub){
 }
 
 function updatePrices(){renderCart();}
-function setC(){cur=document.getElementById('cur').value;localStorage.setItem('krosha_cur',cur);renderCart();updateMxnNotice();}
+function setC(){cur=document.getElementById('cur').value;sessionStorage.setItem('krosha_cur',cur);localStorage.setItem('krosha_cur',cur);renderCart();updateMxnNotice();}
 
 function updateMxnNotice(){
   const notice=document.getElementById('mxn-notice');
@@ -1660,10 +1661,11 @@ function _updateShipTotals(){
 
 // ── IP CURRENCY DETECTION ──
 async function detectCurrencyFromIP(){
-  // Skip if user already has a saved preference
-  if(localStorage.getItem('krosha_cur'))return;
+  if(sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur'))return;
   try{
     const r=await fetch('https://ip-api.com/json/?fields=countryCode');
+    // Re-check after async in case user changed manually while we were fetching
+    if(sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur'))return;
     const d=await r.json();
     if(d.countryCode&&countryToCurrency[d.countryCode]){
       const detected=countryToCurrency[d.countryCode];
@@ -1671,9 +1673,10 @@ async function detectCurrencyFromIP(){
         cur=detected;
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
+        sessionStorage.setItem('krosha_cur',cur);
         localStorage.setItem('krosha_cur',cur);
+        sessionStorage.setItem('krosha_country',d.countryCode);
         localStorage.setItem('krosha_country',d.countryCode);
-        // Auto-select country
         const csel=document.getElementById('country-sel');
         if(csel){
           const opt=[...csel.options].find(o=>o.value===d.countryCode);
@@ -1687,13 +1690,13 @@ async function detectCurrencyFromIP(){
 
 // ── LOAD SAVED CURRENCY + COUNTRY ──
 (function(){
-  const savedCur=localStorage.getItem('krosha_cur');
+  const savedCur=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');
   if(savedCur&&rates[savedCur]){
     cur=savedCur;
     const sel=document.getElementById('cur');
     if(sel)sel.value=cur;
   }
-  const savedCountry=localStorage.getItem('krosha_country');
+  const savedCountry=sessionStorage.getItem('krosha_country')||localStorage.getItem('krosha_country');
   if(savedCountry){
     const csel=document.getElementById('country-sel');
     if(csel){

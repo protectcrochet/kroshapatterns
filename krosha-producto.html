@@ -624,7 +624,7 @@ function updatePriceDisplay(){
   document.getElementById('rp4').textContent=f(850);
 }
 
-function setC(){cur=document.getElementById('cur').value;localStorage.setItem('krosha_cur',cur);updatePriceDisplay();renderYarn();}
+function setC(){cur=document.getElementById('cur').value;sessionStorage.setItem('krosha_cur',cur);localStorage.setItem('krosha_cur',cur);updatePriceDisplay();renderYarn();}
 
 function setLang(l){
   lang=l;
@@ -670,7 +670,7 @@ function t(k){return tx[k][lang];}
 
 // ── LOAD SAVED CURRENCY ──
 (function(){
-  const saved=localStorage.getItem('krosha_cur');
+  const saved=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');
   if(saved&&rates[saved]){
     cur=saved;
     const sel=document.getElementById('cur');

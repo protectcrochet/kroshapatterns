@@ -328,6 +328,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <option value="NIO">🇳🇮 NIO</option>
         <option value="CRC">🇨🇷 CRC</option>
       </select>
+      <script>(function(){var v=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');if(v){var s=document.getElementById('cur');if(s)s.value=v;}})();</script>
       <button class="btn-acct" id="btn-acct" onclick="openAcctModal()" title="Mi cuenta"><span>👤</span><span class="acct-dot"></span></button>
       <button class="btn-cart" onclick="window.location.href='krosha-checkout.html'">🛍 <span class="cart-label" data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
     </div>
@@ -1219,6 +1220,7 @@ function nlSub(){
 
 function setC(){
   cur=document.getElementById('cur').value;
+  sessionStorage.setItem('krosha_cur',cur);
   localStorage.setItem('krosha_cur',cur);
   renderGrid();
   renderNovedades();
@@ -1242,9 +1244,10 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 
 // ── IP CURRENCY DETECTION ──
 async function detectCurrencyFromIP(){
-  if(localStorage.getItem('krosha_cur'))return;
+  if(sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur'))return;
   try{
     const r=await fetch('https://ip-api.com/json/?fields=countryCode');
+    if(sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur'))return;
     const d=await r.json();
     if(d.countryCode&&countryToCurrency[d.countryCode]){
       const detected=countryToCurrency[d.countryCode];
@@ -1252,7 +1255,9 @@ async function detectCurrencyFromIP(){
         cur=detected;
         const sel=document.getElementById('cur');
         if(sel)sel.value=cur;
+        sessionStorage.setItem('krosha_cur',cur);
         localStorage.setItem('krosha_cur',cur);
+        sessionStorage.setItem('krosha_country',d.countryCode);
         localStorage.setItem('krosha_country',d.countryCode);
         renderGrid();setC();
       }
@@ -1266,7 +1271,7 @@ let _publishedHero=null;
 // ── INIT ──
 (async()=>{
   // Restore saved currency preference before first render
-  const savedCur=localStorage.getItem('krosha_cur');
+  const savedCur=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');
   if(savedCur&&rates[savedCur]){
     cur=savedCur;
     const sel=document.getElementById('cur');
