@@ -1479,33 +1479,54 @@ async function _toJpegIfHeic(file){
       i.src=url;
     });
     URL.revokeObjectURL(url);
-    if(!img.naturalWidth)throw new Error('empty image');
+    if(!img.naturalWidth)throw new Error('empty');
     const canvas=document.createElement('canvas');
     canvas.width=img.naturalWidth;
     canvas.height=img.naturalHeight;
     canvas.getContext('2d').drawImage(img,0,0);
-    const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/jpeg',0.92));
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('toBlob')),'image/jpeg',0.92));
     const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
     return new File([blob],name,{type:'image/jpeg'});
-  }catch(e){/* fallback to heic2any */}
+  }catch(e){}
 
-  // Library fallback for non-Safari browsers
-  if(!window.heic2any){
-    await new Promise((res,rej)=>{
-      const s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
-      s.onload=res;s.onerror=rej;
-      document.head.appendChild(s);
-    });
-  }
+  // Library fallback (heic2any)
   try{
+    if(!window.heic2any){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+        s.onload=res;s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
     const result=await heic2any({blob:file,toType:'image/jpeg',quality:0.92});
     const jpeg=Array.isArray(result)?result[0]:result;
     const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
     return new File([jpeg],name,{type:'image/jpeg'});
-  }catch(e){
-    throw new Error('No se pudo convertir la foto HEIC. Compártela como JPEG desde la galería e intenta de nuevo.');
-  }
+  }catch(e){}
+
+  return null; // All client methods failed — caller will use server-side
+}
+
+async function serverConvertAndUpload(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=async(e)=>{
+      try{
+        const key=localStorage.getItem(ADMIN_PWD_KEY)||'krosha2024';
+        const r=await fetch('/api/upload-image',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-admin-key':key},
+          body:JSON.stringify({fileData:e.target.result,fileName:file.name,mimeType:file.type||'image/heic'}),
+        });
+        const data=await r.json();
+        if(!r.ok)throw new Error(data.error||'Error en servidor');
+        resolve(data);
+      }catch(err){reject(err);}
+    };
+    reader.onerror=()=>reject(new Error('Error al leer el archivo'));
+    reader.readAsDataURL(file);
+  });
 }
 
 async function handleUpload(input,n){
@@ -1516,10 +1537,20 @@ async function handleUpload(input,n){
   spin.textContent='Subiendo...';
   try{
     const isHeic=file.type==='image/heic'||file.type==='image/heif'||/\.(heic|heif)$/i.test(file.name);
-    if(isHeic)spin.textContent='Convirtiendo...';
-    file=await _toJpegIfHeic(file);
-    if(isHeic)spin.textContent='Subiendo...';
-    const blob=await clientBlobUpload(file);
+    let blob;
+    if(isHeic){
+      spin.textContent='Convirtiendo...';
+      const converted=await _toJpegIfHeic(file);
+      if(converted){
+        spin.textContent='Subiendo...';
+        blob=await clientBlobUpload(converted);
+      } else {
+        spin.textContent='Procesando...';
+        blob=await serverConvertAndUpload(file);
+      }
+    } else {
+      blob=await clientBlobUpload(file);
+    }
     spin.style.display='none';
     spin.textContent='Subiendo...';
     const urlInput=document.getElementById('pf-img'+n);

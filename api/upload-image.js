@@ -27,12 +27,24 @@ export default async function handler(req, res) {
     }
 
     const base64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
-    const buffer = Buffer.from(base64, 'base64');
-    const safeName = `krosha-${Date.now()}-${fileName.replace(/[^a-zA-Z0-9._-]/g, '')}`;
+    let buffer = Buffer.from(base64, 'base64');
+    let finalMime = mimeType || 'image/jpeg';
+    let finalName = fileName;
+
+    const isHeic = finalMime === 'image/heic' || finalMime === 'image/heif' ||
+      /\.(heic|heif)$/i.test(fileName);
+    if (isHeic) {
+      const sharp = (await import('sharp')).default;
+      buffer = await sharp(buffer).jpeg({ quality: 92 }).toBuffer();
+      finalMime = 'image/jpeg';
+      finalName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
+    }
+
+    const safeName = `krosha-${Date.now()}-${finalName.replace(/[^a-zA-Z0-9._-]/g, '')}`;
 
     const blob = await put(safeName, buffer, {
       access: 'public',
-      contentType: mimeType || 'image/jpeg',
+      contentType: finalMime,
     });
 
     return res.status(200).json({ url: blob.url });
