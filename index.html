@@ -211,6 +211,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 
 /* NAV SCROLL BLUR */
 .nav-bar.scrolled{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(255,251,253,.92);box-shadow:0 2px 20px rgba(192,96,144,.12);}
+@keyframes heroPulse{0%,100%{opacity:.6}50%{opacity:1}}
 
 /* SCROLL REVEAL */
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -347,14 +348,14 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <a href="#productos" onclick="navFilter('kits')" class="btn-sec" data-es="Explorar Kits" data-en="Explore Kits">Explorar Kits</a>
       </div>
     </div>
-    <div class="hero-imgs">
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/DC5C0ACD-ADB5-4DD2-8D15-23A995D4E21D.jpg?v=1764718487" alt="Muñeca Ramo Magico"></div>
-        <div class="hc-body"><h4>Muñeca Ramo Magico</h4><p id="hp1">$290 MXN</p></div>
+    <div class="hero-imgs" id="hero-imgs-wrap">
+      <div class="hc" style="animation:heroPulse 1.4s ease-in-out infinite;">
+        <div class="hc-img" style="background:var(--pink-mid);"></div>
+        <div class="hc-body" style="height:48px;background:var(--pink-mid);border-radius:0 0 8px 8px;"></div>
       </div>
-      <div class="hc">
-        <div class="hc-img"><img src="https://cdn.shopify.com/s/files/1/0846/4806/7370/files/440D50A3-4213-4246-B9B7-D666F441586B.jpg?v=1774292862" alt="Kit Ramo"></div>
-        <div class="hc-body"><h4 data-es="Kit Completo" data-en="Full Kit">Kit Completo</h4><p id="hp2">$950 MXN</p></div>
+      <div class="hc" style="animation:heroPulse 1.4s ease-in-out infinite;animation-delay:.2s;">
+        <div class="hc-img" style="background:var(--pink-mid);"></div>
+        <div class="hc-body" style="height:48px;background:var(--pink-mid);border-radius:0 0 8px 8px;"></div>
       </div>
     </div>
   </div>
@@ -721,6 +722,9 @@ function applyHero(){
   // featured hero products
   if(h.featuredProducts&&h.featuredProducts.length){
     renderHeroCards(h.featuredProducts);
+  } else if(_publishedProducts&&_publishedProducts.length){
+    const ids=_publishedProducts.slice(0,2).map(p=>p.id);
+    renderHeroCards(ids);
   }
 }
 
@@ -1286,6 +1290,11 @@ let _publishedHero=null;
     fetch('/api/hero',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
   ]);
   applyHero();
+  // If applyHero didn't populate the hero cards, fill with first 2 published products
+  const heroWrap=document.getElementById('hero-imgs-wrap');
+  if(heroWrap&&heroWrap.querySelector('img')==null&&_publishedProducts&&_publishedProducts.length){
+    renderHeroCards(_publishedProducts.slice(0,2).map(p=>p.id));
+  }
   renderNovedades();
   renderGrid();
   updateCartBadge();
