@@ -608,7 +608,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="pf-img1" placeholder="https://..." oninput="previewImg(this,'img-prev-1')" style="flex:1;">
           <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(1)">📁 Subir</button>
-          <input type="file" id="upload-file-1" accept="image/*" style="display:none;" onchange="handleUpload(this,1)">
+          <input type="file" id="upload-file-1" accept="image/*,.heic,.heif" style="display:none;" onchange="handleUpload(this,1)">
           <span id="upload-spin-1" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
         </div>
         <div style="margin-top:6px;"><img id="img-prev-1" class="img-preview" src="" alt="" style="display:none;"></div>
@@ -618,7 +618,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="pf-img2" placeholder="https://..." oninput="previewImg(this,'img-prev-2')" style="flex:1;">
           <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(2)">📁 Subir</button>
-          <input type="file" id="upload-file-2" accept="image/*" style="display:none;" onchange="handleUpload(this,2)">
+          <input type="file" id="upload-file-2" accept="image/*,.heic,.heif" style="display:none;" onchange="handleUpload(this,2)">
           <span id="upload-spin-2" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
         </div>
         <div style="margin-top:6px;"><img id="img-prev-2" class="img-preview" src="" alt="" style="display:none;"></div>
@@ -628,7 +628,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="pf-img3" placeholder="https://" oninput="previewImg(this,'img-prev-3')" style="flex:1;">
           <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(3)">📁 Subir</button>
-          <input type="file" id="upload-file-3" accept="image/*" style="display:none;" onchange="handleUpload(this,3)">
+          <input type="file" id="upload-file-3" accept="image/*,.heic,.heif" style="display:none;" onchange="handleUpload(this,3)">
           <span id="upload-spin-3" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
         </div>
         <div style="margin-top:6px;"><img id="img-prev-3" class="img-preview" src="" alt="" style="display:none;"></div>
@@ -638,7 +638,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="pf-img4" placeholder="https://" oninput="previewImg(this,'img-prev-4')" style="flex:1;">
           <button type="button" class="btn btn-sm" style="white-space:nowrap;background:var(--pink-light);border:1px solid var(--border);border-radius:8px;padding:6px 12px;cursor:pointer;" onclick="triggerUpload(4)">📁 Subir</button>
-          <input type="file" id="upload-file-4" accept="image/*" style="display:none;" onchange="handleUpload(this,4)">
+          <input type="file" id="upload-file-4" accept="image/*,.heic,.heif" style="display:none;" onchange="handleUpload(this,4)">
           <span id="upload-spin-4" style="display:none;font-size:12px;color:var(--text-light);">Subiendo...</span>
         </div>
         <div style="margin-top:6px;"><img id="img-prev-4" class="img-preview" src="" alt="" style="display:none;"></div>
@@ -1464,20 +1464,44 @@ function triggerUpload(n){
   document.getElementById('upload-file-'+n).click();
 }
 
+async function _toJpegIfHeic(file){
+  const isHeic=file.type==='image/heic'||file.type==='image/heif'||
+    /\.(heic|heif)$/i.test(file.name);
+  if(!isHeic)return file;
+  if(!window.heic2any){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+  const jpeg=await heic2any({blob:file,toType:'image/jpeg',quality:0.92});
+  const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
+  return new File([jpeg],name,{type:'image/jpeg'});
+}
+
 async function handleUpload(input,n){
-  const file=input.files[0];
+  let file=input.files[0];
   if(!file)return;
   const spin=document.getElementById('upload-spin-'+n);
   spin.style.display='inline';
+  spin.textContent='Subiendo...';
   try{
+    const isHeic=file.type==='image/heic'||file.type==='image/heif'||/\.(heic|heif)$/i.test(file.name);
+    if(isHeic)spin.textContent='Convirtiendo...';
+    file=await _toJpegIfHeic(file);
+    if(isHeic)spin.textContent='Subiendo...';
     const blob=await clientBlobUpload(file);
     spin.style.display='none';
+    spin.textContent='Subiendo...';
     const urlInput=document.getElementById('pf-img'+n);
     urlInput.value=blob.url;
     previewImg(urlInput,'img-prev-'+n);
     showToast('✅ Foto subida correctamente');
   }catch(err){
     spin.style.display='none';
+    spin.textContent='Subiendo...';
     showToast('❌ Error al subir: '+err.message);
   }
   input.value='';
