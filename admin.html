@@ -1468,6 +1468,28 @@ async function _toJpegIfHeic(file){
   const isHeic=file.type==='image/heic'||file.type==='image/heif'||
     /\.(heic|heif)$/i.test(file.name);
   if(!isHeic)return file;
+
+  // Native path: Safari/iOS renders HEIC in <img> natively; draw to canvas → JPEG
+  try{
+    const url=URL.createObjectURL(file);
+    const img=await new Promise((res,rej)=>{
+      const i=new Image();
+      i.onload=()=>res(i);
+      i.onerror=rej;
+      i.src=url;
+    });
+    URL.revokeObjectURL(url);
+    if(!img.naturalWidth)throw new Error('empty image');
+    const canvas=document.createElement('canvas');
+    canvas.width=img.naturalWidth;
+    canvas.height=img.naturalHeight;
+    canvas.getContext('2d').drawImage(img,0,0);
+    const blob=await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error('toBlob failed')),'image/jpeg',0.92));
+    const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
+    return new File([blob],name,{type:'image/jpeg'});
+  }catch(e){/* fallback to heic2any */}
+
+  // Library fallback for non-Safari browsers
   if(!window.heic2any){
     await new Promise((res,rej)=>{
       const s=document.createElement('script');
@@ -1476,9 +1498,14 @@ async function _toJpegIfHeic(file){
       document.head.appendChild(s);
     });
   }
-  const jpeg=await heic2any({blob:file,toType:'image/jpeg',quality:0.92});
-  const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
-  return new File([jpeg],name,{type:'image/jpeg'});
+  try{
+    const result=await heic2any({blob:file,toType:'image/jpeg',quality:0.92});
+    const jpeg=Array.isArray(result)?result[0]:result;
+    const name=file.name.replace(/\.(heic|heif)$/i,'.jpg');
+    return new File([jpeg],name,{type:'image/jpeg'});
+  }catch(e){
+    throw new Error('No se pudo convertir la foto HEIC. Compártela como JPEG desde la galería e intenta de nuevo.');
+  }
 }
 
 async function handleUpload(input,n){
