@@ -268,7 +268,10 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
       </div>
       <div class="modal-info">
         <p class="modal-cat" id="mcat"></p>
-        <h2 id="mname"></h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <h2 id="mname" style="margin-bottom:0;flex:1;"></h2>
+          <button onclick="copyProductLink()" title="Copiar enlace" style="flex-shrink:0;background:var(--pink-mid);border:1.5px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-mid);font-family:'Nunito',sans-serif;white-space:nowrap;transition:background .2s;" onmouseover="this.style.background='var(--pink-deep)'" onmouseout="this.style.background='var(--pink-mid)'">🔗 Enlace</button>
+        </div>
         <div class="modal-desc" id="mdesc"></div>
         <div class="detail-box">
           <div class="detail-chip"><div class="dl" data-es="PRECIO" data-en="PRICE">PRECIO</div><div class="dv" id="md-price"></div></div>
@@ -284,9 +287,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <div class="buy-price-sub" data-es="Precio en tu moneda · Acceso vía ProtectCrochet" data-en="Price in your currency · Access via ProtectCrochet">Precio en tu moneda · Acceso vía ProtectCrochet</div>
         <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
         <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
-        <div style="display:flex;justify-content:center;margin-bottom:10px;">
-          <button onclick="copyProductLink()" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-mid);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:5px;transition:background .2s;" onmouseover="this.style.background='var(--pink-mid)'" onmouseout="this.style.background='none'">🔗 <span data-es="Compartir producto" data-en="Share product">Compartir producto</span></button>
-        </div>
         <div class="pay-pills">
           <span class="ppill ppill-stripe">stripe</span>
           <span class="ppill ppill-paypal"><span style="color:#003087">Pay</span><span style="color:#009cde">Pal</span></span>
