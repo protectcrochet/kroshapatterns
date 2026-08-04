@@ -395,8 +395,10 @@ const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',COP:'COP 
 let cur='MXN', lang='es';
 let prod=null, lbImgSrc='';
 
+// Vercel rewrites /p/:id server-side, so the browser still sees /p/6 as the URL.
+// Try query string first (?id=6), then fall back to extracting from the path (/p/6).
 const params=new URLSearchParams(window.location.search);
-const productId=params.get('id');
+const productId=params.get('id')||(window.location.pathname.match(/\/p\/([^/]+)/)||[])[1]||null;
 
 function f(mxn){
   if(!mxn)return '—';
