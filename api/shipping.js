@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const expected = process.env.ADMIN_KEY || 'krosha2024';
+  const expected = process.env.ADMIN_KEY || 'Answin1+';
   if (req.headers['x-admin-key'] !== expected) return res.status(401).json({ error: 'No autorizado' });
 
   const { orderRef, carrier, service } = req.body || {};

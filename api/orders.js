@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   });
 
   if (req.method === 'GET') {
-    const expected = process.env.ADMIN_KEY || 'krosha2024';
+    const expected = process.env.ADMIN_KEY || 'Answin1+';
     if (req.headers['x-admin-key'] !== expected) {
       return res.status(401).json({ error: 'No autorizado' });
     }
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const expected = process.env.ADMIN_KEY || 'krosha2024';
+    const expected = process.env.ADMIN_KEY || 'Answin1+';
     if (req.headers['x-admin-key'] !== expected) {
       return res.status(401).json({ error: 'No autorizado' });
     }
