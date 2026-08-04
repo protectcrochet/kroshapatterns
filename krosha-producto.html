@@ -653,13 +653,25 @@ async function init(){
   try{
     const resp=await fetch('/api/products',{cache:'no-cache'});
     if(!resp.ok)throw new Error('API error');
-    const allProds=await resp.json();
-    const product=(Array.isArray(allProds)?allProds:[]).find(p=>String(p.id)===String(productId));
-    if(!product||product.published===false){
+    const rawProds=await resp.json();
+    const allProds=Array.isArray(rawProds)?rawProds:[];
+    // Same filter as index.html: status === 'active' or no status field
+    const activeProds=allProds.filter(p=>p.status==='active'||!p.status);
+    const rawProd=activeProds.find(p=>String(p.id)===String(productId));
+    if(!rawProd){
       document.getElementById('not-found').style.display='';
       return;
     }
-    renderProduct(product,Array.isArray(allProds)?allProds:[]);
+    // Normalize field names (admin stores nameEs/descEs, public uses title/desc)
+    const product={
+      ...rawProd,
+      title:rawProd.nameEs||rawProd.title||'',
+      titleEn:rawProd.nameEn||rawProd.titleEn||'',
+      desc:rawProd.descEs||rawProd.desc||'',
+      descEn:rawProd.descEn||'',
+    };
+    const normalizedActive=activeProds.map(p=>({...p,title:p.nameEs||p.title||''}));
+    renderProduct(product,normalizedActive);
     updateCartBadge();
   }catch(e){
     console.error(e);
