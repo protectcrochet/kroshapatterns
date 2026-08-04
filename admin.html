@@ -1178,10 +1178,32 @@ function saveHeroData(d){
 }
 
 // ── INIT ──
-function initApp(){
+async function initApp(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Redis is the source of truth — always load from server first.
+  // This prevents a new/different browser from overwriting real data with hardcoded defaults.
+  const [prodsRes,heroRes,invRes]=await Promise.allSettled([
+    fetch('/api/products',{cache:'no-cache'}),
+    fetch('/api/hero',{cache:'no-cache'}),
+    fetch('/api/inventory',{cache:'no-cache'}),
+  ]);
+  if(prodsRes.status==='fulfilled'&&prodsRes.value.ok){
+    const d=await prodsRes.value.json().catch(()=>null);
+    if(Array.isArray(d)&&d.length) localStorage.setItem(PRODS_KEY,JSON.stringify(d));
+  }
+  if(heroRes.status==='fulfilled'&&heroRes.value.ok){
+    const d=await heroRes.value.json().catch(()=>null);
+    if(d&&typeof d==='object'&&Object.keys(d).length) localStorage.setItem(HERO_KEY,JSON.stringify(d));
+  }
+  if(invRes.status==='fulfilled'&&invRes.value.ok){
+    const d=await invRes.value.json().catch(()=>null);
+    if(d&&typeof d==='object') localStorage.setItem(INV_KEY,JSON.stringify(d));
+  }
+
+  // Only seed hardcoded defaults if Redis AND localStorage are both empty (truly first run)
   if(!getProds().length) seedDefaultProds();
-  // Load server orders then render dashboard
+
   loadServerOrders().then(()=>renderDashboard());
   renderProdsTable();
   renderCustomersTable();
