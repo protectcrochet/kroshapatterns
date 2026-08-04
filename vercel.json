@@ -1,3 +1,6 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/p/:id", "destination": "/krosha-producto?id=:id" }
+  ]
 }

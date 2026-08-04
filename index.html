@@ -284,6 +284,9 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <div class="buy-price-sub" data-es="Precio en tu moneda · Acceso vía ProtectCrochet" data-en="Price in your currency · Access via ProtectCrochet">Precio en tu moneda · Acceso vía ProtectCrochet</div>
         <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
         <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
+        <div style="display:flex;justify-content:center;margin-bottom:10px;">
+          <button onclick="copyProductLink()" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-mid);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:5px;transition:background .2s;" onmouseover="this.style.background='var(--pink-mid)'" onmouseout="this.style.background='none'">🔗 <span data-es="Compartir producto" data-en="Share product">Compartir producto</span></button>
+        </div>
         <div class="pay-pills">
           <span class="ppill ppill-stripe">stripe</span>
           <span class="ppill ppill-paypal"><span style="color:#003087">Pay</span><span style="color:#009cde">Pal</span></span>
@@ -1132,6 +1135,13 @@ function switchImg(el,src){
 }
 
 function closeM(){document.getElementById('ov').classList.remove('open');}
+function copyProductLink(){
+  if(!curProd)return;
+  const url=`${location.origin}/p/${curProd.id}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
+  }).catch(()=>{showToast(url);});
+}
 document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM();});
 
 function qAdd(id){

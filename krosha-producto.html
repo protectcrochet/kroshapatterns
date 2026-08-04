@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KroshaPatterns — Munequita Ramo</title>
+<title>KroshaPatterns</title>
+<meta property="og:site_name" content="KroshaPatterns">
+<meta property="og:type" content="product">
+<meta name="og:title" id="og-title" content="KroshaPatterns">
+<meta name="og:description" id="og-desc" content="Patrones y kits de crochet KroshaPatterns">
+<meta name="og:image" id="og-img" content="">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -29,7 +34,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .lang-btn{padding:5px 14px;border-radius:30px;border:none;background:transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text-mid);transition:all .2s;}
 .lang-btn.active{background:var(--pink-dark);color:#fff;}
 .cur-sel{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:30px;padding:6px 14px;font-size:13px;font-family:'Nunito',sans-serif;color:var(--text);cursor:pointer;}
-.btn-cart{background:var(--pink-dark);color:#fff;border:none;padding:9px 20px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Nunito',sans-serif;transition:background .2s;}
+.btn-cart{background:var(--pink-dark);color:#fff;border:none;padding:9px 20px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;font-family:'Nunito',sans-serif;transition:background .2s;text-decoration:none;}
 .btn-cart:hover{background:var(--pink-text);}
 .cn{background:rgba(255,255,255,.3);width:19px;height:19px;border-radius:50%;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 
@@ -38,6 +43,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .breadcrumb a{color:var(--text-light);text-decoration:none;transition:color .2s;}
 .breadcrumb a:hover{color:var(--pink-dark);}
 .breadcrumb span{color:var(--text-mid);font-weight:600;}
+
+/* ── SKELETON ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{background:linear-gradient(90deg,var(--pink-mid) 25%,var(--border) 50%,var(--pink-mid) 75%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:12px;}
 
 /* ── PRODUCT PAGE ── */
 .product-wrap{max-width:1200px;margin:0 auto;padding:28px 2rem 60px;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;}
@@ -49,7 +58,6 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
   border-radius:24px;
   aspect-ratio:1;
   display:flex;align-items:center;justify-content:center;
-  font-size:140px;
   margin-bottom:14px;
   overflow:hidden;
   position:relative;
@@ -58,37 +66,37 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
   transition:transform .2s;
 }
 .main-img:hover{transform:scale(1.01);}
+.main-img img{width:100%;height:100%;object-fit:cover;}
 .main-img .zoom-hint{
   position:absolute;bottom:14px;right:14px;
   background:rgba(255,255,255,.85);
   border-radius:20px;padding:4px 12px;
   font-size:11px;color:var(--pink-text);font-weight:700;
 }
-.thumb-row{display:flex;gap:10px;}
+.thumb-row{display:flex;gap:10px;flex-wrap:wrap;}
 .thumb{
-  flex:1;aspect-ratio:1;border-radius:14px;
+  width:72px;height:72px;border-radius:14px;
   display:flex;align-items:center;justify-content:center;
-  font-size:36px;cursor:pointer;
+  cursor:pointer;
   border:2px solid transparent;
   transition:border-color .2s,transform .1s;
-  overflow:hidden;
+  overflow:hidden;background:var(--pink-mid);
+  flex-shrink:0;
 }
+.thumb img{width:100%;height:100%;object-fit:cover;}
 .thumb:hover{border-color:var(--pink-deep);transform:scale(1.03);}
 .thumb.active{border-color:var(--pink-dark);}
-.thumb:nth-child(1){background:var(--pink-mid);}
-.thumb:nth-child(2){background:var(--lilac);}
-.thumb:nth-child(3){background:var(--mint);}
-.thumb:nth-child(4){background:var(--cream);}
 
-/* share row */
-.share-row{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.share-row{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;}
 .share-label{font-size:12px;color:var(--text-light);font-weight:600;}
 .share-btn{
-  width:32px;height:32px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:15px;background:var(--pink-mid);
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  background:var(--pink-mid);
   border:1.5px solid var(--border);cursor:pointer;
-  text-decoration:none;transition:background .2s;
+  text-decoration:none;transition:background .2s;color:var(--text);
+  font-family:'Nunito',sans-serif;
 }
 .share-btn:hover{background:var(--pink-deep);}
 
@@ -96,13 +104,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .pinfo{}
 .pinfo-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
 .pinfo-cat{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--pink-dark);font-weight:700;}
-.wish-btn{background:var(--pink-mid);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}
-.wish-btn:hover{background:var(--pink-deep);}
-.pinfo h1{font-family:'Fraunces',serif;font-size:36px;font-weight:600;line-height:1.1;margin-bottom:10px;color:var(--text);}
-.rating-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
-.stars{font-size:16px;color:#F5A623;letter-spacing:1px;}
-.rating-count{font-size:13px;color:var(--text-light);font-weight:600;}
-.rating-link{font-size:13px;color:var(--pink-dark);text-decoration:none;font-weight:700;}
+.pinfo h1{font-family:'Fraunces',serif;font-size:36px;font-weight:600;line-height:1.1;margin-bottom:14px;color:var(--text);}
 
 /* price */
 .price-block{background:var(--blush);border:1.5px solid var(--border);border-radius:18px;padding:18px 22px;margin-bottom:20px;}
@@ -110,34 +112,18 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .price-sub{font-size:13px;color:var(--text-light);margin-top:4px;}
 .price-badge{display:inline-block;background:var(--pink-mid);color:var(--pink-text);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:8px;}
 
-/* yarn selector */
-.block{margin-bottom:22px;}
-.block-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.block-title span{font-size:12px;color:var(--text-light);font-weight:400;}
+/* kit contents */
+.kit-block{margin-bottom:22px;}
+.kit-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.kit-yarn-list{display:flex;flex-direction:column;gap:6px;}
+.kit-yarn-row{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;}
+.kit-dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:1.5px solid rgba(0,0,0,.08);}
+.kit-dot img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+.kit-color-name{flex:1;font-size:13px;font-weight:600;color:var(--text);}
+.kit-qty{font-size:11px;color:var(--text-light);}
 
-.yarn-chips{display:flex;flex-wrap:wrap;gap:8px;}
-.yarn-chip{
-  display:flex;align-items:center;gap:8px;
-  padding:8px 14px;border-radius:30px;
-  border:2px solid var(--border);
-  font-size:13px;font-weight:600;cursor:pointer;
-  background:var(--white);transition:border-color .2s,background .2s;
-  font-family:'Nunito',sans-serif;
-}
-.yarn-chip:hover,.yarn-chip.on{border-color:var(--pink-dark);background:var(--blush);}
-.yarn-chip .dot{width:28px;height:28px;border-radius:50%;flex-shrink:0;object-fit:cover;border:1.5px solid rgba(0,0,0,.08);}
-.yarn-chip .price-tag{font-size:11px;color:var(--text-light);margin-left:2px;}
-
-/* level */
-.level-pills{display:flex;gap:8px;flex-wrap:wrap;}
-.level-pill{padding:7px 16px;border-radius:30px;border:2px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;background:var(--white);transition:all .2s;font-family:'Nunito',sans-serif;}
-.level-pill.active{border-color:var(--pink-dark);background:var(--blush);color:var(--pink-text);}
-
-/* details table */
-.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px;}
-.detail-chip{background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;}
-.detail-chip .dl{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:3px;}
-.detail-chip .dv{font-size:14px;font-weight:700;color:var(--text);}
+/* desc */
+.prod-desc{font-size:14px;color:var(--text-mid);line-height:1.65;margin-bottom:20px;}
 
 /* includes */
 .includes-list{display:flex;flex-direction:column;gap:8px;margin-bottom:22px;}
@@ -184,16 +170,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .related-section{max-width:1200px;margin:0 auto;padding:0 2rem 80px;}
 .related-section h2{font-family:'Fraunces',serif;font-size:30px;font-weight:600;margin-bottom:24px;color:var(--text);}
 .related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
-.rel-card{background:var(--white);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;}
+.rel-card{background:var(--white);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;display:block;}
 .rel-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(192,96,144,.12);}
-.rel-img{height:140px;display:flex;align-items:center;justify-content:center;font-size:52px;}
-.rel-card:nth-child(1) .rel-img{background:var(--lilac);}
-.rel-card:nth-child(2) .rel-img{background:var(--mint);}
-.rel-card:nth-child(3) .rel-img{background:var(--cream);}
-.rel-card:nth-child(4) .rel-img{background:var(--pink-mid);}
+.rel-img{height:140px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--pink-mid);}
+.rel-img img{width:100%;height:100%;object-fit:cover;}
 .rel-body{padding:12px 14px 14px;}
 .rel-name{font-family:'Fraunces',serif;font-size:15px;font-weight:600;margin-bottom:4px;color:var(--text);}
 .rel-price{font-size:14px;font-weight:700;color:var(--pink-dark);}
+
+/* not found */
+.not-found{max-width:480px;margin:80px auto;text-align:center;padding:0 2rem;}
+.not-found h2{font-family:'Fraunces',serif;font-size:32px;color:var(--text);margin-bottom:12px;}
+.not-found p{color:var(--text-mid);margin-bottom:24px;}
+.not-found a{background:var(--pink-dark);color:#fff;padding:12px 28px;border-radius:30px;text-decoration:none;font-weight:700;}
 
 /* toast */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:13px 20px;border-radius:30px;font-size:13.5px;z-index:500;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:600;}
@@ -202,8 +191,9 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 /* lightbox */
 .lightbox{display:none;position:fixed;inset:0;background:rgba(58,30,46,.85);z-index:300;align-items:center;justify-content:center;}
 .lightbox.open{display:flex;}
-.lb-inner{background:var(--pink-mid);border-radius:24px;width:560px;height:560px;display:flex;align-items:center;justify-content:center;font-size:180px;position:relative;}
-.lb-close{position:absolute;top:16px;right:16px;background:var(--white);border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.lb-inner{background:var(--white);border-radius:24px;width:min(90vw,680px);height:min(90vw,680px);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.lb-inner img{width:100%;height:100%;object-fit:contain;}
+.lb-close{position:absolute;top:16px;right:16px;background:var(--white);border:1.5px solid var(--border);border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:1;}
 
 footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 24px;margin-top:20px;}
 .foot-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
@@ -216,7 +206,6 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
 @media(max-width:900px){
   .product-wrap{grid-template-columns:1fr;}
   .gallery{position:static;}
-  .details-grid{grid-template-columns:1fr 1fr;}
 }
 @media(max-width:600px){
   .nav-links{display:none;}
@@ -233,20 +222,19 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
 <div class="lightbox" id="lb">
   <div class="lb-inner" id="lb-content">
     <button class="lb-close" onclick="closeLb()">✕</button>
-    <span id="lb-emoji">🧸</span>
+    <img id="lb-img" src="" alt="">
   </div>
 </div>
 
 <!-- NAV -->
 <nav class="nav-bar">
-  <div class="nav-ann" id="nav-ann">🎀 Patrones digitales al instante · Envíos a México y República Dominicana</div>
+  <div class="nav-ann">🎀 Patrones digitales al instante · Envíos a México y República Dominicana</div>
   <div class="nav-inner">
-    <a href="krosha-opcion-B.html" class="logo">🎀 KroshaPatterns</a>
+    <a href="/" class="logo">KroshaPatterns</a>
     <ul class="nav-links">
-      <li><a href="#" data-es="Patrones" data-en="Patterns">Patrones</a></li>
-      <li><a href="#" data-es="Kits" data-en="Kits">Kits</a></li>
-      <li><a href="#" data-es="Estambres" data-en="Yarns">Estambres</a></li>
-      <li><a href="#" data-es="Blog" data-en="Blog">Blog</a></li>
+      <li><a href="/">Patrones</a></li>
+      <li><a href="/">Kits</a></li>
+      <li><a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a></li>
     </ul>
     <div class="nav-right">
       <div class="lang-toggle">
@@ -260,149 +248,96 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
         <option value="DOP">🇩🇴 DOP</option>
         <option value="CAD">🇨🇦 CAD</option>
         <option value="GBP">🇬🇧 GBP</option>
+        <option value="COP">🇨🇴 COP</option>
+        <option value="ARS">🇦🇷 ARS</option>
+        <option value="BRL">🇧🇷 BRL</option>
       </select>
-      <button class="btn-cart" onclick="showToast(t('addedCart'))">🛍 <span data-es="Carrito" data-en="Cart">Carrito</span> <span class="cn" id="cn">0</span></button>
+      <a href="/krosha-checkout.html" class="btn-cart">🛍 Carrito <span class="cn" id="cn">0</span></a>
     </div>
   </div>
 </nav>
 
 <!-- BREADCRUMB -->
 <div class="breadcrumb">
-  <a href="krosha-opcion-B.html">KroshaPatterns</a>
+  <a href="/">KroshaPatterns</a>
   <span>›</span>
-  <a href="#" data-es="Amigurumis" data-en="Amigurumis">Amigurumis</a>
+  <span id="bc-cat">...</span>
   <span>›</span>
-  <span data-es="Munequita Ramo" data-en="Bouquet Doll">Munequita Ramo</span>
+  <span id="bc-name">...</span>
 </div>
 
-<!-- PRODUCT -->
-<div class="product-wrap">
+<!-- PRODUCT (hidden until loaded) -->
+<div class="product-wrap" id="product-wrap" style="display:none;">
 
   <!-- GALLERY -->
   <div class="gallery">
     <div class="main-img" onclick="openLb()" id="main-img-box">
-      <span id="main-emoji">🧸</span>
-      <div class="zoom-hint" data-es="🔍 Ampliar" data-en="🔍 Zoom">🔍 Ampliar</div>
+      <img id="main-img" src="" alt="">
+      <div class="zoom-hint">🔍 Ampliar</div>
     </div>
-    <div class="thumb-row">
-      <div class="thumb active" onclick="pickThumb(this,'🧸','var(--pink-mid)')">🧸</div>
-      <div class="thumb" onclick="pickThumb(this,'🌸','var(--lilac)')">🌸</div>
-      <div class="thumb" onclick="pickThumb(this,'🧶','var(--mint)')">🧶</div>
-      <div class="thumb" onclick="pickThumb(this,'📋','var(--cream)')">📋</div>
-    </div>
-    <div class="share-row">
-      <span class="share-label" data-es="Compartir:" data-en="Share:">Compartir:</span>
-      <a href="#" class="share-btn" title="Instagram">◎</a>
-      <a href="#" class="share-btn" title="Facebook">f</a>
-      <a href="#" class="share-btn" title="Pinterest">P</a>
-      <a href="#" class="share-btn" title="WhatsApp">💬</a>
+    <div class="thumb-row" id="thumb-row"></div>
+    <div class="share-row" style="margin-top:14px;">
+      <span class="share-label">Compartir:</span>
+      <button class="share-btn" onclick="copyLink()">🔗 Copiar enlace</button>
+      <a id="share-wa" href="#" class="share-btn" target="_blank" rel="noopener">💬 WhatsApp</a>
     </div>
   </div>
 
   <!-- INFO -->
   <div class="pinfo">
     <div class="pinfo-top">
-      <div class="pinfo-cat" data-es="Amigurumi · Patrón Digital PDF" data-en="Amigurumi · Digital PDF Pattern">Amigurumi · Patrón Digital PDF</div>
-      <button class="wish-btn" onclick="toggleWish(this)" title="Favorito">♡</button>
+      <div class="pinfo-cat" id="pcat"></div>
     </div>
-
-    <h1 data-es="Munequita Ramo" data-en="Bouquet Doll">Munequita Ramo</h1>
-
-    <div class="rating-row">
-      <span class="stars">★★★★★</span>
-      <span class="rating-count">(48 <span data-es="reseñas" data-en="reviews">reseñas</span>)</span>
-      <a href="#reviews" class="rating-link" data-es="Ver reseñas →" data-en="See reviews →">Ver reseñas →</a>
-    </div>
+    <h1 id="ptitle"></h1>
+    <p class="prod-desc" id="pdesc"></p>
 
     <!-- PRICE -->
     <div class="price-block">
-      <div class="price-main" id="price-main">$280 MXN</div>
-      <div class="price-sub" data-es="Precio en tu moneda local" data-en="Price in your local currency">Precio en tu moneda local</div>
-      <div class="price-badge" data-es="📥 Descarga inmediata al pagar" data-en="📥 Instant download after purchase">📥 Descarga inmediata al pagar</div>
+      <div class="price-main" id="price-main"></div>
+      <div class="price-sub" id="price-sub"></div>
+      <div class="price-badge" id="price-badge"></div>
     </div>
 
-    <!-- YARN ADDON -->
-    <div class="block">
-      <div class="block-title">🧶 <span data-es="Agregar estambre 200g" data-en="Add yarn 200g">Agregar estambre 200g</span> <span data-es="(opcional)" data-en="(optional)">(opcional)</span></div>
-      <div class="yarn-chips" id="yarn-chips"></div>
-    </div>
-
-    <!-- PATTERN LEVEL -->
-    <div class="block">
-      <div class="block-title" data-es="📊 Nivel" data-en="📊 Level">📊 Nivel</div>
-      <div class="level-pills">
-        <div class="level-pill" data-es="Principiante" data-en="Beginner">Principiante</div>
-        <div class="level-pill active" data-es="Intermedio" data-en="Intermediate">Intermedio</div>
-        <div class="level-pill" data-es="Avanzado" data-en="Advanced">Avanzado</div>
-      </div>
-    </div>
-
-    <!-- DETAILS GRID -->
-    <div class="details-grid">
-      <div class="detail-chip">
-        <div class="dl" data-es="PÁGINAS" data-en="PAGES">PÁGINAS</div>
-        <div class="dv">24 PDF</div>
-      </div>
-      <div class="detail-chip">
-        <div class="dl" data-es="GANCHO" data-en="HOOK">GANCHO</div>
-        <div class="dv">3 mm</div>
-      </div>
-      <div class="detail-chip">
-        <div class="dl" data-es="TIEMPO" data-en="TIME">TIEMPO</div>
-        <div class="dv" data-es="4–6 hrs" data-en="4–6 hrs">4–6 hrs</div>
-      </div>
-      <div class="detail-chip">
-        <div class="dl" data-es="IDIOMA" data-en="LANGUAGE">IDIOMA</div>
-        <div class="dv">ES / EN</div>
-      </div>
-      <div class="detail-chip">
-        <div class="dl" data-es="FORMATO" data-en="FORMAT">FORMATO</div>
-        <div class="dv">PDF Digital</div>
-      </div>
-      <div class="detail-chip">
-        <div class="dl" data-es="ENVÍO" data-en="DELIVERY">ENVÍO</div>
-        <div class="dv" data-es="Inmediato" data-en="Instant">Inmediato</div>
-      </div>
+    <!-- KIT CONTENTS -->
+    <div class="kit-block" id="kit-block" style="display:none;">
+      <div class="kit-title">📦 <span id="kit-title-text">Incluye</span></div>
+      <div class="kit-yarn-list" id="kit-yarn-list"></div>
     </div>
 
     <!-- INCLUDES -->
-    <div class="block">
-      <div class="block-title" data-es="✨ Incluye" data-en="✨ Includes">✨ Incluye</div>
-      <div class="includes-list">
-        <div class="inc-item"><div class="inc-icon">📋</div><span data-es="Patrón en PDF con fotos paso a paso" data-en="PDF pattern with step-by-step photos">Patrón en PDF con fotos paso a paso</span></div>
-        <div class="inc-item"><div class="inc-icon">🌎</div><span data-es="Instrucciones en español e inglés" data-en="Instructions in Spanish and English">Instrucciones en español e inglés</span></div>
-        <div class="inc-item"><div class="inc-icon">📐</div><span data-es="Lista de materiales y medidas exactas" data-en="Materials list and exact measurements">Lista de materiales y medidas exactas</span></div>
-        <div class="inc-item"><div class="inc-icon">💬</div><span data-es="Soporte por Instagram @kro_shaa" data-en="Support via Instagram @kro_shaa">Soporte por Instagram @kro_shaa</span></div>
-        <div class="inc-item"><div class="inc-icon">♾️</div><span data-es="Acceso de por vida al archivo" data-en="Lifetime access to the file">Acceso de por vida al archivo</span></div>
-      </div>
-    </div>
+    <div class="includes-list" id="includes-list"></div>
 
     <!-- CTA -->
     <div class="cta-block">
-      <button class="btn-buy" onclick="buyNow()" id="btn-buy">Comprar ahora — $280 MXN</button>
+      <button class="btn-buy" onclick="buyNow()" id="btn-buy"></button>
       <button class="btn-add-cart" onclick="addToCart()" id="btn-add">🛍 Agregar al carrito</button>
       <div class="pay-row">
         <span class="pay-pill">💳 Stripe</span>
         <span class="pay-pill">🅿️ PayPal</span>
         <span class="pay-pill">🏪 Mercado Pago</span>
-        <span class="pay-pill">🔒 <span data-es="Pago seguro" data-en="Secure payment">Pago seguro</span></span>
+        <span class="pay-pill">🔒 Pago seguro</span>
       </div>
     </div>
-
   </div>
 </div>
 
+<!-- NOT FOUND (hidden) -->
+<div class="not-found" id="not-found" style="display:none;">
+  <h2>🎀 Producto no encontrado</h2>
+  <p>Este producto ya no está disponible o el enlace es incorrecto.</p>
+  <a href="/">Ver todos los productos</a>
+</div>
+
 <!-- REVIEWS -->
-<div class="reviews-section" id="reviews">
+<div class="reviews-section" id="reviews-section" style="display:none;">
   <div class="reviews-head">
     <div>
-      <h2 data-es="Lo que dicen mis clientas 💬" data-en="What my customers say 💬">Lo que dicen mis clientas 💬</h2>
+      <h2>Lo que dicen mis clientas 💬</h2>
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
         <span style="font-size:20px;color:#F5A623;">★★★★★</span>
-        <span style="font-size:14px;color:var(--text-mid);font-weight:600;">4.9/5 · 48 <span data-es="reseñas" data-en="reviews">reseñas</span></span>
+        <span style="font-size:14px;color:var(--text-mid);font-weight:600;">4.9/5 · 48 reseñas</span>
       </div>
     </div>
-    <a href="#" style="font-size:13px;color:var(--pink-dark);text-decoration:none;font-weight:700;" data-es="Ver todas →" data-en="See all →">Ver todas →</a>
   </div>
   <div class="reviews-grid">
     <div class="rcard">
@@ -411,8 +346,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
         <div><div class="rname">María G.</div><div class="rcountry">🇲🇽 México</div></div>
       </div>
       <div class="rstars">★★★★★</div>
-      <div class="rtext" data-es="¡Hermoso patrón! Muy claro y detallado. Mi munequita quedó perfecta para el ramo de mi sobrina. Las instrucciones en español son clarísimas." data-en="Beautiful pattern! Very clear and detailed. My doll came out perfect for my niece's bouquet. The Spanish instructions are crystal clear.">¡Hermoso patrón! Muy claro y detallado. Mi munequita quedó perfecta para el ramo de mi sobrina. Las instrucciones en español son clarísimas.</div>
-      <div class="rdate" data-es="Hace 3 días" data-en="3 days ago">Hace 3 días</div>
+      <div class="rtext">¡Hermoso patrón! Muy claro y detallado. Mi munequita quedó perfecta. Las instrucciones en español son clarísimas.</div>
+      <div class="rdate">Hace 3 días</div>
     </div>
     <div class="rcard">
       <div class="rcard-top">
@@ -420,8 +355,8 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
         <div><div class="rname">Laura M.</div><div class="rcountry">🇩🇴 República Dominicana</div></div>
       </div>
       <div class="rstars">★★★★★</div>
-      <div class="rtext" data-es="Descargué el PDF en segundos y empecé de inmediato. El estambre que ordené llegó súper rápido. ¡Feliz con mi compra!" data-en="Downloaded the PDF in seconds and started right away. The yarn I ordered arrived super fast. So happy with my purchase!">Descargué el PDF en segundos y empecé de inmediato. El estambre que ordené llegó súper rápido. ¡Feliz con mi compra!</div>
-      <div class="rdate" data-es="Hace 1 semana" data-en="1 week ago">Hace 1 semana</div>
+      <div class="rtext">Descargué el PDF en segundos y empecé de inmediato. El estambre que ordené llegó súper rápido. ¡Feliz con mi compra!</div>
+      <div class="rdate">Hace 1 semana</div>
     </div>
     <div class="rcard">
       <div class="rcard-top">
@@ -429,246 +364,310 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
         <div><div class="rname">Ana P.</div><div class="rcountry">🇺🇸 Estados Unidos</div></div>
       </div>
       <div class="rstars">★★★★★</div>
-      <div class="rtext" data-es="I bought this pattern in English and it's so well written! The photos in every step make it super easy to follow. Already finished mine 🧸" data-en="I bought this pattern in English and it's so well written! The photos in every step make it super easy to follow. Already finished mine 🧸">I bought this pattern in English and it's so well written! The photos in every step make it super easy to follow. Already finished mine 🧸</div>
-      <div class="rdate" data-es="Hace 2 semanas" data-en="2 weeks ago">Hace 2 semanas</div>
+      <div class="rtext">I bought this pattern and it's so well written! The photos in every step make it super easy to follow. Already finished mine 🧸</div>
+      <div class="rdate">Hace 2 semanas</div>
     </div>
   </div>
 </div>
 
 <!-- RELATED -->
-<div class="related-section">
-  <h2 data-es="También te puede gustar 🎀" data-en="You might also like 🎀">También te puede gustar 🎀</h2>
-  <div class="related-grid">
-    <div class="rel-card" onclick="showToast('🎀 Abriendo producto...')">
-      <div class="rel-img">🐻</div>
-      <div class="rel-body">
-        <div class="rel-name" data-es="Osito Teddy" data-en="Teddy Bear">Osito Teddy</div>
-        <div class="rel-price" id="rp1">$250 MXN</div>
-      </div>
-    </div>
-    <div class="rel-card" onclick="showToast('🎀 Abriendo producto...')">
-      <div class="rel-img">🦊</div>
-      <div class="rel-body">
-        <div class="rel-name" data-es="Zorro Kawaii" data-en="Kawaii Fox">Zorro Kawaii</div>
-        <div class="rel-price" id="rp2">$320 MXN</div>
-      </div>
-    </div>
-    <div class="rel-card" onclick="showToast('🎀 Abriendo producto...')">
-      <div class="rel-img">🌸</div>
-      <div class="rel-body">
-        <div class="rel-name" data-es="Flores Boho" data-en="Boho Flowers">Flores Boho</div>
-        <div class="rel-price" id="rp3">$150 MXN</div>
-      </div>
-    </div>
-    <div class="rel-card" onclick="showToast('🎀 Abriendo producto...')">
-      <div class="rel-img">🧺</div>
-      <div class="rel-body">
-        <div class="rel-name" data-es="Kit Completo" data-en="Full Kit">Kit Completo</div>
-        <div class="rel-price" id="rp4">$850 MXN</div>
-      </div>
-    </div>
-  </div>
+<div class="related-section" id="related-section" style="display:none;">
+  <h2>También te puede gustar 🎀</h2>
+  <div class="related-grid" id="related-grid"></div>
 </div>
 
 <footer>
   <div class="foot-inner">
-    <a href="krosha-opcion-B.html" class="foot-logo">🎀 KroshaPatterns</a>
+    <a href="/" class="foot-logo">🎀 KroshaPatterns</a>
     <div class="foot-links">
-      <a href="#" data-es="Privacidad" data-en="Privacy">Privacidad</a>
-      <a href="#" data-es="Términos" data-en="Terms">Términos</a>
-      <a href="#" data-es="Contacto" data-en="Contact">Contacto</a>
+      <a href="/">Inicio</a>
+      <a href="https://www.instagram.com/kro_shaa/" target="_blank">Instagram</a>
+      <a href="/">Contacto</a>
     </div>
     <div class="foot-copy">© 2026 kroshapatterns.com</div>
   </div>
 </footer>
 
 <script>
-const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041};
-const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£'};
-let cur='MXN', lang='es', cartN=0, selYarn=null, wished=false;
-const basePrice=280, yarnPrice=95;
+const CART_KEY='krosha_cart';
+const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,COP:217,ARS:50,BRL:.28};
+const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',COP:'COP $',ARS:'AR$',BRL:'R$'};
+let cur='MXN', lang='es';
+let prod=null, lbImgSrc='';
 
-const tx={
-  buyNow:{es:'Comprar ahora',en:'Buy now'},
-  addCart:{es:'🛍 Agregar al carrito',en:'🛍 Add to cart'},
-  addedCart:{es:'🎀 ¡Agregado al carrito!',en:'🎀 Added to cart!'},
-  buyingNow:{es:'✓ Redirigiendo al checkout...',en:'✓ Redirecting to checkout...'},
-  wished:{es:'♥ Guardado en favoritos',en:'♥ Saved to wishlist'},
-  yarnSel:{es:'🧶 Estambre seleccionado',en:'🧶 Yarn selected'},
-};
+const params=new URLSearchParams(window.location.search);
+const productId=params.get('id');
 
-const yarnColors=[
-  {n:{es:'Blanco',en:'White'},c:'#F0F0F0',img:'images/colores/blanco.jpg'},
-  {n:{es:'Gris Claro',en:'Light Gray'},c:'#C8C8C8',img:'images/colores/gris-claro.jpg'},
-  {n:{es:'Gris',en:'Gray'},c:'#9E9E9E',img:'images/colores/gris.jpg'},
-  {n:{es:'Negro',en:'Black'},c:'#222222',img:'images/colores/negro.jpg'},
-  {n:{es:'Limón',en:'Lemon'},c:'#F5E642',img:'images/colores/limon.jpg'},
-  {n:{es:'Coral',en:'Coral'},c:'#FF6B6B',img:'images/colores/coral.jpg'},
-  {n:{es:'Ballet',en:'Ballet'},c:'#F0B8C0',img:'images/colores/ballet.jpg'},
-  {n:{es:'Rosa',en:'Pink'},c:'#F48FB1',img:'images/colores/rosa.jpg'},
-  {n:{es:'Fucsia',en:'Fuchsia'},c:'#E040FB',img:'images/colores/fucsia.jpg'},
-  {n:{es:'Taffy',en:'Taffy'},c:'#F9A8D4',img:'images/colores/taffy.jpg'},
-  {n:{es:'Rosa Inglés',en:'Rose'},c:'#E88DA0',img:'images/colores/rose.jpg'},
-  {n:{es:'Rojo',en:'Red'},c:'#C0392B',img:'images/colores/rojo.jpg'},
-  {n:{es:'Granate',en:'Garnet'},c:'#8B1A2F',img:'images/colores/granate.jpg'},
-  {n:{es:'Borgoña',en:'Burgundy'},c:'#800020',img:'images/colores/borgoña.jpg'},
-  {n:{es:'Crepé',en:'Crepe'},c:'#D4A0A0',img:'images/colores/crepe.jpg'},
-  {n:{es:'Rosa Palo',en:'Blush'},c:'#F2C4C4',img:'images/colores/rosa-palo.jpg'},
-  {n:{es:'Malva Claro',en:'Light Mauve'},c:'#D8A0B8',img:'images/colores/malva-claro.jpg'},
-  {n:{es:'Thistle',en:'Thistle'},c:'#C8A0D8',img:'images/colores/lila.jpg'},
-  {n:{es:'Morado',en:'Purple'},c:'#7B2D8B',img:'images/colores/morado.jpg'},
-  {n:{es:'Berenjena',en:'Eggplant'},c:'#614051',img:'images/colores/berenjena.jpg'},
-  {n:{es:'Azul Rey',en:'Royal Blue'},c:'#1A50A0',img:'images/colores/azul-rey.jpg'},
-  {n:{es:'Azul Cielo',en:'Light Blue'},c:'#87CEEB',img:'images/colores/azul-cielo.jpg'},
-  {n:{es:'Pizarra',en:'Slate'},c:'#708090',img:'images/colores/pizarra.jpg'},
-  {n:{es:'Azure',en:'Azure'},c:'#007FFF',img:'images/colores/azul-azure.jpg'},
-  {n:{es:'Mezclilla',en:'Denim'},c:'#1560BD',img:'images/colores/mezclilla.jpg'},
-  {n:{es:'Vidrio de Mar',en:'Seaglass'},c:'#78C8B8',img:'images/colores/vidrio-mar.jpg'},
-  {n:{es:'Aqua',en:'Aqua'},c:'#00CED1',img:'images/colores/aqua.jpg'},
-  {n:{es:'Turquesa',en:'Turquoise'},c:'#40E0D0',img:'images/colores/turquesa.jpg'},
-  {n:{es:'Pavoreal',en:'Peacock'},c:'#33A1A1',img:'images/colores/pavoreal.jpg'},
-  {n:{es:'Crema',en:'Cream'},c:'#F5E6CC',img:'images/colores/crema.jpg'},
-  {n:{es:'Avellana',en:'Hazel'},c:'#A0785A',img:'images/colores/avellana.jpg'},
-  {n:{es:'Taupe',en:'Taupe'},c:'#B09080',img:'images/colores/taupe.jpg'},
-  {n:{es:'Pecán',en:'Pecan'},c:'#8B6040',img:'images/colores/pecan.jpg'},
-  {n:{es:'Verde Hoja',en:'Leaf'},c:'#5A8A3C',img:'images/colores/hoja.jpg'},
-  {n:{es:'Junípero',en:'Juniper'},c:'#3A6B4A',img:'images/colores/junipero.jpg'},
-  {n:{es:'Mostaza',en:'Mustard'},c:'#FFDB58',img:'images/colores/mostaza.jpg'},
-  {n:{es:'Verde Bosque',en:'Forest Green'},c:'#228B22',img:'images/colores/verde-bosque.jpg'},
-  {n:{es:'Marino',en:'Navy'},c:'#000080',img:'images/colores/marino.jpg'},
-  {n:{es:'Aran',en:'Aran'},c:'#E8D8B8',img:'images/colores/aran.jpg'},
-  {n:{es:'Nuez Moscada',en:'Nutmeg'},c:'#8B5E3C',img:'images/colores/nuez-moscada.jpg'},
-  {n:{es:'Calabaza',en:'Pumpkin'},c:'#D2601A',img:'images/colores/calabaza.jpg'},
-  {n:{es:'Lino',en:'Linen'},c:'#FAF0E6',img:'images/colores/lino.jpg'},
-  {n:{es:'Teal',en:'Teal'},c:'#008080',img:'images/colores/teal.jpg'},
-  {n:{es:'Brasa',en:'Ember'},c:'#C84820',img:'images/colores/brasa.jpg'},
-  {n:{es:'Carbón',en:'Charcoal'},c:'#4A4A4A',img:'images/colores/carbon.jpg'},
-  {n:{es:'Chocolate',en:'Chocolate'},c:'#5C3317',img:'images/colores/chocolate.jpg'},
-  {n:{es:'Dorado',en:'Goldenrod'},c:'#DAA520',img:'images/colores/dorado.jpg'},
-  {n:{es:'Durazno',en:'Peach'},c:'#FFCBA4',img:'images/colores/durazno.jpg'},
-  {n:{es:'Acero',en:'Steel'},c:'#708090',img:'images/colores/acero.jpg'},
-  {n:{es:'Cardo',en:'Thistle'},c:'#C8A0C8',img:'images/colores/cardo.jpg'},
-  {n:{es:'Pez Dorado',en:'Goldfish'},c:'#E87040',img:'images/colores/pez-dorado.jpg'},
-  {n:{es:'Butterscotch',en:'Butterscotch'},c:'#D2901A',img:'images/colores/butterscotch.jpg'},
-  {n:{es:'Pino',en:'Pine'},c:'#1A5C2A',img:'images/colores/pino.jpg'},
-  {n:{es:'Naranja',en:'Orange'},c:'#FF8C00',img:'images/colores/naranja.jpg'},
-  {n:{es:'Salvia',en:'Sage'},c:'#8FAF8F',img:'images/colores/salvia.jpg'},
-  {n:{es:'Verde Primavera',en:'Spring Green'},c:'#00FF7F',img:'images/colores/verde-primavera.jpg'},
-  {n:{es:'Helecho',en:'Fern'},c:'#4F7942',img:'images/colores/helecho.jpg'},
-  {n:{es:'Maíz',en:'Maize'},c:'#FBEC5D',img:'images/colores/maiz.jpg'},
-  {n:{es:'Buff',en:'Buff'},c:'#E8D5A3',img:'images/colores/arena.jpg'},
-  {n:{es:'Arena S',en:'Arena S'},c:'#F2DFC0',img:'images/colores/arena-sinf.jpg'},
-  {n:{es:'Violeta',en:'Violet'},c:'#8B00FF',img:'images/colores/violeta.jpg'},
-  {n:{es:'Salmón',en:'Salmon'},c:'#FA8072',img:'images/colores/salmon.jpg'},
-  {n:{es:'Tormenta',en:'Storm'},c:'#708090',img:'images/colores/tormenta.jpg'},
-  {n:{es:'Orquídea Pálida',en:'Pale Orchid'},c:'#DDA0DD',img:'images/colores/orquidea-palida.jpg'},
-  {n:{es:'Castaño',en:'Chestnut'},c:'#954535',img:'images/colores/castano.jpg'},
-  {n:{es:'Toffee',en:'Toffee'},c:'#9B6B3A',img:'images/colores/toffee.jpg'},
-  {n:{es:'Beige Cálido',en:'Warm Beige'},c:'#D4B896',img:'images/colores/beige-calido.jpg'},
-  {n:{es:'Albaricoque',en:'Apricot'},c:'#FBCEB1',img:'images/colores/albaricoque.jpg'},
-  {n:{es:'Cacao',en:'Cocoa'},c:'#5C4033',img:'images/colores/cacao.jpg'},
-  {n:{es:'Caoba',en:'Mahogany'},c:'#7B2D00',img:'images/colores/caoba.jpg'},
-  {n:{es:'Rojo Cereza',en:'Cherry Red'},c:'#A01020',img:'images/colores/rojo-cereza.jpg'},
-  {n:{es:'Mostaza Dijon',en:'Dijon Mustard'},c:'#C49A00',img:'images/colores/mostaza-dijon.jpg'},
-  {n:{es:'Camote',en:'Sweet Potato'},c:'#C05020',img:'images/colores/camote.jpg'},
-  {n:{es:'Lima',en:'Lime'},c:'#B4D900',img:'images/colores/lima.jpg'},
-  {n:{es:'Abeto',en:'Spruce'},c:'#1A5C3A',img:'images/colores/abeto.jpg'},
-  {n:{es:'Azul Brillante',en:'Bright Blue'},c:'#0050C8',img:'images/colores/azul-brillante.jpg'},
-  {n:{es:'Frambuesa',en:'Raspberry'},c:'#C01050',img:'images/colores/frambuesa.jpg'},
-  {n:{es:'Wisteria',en:'Wisteria'},c:'#9878C8',img:'images/colores/wisteria.jpg'},
-  {n:{es:'Soleado',en:'Sunny'},c:'#FFD700',img:'images/colores/soleado.jpg'},
-  {n:{es:'Naranja Brillante',en:'Bright Orange'},c:'#FF6000',img:'images/colores/naranja-brillante.jpg'},
-  {n:{es:'Merlot',en:'Merlot'},c:'#730022',img:'images/colores/merlot.jpg'},
-  {n:{es:'Orquídea',en:'Orchid'},c:'#DA70D6',img:'images/colores/orquidea.jpg'},
-  {n:{es:'Rouge',en:'Rouge'},c:'#C01840',img:'images/colores/rouge.jpg'},
-  {n:{es:'Morado Oscuro',en:'Dark Purple'},c:'#4B0082',img:'images/colores/morado-oscuro.jpg'},
-  {n:{es:'Azul Carolina',en:'Carolina Sky'},c:'#56A0D3',img:'images/colores/azul-carolina.jpg'},
-  {n:{es:'Crepúsculo',en:'Twilight'},c:'#4A4080',img:'images/colores/crepusculo.jpg'},
-  {n:{es:'Azul Polvo',en:'Powder Blue'},c:'#B0D0E8',img:'images/colores/azul-polvo.jpg'},
-  {n:{es:'Cadete',en:'Cadet'},c:'#5F9EA0',img:'images/colores/cadete.jpg'},
-  {n:{es:'Azul',en:'Blue'},c:'#0000CD',img:'images/colores/azul.jpg'},
-  {n:{es:'Apio',en:'Celery'},c:'#B8D878',img:'images/colores/apio.jpg'},
-  {n:{es:'Alcachofa',en:'Artichoke'},c:'#8F9779',img:'images/colores/alcachofa.jpg'},
-  {n:{es:'Menta',en:'Mint'},c:'#A8D8C0',img:'images/colores/menta.jpg'},
-  {n:{es:'Verde Pino',en:'Holly'},c:'#1A5C2A',img:'images/colores/verde-pino.jpg'},
-  {n:{es:'Tomillo',en:'Thyme'},c:'#6A8A5A',img:'images/colores/tomillo.jpg'},
-];
-
-function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
-
-function renderYarn(){
-  document.getElementById('yarn-chips').innerHTML=yarnColors.map(y=>`
-    <div class="yarn-chip ${selYarn===y.n.es?'on':''}" onclick="toggleYarn(this,'${y.n.es}')">
-      <img class="dot" src="${y.img}" alt="${y.n[lang]}" onerror="this.style.background='${y.c}';this.removeAttribute('src')">
-      ${y.n[lang]}
-      <span class="price-tag">+${f(yarnPrice)}</span>
-    </div>`).join('');
+function f(mxn){
+  if(!mxn)return '—';
+  const v=mxn*rates[cur];
+  return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;
 }
 
-function toggleYarn(el,n){
-  selYarn=selYarn===n?null:n;
-  document.querySelectorAll('.yarn-chip').forEach(c=>c.classList.remove('on'));
-  if(selYarn)el.classList.add('on');
-  updatePriceDisplay();
-  if(selYarn)showToast(tx.yarnSel[lang]);
+function setC(){
+  cur=document.getElementById('cur').value;
+  sessionStorage.setItem('krosha_cur',cur);
+  localStorage.setItem('krosha_cur',cur);
+  if(prod)updatePriceDisplay();
+  renderRelatedPrices();
 }
-
-function updatePriceDisplay(){
-  const total=basePrice+(selYarn?yarnPrice:0);
-  document.getElementById('price-main').textContent=f(total);
-  document.getElementById('btn-buy').textContent=`${tx.buyNow[lang]} — ${f(total)}`;
-  document.getElementById('btn-add').textContent=tx.addCart[lang];
-  document.getElementById('rp1').textContent=f(250);
-  document.getElementById('rp2').textContent=f(320);
-  document.getElementById('rp3').textContent=f(150);
-  document.getElementById('rp4').textContent=f(850);
-}
-
-function setC(){cur=document.getElementById('cur').value;sessionStorage.setItem('krosha_cur',cur);localStorage.setItem('krosha_cur',cur);updatePriceDisplay();renderYarn();}
 
 function setLang(l){
   lang=l;
   document.getElementById('btn-es').classList.toggle('active',l==='es');
   document.getElementById('btn-en').classList.toggle('active',l==='en');
-  document.querySelectorAll('[data-'+l+']').forEach(el=>{el.textContent=el.dataset[l];});
-  renderYarn();
-  updatePriceDisplay();
+  if(prod){
+    const title=lang==='en'&&prod.titleEn?prod.titleEn:prod.title;
+    document.getElementById('ptitle').textContent=title;
+    document.getElementById('pdesc').textContent=lang==='en'&&prod.descEn?prod.descEn:prod.desc;
+    updatePriceDisplay();
+  }
 }
 
-function pickThumb(el,emoji,bg){
-  document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('main-emoji').textContent=emoji;
-  document.getElementById('main-img-box').style.background=bg;
-  document.getElementById('lb-emoji').textContent=emoji;
-  document.getElementById('lb-content').style.background=bg;
+function typeLabel(type){
+  if(type==='kits')return lang==='en'?'Physical Kit 📦':'Kit Físico 📦';
+  if(type==='patrones')return lang==='en'?'Digital Pattern 📄':'Patrón Digital 📄';
+  if(type==='hilo')return lang==='en'?'Yarn 🧶':'Estambre 🧶';
+  return type||'';
 }
 
-function openLb(){document.getElementById('lb').classList.add('open');}
+function updatePriceDisplay(){
+  if(!prod)return;
+  document.getElementById('price-main').textContent=f(prod.price);
+  document.getElementById('btn-buy').textContent=`${lang==='en'?'Buy now':'Comprar ahora'} — ${f(prod.price)}`;
+  if(prod.type==='kits'){
+    document.getElementById('price-sub').textContent=lang==='en'?'Shipping included in Mexico':'Precio incluye envío en México';
+    document.getElementById('price-badge').textContent=lang==='en'?'📦 Physical kit · Ships to your door':'📦 Kit físico · Envío a tu puerta';
+  } else if(prod.type==='patrones'){
+    document.getElementById('price-sub').textContent=lang==='en'?'Instant access after payment':'Acceso inmediato al pagar';
+    document.getElementById('price-badge').textContent=lang==='en'?'📥 Instant download':'📥 Descarga inmediata';
+  } else {
+    document.getElementById('price-sub').textContent=lang==='en'?'Price in your local currency':'Precio en tu moneda local';
+    document.getElementById('price-badge').textContent='';
+  }
+}
+
+function openLb(){
+  if(!lbImgSrc)return;
+  document.getElementById('lb-img').src=lbImgSrc;
+  document.getElementById('lb').classList.add('open');
+}
 function closeLb(){document.getElementById('lb').classList.remove('open');}
 document.getElementById('lb').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLb();});
 
-function toggleWish(btn){
-  wished=!wished;
-  btn.textContent=wished?'♥':'♡';
-  btn.style.background=wished?'var(--pink-dark)':'var(--pink-mid)';
-  btn.style.color=wished?'#fff':'inherit';
-  if(wished)showToast(tx.wished[lang]);
-}
-
-function addToCart(){
-  cartN++;document.getElementById('cn').textContent=cartN;
-  showToast(tx.addedCart[lang]);
-}
-function buyNow(){showToast(tx.buyingNow[lang]);}
 function showToast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('on');
   setTimeout(()=>t.classList.remove('on'),2700);
 }
-function t(k){return tx[k][lang];}
 
-// ── LOAD SAVED CURRENCY ──
+function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
+function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
+function updateCartBadge(){
+  const cart=getCart();
+  const n=cart.reduce((s,i)=>s+(i.qty||1),0);
+  document.getElementById('cn').textContent=n||0;
+}
+
+function addToCart(){
+  if(!prod)return;
+  const cart=getCart();
+  const existing=cart.find(i=>i.id===prod.id);
+  if(existing)existing.qty=(existing.qty||1)+1;
+  else cart.push({
+    id:prod.id,
+    title:prod.title,
+    price:prod.price,
+    img:prod.images&&prod.images[0]||'',
+    qty:1,
+    patternSlug:prod.patternSlug||'',
+    pdfUrl:prod.pdfUrl||'',
+    shipSubsidy:prod.shipSubsidy||0,
+    boxLargo:prod.boxLargo||0,
+    boxAncho:prod.boxAncho||0,
+    boxAlto:prod.boxAlto||0,
+    boxPeso:prod.boxPeso||0,
+  });
+  saveCart(cart);
+  updateCartBadge();
+  showToast(lang==='en'?'🎀 Added to cart!':'🎀 ¡Agregado al carrito!');
+}
+
+function buyNow(){
+  addToCart();
+  window.location.href='/krosha-checkout.html';
+}
+
+function copyLink(){
+  const url=`${location.origin}/p/${productId}`;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
+  }).catch(()=>{
+    showToast(url);
+  });
+}
+
+let _relatedProds=[];
+function renderRelatedPrices(){
+  document.querySelectorAll('.rel-price').forEach(el=>{
+    const price=Number(el.dataset.price);
+    if(price)el.textContent=f(price);
+  });
+}
+
+function renderProduct(product,allProds){
+  prod=product;
+  const imgs=product.images||[];
+  const firstImg=imgs[0]||'';
+  lbImgSrc=firstImg;
+
+  // <title> & OG tags
+  document.title=`KroshaPatterns — ${product.title}`;
+  document.getElementById('og-title').setAttribute('content',product.title);
+  document.getElementById('og-desc').setAttribute('content',product.desc||'');
+  if(firstImg)document.getElementById('og-img').setAttribute('content',firstImg);
+
+  // breadcrumb
+  const catNames={kits:'Kits',patrones:'Patrones',hilo:'Estambres'};
+  document.getElementById('bc-cat').textContent=catNames[product.type]||product.type||'Productos';
+  document.getElementById('bc-name').textContent=product.title;
+
+  // gallery
+  const mainImgEl=document.getElementById('main-img');
+  if(firstImg){
+    mainImgEl.src=firstImg;
+    mainImgEl.alt=product.title;
+  } else {
+    document.getElementById('main-img-box').innerHTML='<span style="font-size:80px;">🎀</span>';
+  }
+
+  const thumbRow=document.getElementById('thumb-row');
+  thumbRow.innerHTML='';
+  imgs.forEach((img,i)=>{
+    const th=document.createElement('div');
+    th.className='thumb'+(i===0?' active':'');
+    th.innerHTML=`<img src="${img}" alt="">`;
+    th.onclick=()=>{
+      mainImgEl.src=img;
+      lbImgSrc=img;
+      document.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
+      th.classList.add('active');
+    };
+    thumbRow.appendChild(th);
+  });
+
+  // share
+  const shareUrl=`${location.origin}/p/${productId}`;
+  const waText=encodeURIComponent(`${product.title} — ${shareUrl}`);
+  document.getElementById('share-wa').href=`https://wa.me/?text=${waText}`;
+
+  // product info
+  document.getElementById('pcat').textContent=typeLabel(product.type);
+  document.getElementById('ptitle').textContent=product.title;
+  document.getElementById('pdesc').textContent=product.desc||'';
+
+  // kit contents
+  const yarnList=product.yarnList||[];
+  if(product.type==='kits'&&yarnList.length){
+    document.getElementById('kit-title-text').textContent=lang==='en'?'Includes':'Incluye';
+    const list=document.getElementById('kit-yarn-list');
+    list.innerHTML=yarnList.map(y=>{
+      const yimg=getYarnImg(y.color);
+      const hex=getYarnHex(y.color);
+      return `<div class="kit-yarn-row">
+        <div class="kit-dot">${yimg
+          ?`<img src="${yimg}" alt="${y.color}">`
+          :`<div style="width:28px;height:28px;border-radius:50%;background:${hex};border:1.5px solid rgba(0,0,0,.08);"></div>`
+        }</div>
+        <span class="kit-color-name">${y.color}</span>
+        <span class="kit-qty">×${y.qty||1} ovillo${(y.qty||1)>1?'s':''} · 200g</span>
+      </div>`;
+    }).join('');
+    document.getElementById('kit-block').style.display='';
+  }
+
+  // includes list
+  const incEl=document.getElementById('includes-list');
+  const incItems=product.type==='kits'
+    ?[['📦','Kit físico con estambres incluidos'],['🚚','Envío a domicilio en México'],['💬','Soporte por Instagram @kro_shaa']]
+    :product.type==='patrones'
+    ?[['📋','Patrón en PDF con fotos paso a paso'],['🌎','Instrucciones en español e inglés'],['📐','Lista de materiales y medidas exactas'],['💬','Soporte por Instagram @kro_shaa'],['♾️','Acceso de por vida al archivo']]
+    :[['🧶','Estambre de alta calidad 200g'],['🎨','Color seleccionado'],['💬','Soporte por Instagram @kro_shaa']];
+  incEl.innerHTML=incItems.map(([icon,txt])=>`<div class="inc-item"><div class="inc-icon">${icon}</div><span>${txt}</span></div>`).join('');
+
+  // price & CTA
+  updatePriceDisplay();
+
+  // show product
+  document.getElementById('product-wrap').style.display='';
+  document.getElementById('reviews-section').style.display='';
+
+  // related
+  _relatedProds=allProds.filter(p=>p.id!==product.id&&p.published!==false).slice(0,4);
+  if(_relatedProds.length){
+    const grid=document.getElementById('related-grid');
+    grid.innerHTML=_relatedProds.map(p=>{
+      const img=p.images&&p.images[0];
+      return `<a class="rel-card" href="/p/${p.id}">
+        <div class="rel-img">${img?`<img src="${img}" alt="${p.title}">`:'<span style="font-size:52px;">🎀</span>'}</div>
+        <div class="rel-body">
+          <div class="rel-name">${p.title}</div>
+          <div class="rel-price" data-price="${p.price}">${f(p.price)}</div>
+        </div>
+      </a>`;
+    }).join('');
+    document.getElementById('related-section').style.display='';
+  }
+}
+
+// yarn color → image helper (matches colors used in admin)
+const YARN_IMG_MAP={};
+function getYarnImg(colorName){return YARN_IMG_MAP[colorName]||null;}
+const YARN_HEX_MAP={
+  'Blanco':'#F0F0F0','Gris Claro':'#C8C8C8','Gris':'#9E9E9E','Negro':'#222222',
+  'Limón':'#F5E642','Coral':'#FF6B6B','Ballet':'#F0B8C0','Rosa':'#F48FB1',
+  'Fucsia':'#E040FB','Taffy':'#F9A8D4','Rosa Inglés':'#E88DA0','Rojo':'#C0392B',
+  'Granate':'#8B1A2F','Borgoña':'#800020','Crepé':'#D4A0A0','Rosa Palo':'#F2C4C4',
+  'Malva Claro':'#D8A0B8','Thistle':'#C8A0D8','Morado':'#7B2D8B','Berenjena':'#614051',
+  'Azul Rey':'#1A50A0','Azul Cielo':'#87CEEB','Pizarra':'#708090','Azure':'#007FFF',
+  'Mezclilla':'#1560BD','Aqua':'#00CED1','Turquesa':'#40E0D0','Pavoreal':'#33A1A1',
+  'Crema':'#F5E6CC','Avellana':'#A0785A','Taupe':'#B09080','Pecán':'#8B6040',
+  'Verde Hoja':'#5A8A3C','Junípero':'#3A6B4A','Mostaza':'#FFDB58','Verde Bosque':'#228B22',
+  'Marino':'#000080','Aran':'#E8D8B8','Nuez Moscada':'#8B5E3C','Calabaza':'#D2601A',
+  'Lino':'#FAF0E6','Teal':'#008080','Brasa':'#C84820','Carbón':'#4A4A4A',
+  'Chocolate':'#5C3317','Dorado':'#DAA520','Durazno':'#FFCBA4','Naranja':'#FF8C00',
+  'Hot Pink':'#FF69B4','Almond':'#EFDECD','Mint':'#AAF0D1','Lavender':'#E6E6FA',
+  'Salmon':'#FA8072','Cream':'#FFFDD0','Ivory':'#FFFFF0','Peach':'#FFCBA4',
+};
+function getYarnHex(colorName){
+  if(!colorName)return '#F5D0E0';
+  return YARN_HEX_MAP[colorName]||'#F5D0E0';
+}
+
+async function init(){
+  if(!productId){
+    document.getElementById('not-found').style.display='';
+    return;
+  }
+
+  try{
+    const resp=await fetch('/api/products',{cache:'no-cache'});
+    if(!resp.ok)throw new Error('API error');
+    const allProds=await resp.json();
+    const product=(Array.isArray(allProds)?allProds:[]).find(p=>String(p.id)===String(productId));
+    if(!product||product.published===false){
+      document.getElementById('not-found').style.display='';
+      return;
+    }
+    renderProduct(product,Array.isArray(allProds)?allProds:[]);
+    updateCartBadge();
+  }catch(e){
+    console.error(e);
+    document.getElementById('not-found').style.display='';
+  }
+}
+
+// Restore currency preference
 (function(){
   const saved=sessionStorage.getItem('krosha_cur')||localStorage.getItem('krosha_cur');
   if(saved&&rates[saved]){
@@ -678,8 +677,7 @@ function t(k){return tx[k][lang];}
   }
 })();
 
-// init
-renderYarn();updatePriceDisplay();
+init();
 </script>
 </body>
 </html>
