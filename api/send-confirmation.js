@@ -215,16 +215,23 @@ export default async function handler(req, res) {
       html: emailHtml,
     });
 
-    // Guardar pedido en Redis para el admin
+    // Guardar pedido en Redis, reducir inventario y enriquecer correo admin
+    let allProds = [];
     try {
       const { Redis } = await import('@upstash/redis');
       const redis = new Redis({
         url: process.env.UPSTASH_REDIS_REST_URL,
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
       });
+
+      // Fetch products for kit details + inventory lookup
+      const prodRaw = await redis.get('krosha:products');
+      allProds = prodRaw ? (typeof prodRaw === 'string' ? JSON.parse(prodRaw) : prodRaw) : [];
+
       const raw = await redis.get('krosha:orders');
       const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
-      if (!orders.find(o => o.ref === ref)) {
+      const isNewOrder = !orders.find(o => o.ref === ref);
+      if (isNewOrder) {
         orders.unshift({
           id: Date.now(),
           ref,
@@ -243,6 +250,26 @@ export default async function handler(req, res) {
         });
         if (orders.length > 500) orders.length = 500;
         await redis.set('krosha:orders', JSON.stringify(orders));
+
+        // Reduce yarn inventory for kit/hilo items
+        const invRaw = await redis.get('krosha:inventory');
+        let inv = invRaw ? (typeof invRaw === 'string' ? JSON.parse(invRaw) : invRaw) : {};
+        let invChanged = false;
+        for (const item of items) {
+          const prod = allProds.find(p => String(p.id) === String(item.id));
+          if (!prod) continue;
+          const yarnList = prod.yarnList || [];
+          for (const y of yarnList) {
+            if (y.color && typeof inv[y.color] === 'number' && inv[y.color] > 0) {
+              inv[y.color] = Math.max(0, inv[y.color] - (y.qty || 1));
+              invChanged = true;
+            }
+          }
+        }
+        if (invChanged) {
+          await redis.set('krosha:inventory', JSON.stringify(inv));
+          console.log('[send-confirmation] Inventory updated for order', ref);
+        }
       }
     } catch (redisErr) {
       console.error('Redis order save error (non-fatal):', redisErr);
@@ -267,19 +294,58 @@ export default async function handler(req, res) {
   ${shippingRate ? `<b>Carrier:</b> ${shippingRate.carrier?.toUpperCase()} — ${shippingRate.serviceDescription || shippingRate.service}<br><b>Días:</b> ${shippingRate.days}<br><b>Costo cotizado:</b> $${shippingRate.price} MXN<br>` : ''}
 </div>` : '';
 
+    // Build item detail rows for admin email (shows kit yarn contents)
+    const itemDetailRows = resolvedItems.map(i => {
+      const prod = allProds.find(p => String(p.id) === String(i.id));
+      const typeLabel = prod?.type === 'kits' ? '📦 KIT FÍSICO'
+        : prod?.type === 'hilo' ? '🧶 ESTAMBRE'
+        : prod?.type === 'patrones' ? '📄 PATRÓN DIGITAL'
+        : '';
+      const deliveryLabel = i.deliveryType === 'protect' ? '✅ ProtectCrochet'
+        : i.deliveryType === 'pdf' ? '✅ PDF'
+        : '⚠️ ENTREGA MANUAL';
+      let yarnDetail = '';
+      if (prod?.yarnList?.length) {
+        yarnDetail = `<br><span style="color:#555;font-size:12px;padding-left:16px;">Estambres: ${
+          prod.yarnList.map(y => `${y.color}${y.qty > 1 ? ` ×${y.qty}` : ''}`).join(', ')
+        }</span>`;
+      }
+      return `<tr>
+        <td style="padding:8px 6px;border-bottom:1px solid #eee;font-size:13px;">
+          <strong>${i.title}</strong> <span style="color:#888;font-size:11px;">${typeLabel}</span>${yarnDetail}
+        </td>
+        <td style="padding:8px 6px;border-bottom:1px solid #eee;font-size:13px;text-align:right;white-space:nowrap;">$${i.price} ${currency}</td>
+        <td style="padding:8px 6px;border-bottom:1px solid #eee;font-size:12px;white-space:nowrap;">${deliveryLabel}</td>
+      </tr>`;
+    }).join('');
+
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: 'kroshapatterns@gmail.com',
       subject: `🛍 Nuevo pedido #${ref} — $${total} ${currency}${hasPhysical ? ' 📦 FÍSICO' : ''} — ${customerEmail}`,
-      html: `<p><strong>Nuevo pedido recibido:</strong></p>
-        <p>Cliente: ${customerName} (${customerEmail})</p>
-        <p>Total: $${total} ${currency}</p>
-        <p>Método: ${payMethod}</p>
-        <p>Productos:<br>${resolvedItems.map(i =>
-          `${i.title} — ${i.deliveryType === 'protect' ? '✅ ProtectCrochet OK' : i.deliveryType === 'pdf' ? '✅ PDF' : '⚠️ ENTREGA MANUAL'}`
-        ).join('<br>')}</p>
-        ${needsManual.length ? `<p style="color:red;font-weight:bold;">⚠️ ENTREGA MANUAL REQUERIDA:<br>${needsManual.map(i => i.title).join('<br>')}</p>` : ''}
-        <p>Ref: #${ref}</p>
+      html: `
+        <p><strong>🛍 Nuevo pedido recibido</strong></p>
+        <p>Cliente: <strong>${customerName}</strong> (${customerEmail})<br>
+        Total: <strong>$${total} ${currency}</strong> · Método: ${payMethod}<br>
+        Ref: <strong>#${ref}</strong></p>
+        <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;margin-bottom:12px;">
+          <thead>
+            <tr style="background:#f5f5f5;">
+              <th style="padding:8px 6px;text-align:left;font-size:12px;border-bottom:2px solid #ddd;">Producto</th>
+              <th style="padding:8px 6px;text-align:right;font-size:12px;border-bottom:2px solid #ddd;">Precio</th>
+              <th style="padding:8px 6px;text-align:left;font-size:12px;border-bottom:2px solid #ddd;">Entrega</th>
+            </tr>
+          </thead>
+          <tbody>${itemDetailRows}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="padding:10px 6px 0;font-size:14px;font-weight:bold;text-align:right;">
+                Total: $${total} ${currency}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        ${needsManual.length ? `<p style="color:#c00;font-weight:bold;">⚠️ ENTREGA MANUAL REQUERIDA:<br>${needsManual.map(i => i.title).join('<br>')}</p>` : ''}
         ${enviaBlock}`,
     });
 
