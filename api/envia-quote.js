@@ -8,7 +8,7 @@ const CARRIERS_INTL = ['fedex','dhl','ups'];
 
 function getMXState(zip) {
   const n = parseInt(zip, 10);
-  if (n >= 1000  && n <= 16999) return 'CDMX';
+  if (n >= 1000  && n <= 16999) return 'CMX';
   if (n >= 20000 && n <= 20999) return 'AGS';
   if (n >= 21000 && n <= 22999) return 'BC';
   if (n >= 23000 && n <= 23999) return 'BCS';
@@ -223,7 +223,7 @@ export default async function handler(req, res) {
     }
 
     rates.sort((a, b) => a.price - b.price);
-    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: rates.length === 0 ? data : undefined });
+    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: rates.length === 0 ? data : undefined, _state: getDestState(pais_destino, cp_destino) });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });
