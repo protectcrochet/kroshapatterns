@@ -226,6 +226,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="login-btn" onclick="doLogin()">Entrar al admin</button>
     <div class="login-error" id="login-error">❌ Contraseña incorrecta</div>
+    <div style="margin-top:16px;font-size:12px;color:var(--text-light);">
+      ¿Olvidaste tu contraseña?
+      <span onclick="resetAdminPwd()" style="color:var(--pink-dark);cursor:pointer;font-weight:700;text-decoration:underline;">Restablecer a Answin1+</span>
+    </div>
   </div>
 </div>
 
@@ -1206,6 +1210,14 @@ function doLogin(){
     document.getElementById('login-error').style.display='block';
     document.getElementById('pwd-input').value='';
   }
+}
+function resetAdminPwd(){
+  if(!confirm('¿Restablecer la contraseña a Answin1+?')) return;
+  localStorage.setItem(ADMIN_PWD_KEY,'Answin1+');
+  localStorage.setItem(ADMIN_API_KEY_KEY,'Answin1+');
+  document.getElementById('login-error').style.display='none';
+  document.getElementById('pwd-input').value='';
+  alert('✅ Listo. Ahora entra con: Answin1+');
 }
 async function saveAll(){
   const btn=document.getElementById('save-all-btn');
