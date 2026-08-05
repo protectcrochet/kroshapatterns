@@ -570,8 +570,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             <label>Clave del servidor</label>
             <input type="password" id="api-key-input" placeholder="Answin1+">
           </div>
-          <button class="btn btn-pink btn-sm" style="height:42px;" onclick="changeApiKey()">Actualizar</button>
+          <button class="btn btn-pink btn-sm" style="height:42px;" onclick="changeApiKey()">Guardar</button>
+          <button class="btn btn-outline btn-sm" style="height:42px;" onclick="testApiKey()">🔍 Probar</button>
         </div>
+        <div id="api-key-status" style="margin-top:10px;font-size:12px;display:none;padding:8px 12px;border-radius:8px;"></div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
@@ -2118,6 +2120,24 @@ function changePwd(){
   localStorage.setItem(ADMIN_PWD_KEY,nw);
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
+}
+async function testApiKey(){
+  const candidate=document.getElementById('api-key-input').value.trim()||getApiKey();
+  const status=document.getElementById('api-key-status');
+  status.style.display='block';status.textContent='⏳ Probando…';status.style.background='#FFF9E6';status.style.color='#856404';
+  try{
+    const r=await fetch('/api/orders',{headers:{'x-admin-key':candidate}});
+    if(r.ok){
+      status.style.background='#D4EFE3';status.style.color='#2E7D52';
+      status.textContent='✅ Clave correcta — los pedidos cargan bien';
+    } else {
+      status.style.background='#FDECEA';status.style.color='#C0392B';
+      status.textContent=`❌ Clave incorrecta (error ${r.status}) — revisa ADMIN_KEY en Vercel`;
+    }
+  }catch(e){
+    status.style.background='#FDECEA';status.style.color='#C0392B';
+    status.textContent='❌ Error de red: '+e.message;
+  }
 }
 function changeApiKey(){
   const nw=document.getElementById('api-key-input').value.trim();
