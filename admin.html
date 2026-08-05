@@ -1118,7 +1118,7 @@ async function saveAll(){
   const btn=document.getElementById('save-all-btn');
   if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    const key='Answin1+';
+    const key=localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+';
     const [r1,r2,r3]=await Promise.all([
       fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({products:getProds()})}),
       fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify(getHero())}),
@@ -1141,7 +1141,7 @@ async function publishProducts(){
   const orig=btn?btn.textContent:'';
   if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Answin1+'},body:JSON.stringify({products:prods})});
+    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify({products:prods})});
     if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(`HTTP ${r.status}: ${e.error||'Error'}`);}
     // Verify by reading back
     const check=await fetch('/api/products').then(x=>x.json()).catch(()=>[]);
@@ -1744,7 +1744,7 @@ async function updateOrderStatus(newStatus){
   saveOrders(updated);
   // Save to server
   try{
-    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Answin1+'},body:JSON.stringify(_viewingOrder)});
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(_viewingOrder)});
   }catch(e){}
   renderOrdersTable();
   showToast('Estado actualizado: '+statusLabel(newStatus));
@@ -1760,7 +1760,7 @@ async function generateShippingLabel(){
   try{
     const r=await fetch('/api/shipping',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-admin-key':'Answin1+'},
+      headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},
       body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),carrier}),
     });
     const d=await r.json();
@@ -1983,7 +1983,7 @@ async function publishHero(){
   const orig=btn?.textContent||'🚀 Publicar Hero';
   if(btn){btn.textContent='⏳ Guardando…';btn.disabled=true;}
   try{
-    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Answin1+'},body:JSON.stringify(getHero())});
+    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(getHero())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('🎨 ¡Hero guardado! Visible en todos los dispositivos al instante');
   }catch(e){
@@ -2125,7 +2125,7 @@ async function publishInventory(){
   const btn=event.currentTarget;
   const origTxt=btn.textContent;btn.textContent='⏳ Guardando...';btn.disabled=true;
   try{
-    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':'Answin1+'},body:JSON.stringify(getInventory())});
+    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(getInventory())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('✅ ¡Inventario guardado! Visible al instante en todos los dispositivos');
   }catch(e){
