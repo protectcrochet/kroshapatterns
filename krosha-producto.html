@@ -947,7 +947,7 @@ const YARN_COLORS=[
   {name:'Black',hex:'#1A1A1A',img:'pb-black.jpg'},
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#F5D0E0';}
-function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
+function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`/images/colores/${c.img}`:null;}
 
 // Colores por defecto por producto (igual que admin.html)
 const defaultYarnColors={
