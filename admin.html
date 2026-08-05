@@ -499,6 +499,15 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-pink btn-sm" style="margin-top:14px;" onclick="changePwd()">Cambiar contraseña</button>
         </div>
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔐 Clave de servidor (API)</div>
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Debe coincidir con la variable <code>ADMIN_KEY</code> en Vercel. Diferente a la contraseña del panel.</div>
+          <div class="field" style="margin-bottom:14px;">
+            <label>Clave actual del servidor</label>
+            <input type="password" id="api-key-input" placeholder="••••••">
+          </div>
+          <button class="btn btn-pink btn-sm" onclick="changeApiKey()">Actualizar clave de servidor</button>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🌐 Datos de la tienda</div>
           <div class="field" style="margin-bottom:14px;">
             <label>Nombre de la tienda</label>
@@ -1093,14 +1102,18 @@ function fillYarnSelects(){} // kept for backward compat
 
 // ── CONSTANTS ──
 const ADMIN_PWD_KEY='krosha_admin_pwd';
+const ADMIN_API_KEY_KEY='krosha_admin_api_key';
 const PRODS_KEY='krosha_products';
 const ORDERS_KEY='krosha_orders';
 const CUSTS_KEY='krosha_customers';
 const HERO_KEY='krosha_hero';
 const SETTINGS_KEY='krosha_settings';
 
-// Default password
+// UI password (local login only)
 if(!localStorage.getItem(ADMIN_PWD_KEY)||localStorage.getItem(ADMIN_PWD_KEY)==='Answin1+') localStorage.setItem(ADMIN_PWD_KEY,'Answin1+');
+// API key (must match ADMIN_KEY env var in Vercel — separate from UI password)
+if(!localStorage.getItem(ADMIN_API_KEY_KEY)) localStorage.setItem(ADMIN_API_KEY_KEY,'Answin1+');
+function getApiKey(){return localStorage.getItem(ADMIN_API_KEY_KEY)||'Answin1+';}
 
 // ── LOGIN ──
 function doLogin(){
@@ -1118,7 +1131,7 @@ async function saveAll(){
   const btn=document.getElementById('save-all-btn');
   if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    const key=localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+';
+    const key=getApiKey();
     const [r1,r2,r3]=await Promise.all([
       fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify({products:getProds()})}),
       fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':key},body:JSON.stringify(getHero())}),
@@ -1141,7 +1154,7 @@ async function publishProducts(){
   const orig=btn?btn.textContent:'';
   if(btn){btn.textContent='⏳ Guardando...';btn.style.pointerEvents='none';}
   try{
-    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify({products:prods})});
+    const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({products:prods})});
     if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(`HTTP ${r.status}: ${e.error||'Error'}`);}
     // Verify by reading back
     const check=await fetch('/api/products').then(x=>x.json()).catch(()=>[]);
@@ -1535,10 +1548,9 @@ async function serverConvertAndUpload(file){
     const reader=new FileReader();
     reader.onload=async(e)=>{
       try{
-        const key=localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+';
         const r=await fetch('/api/upload-image',{
           method:'POST',
-          headers:{'Content-Type':'application/json','x-admin-key':key},
+          headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
           body:JSON.stringify({fileData:e.target.result,fileName:file.name,mimeType:file.type||'image/heic'}),
         });
         const data=await r.json();
@@ -1628,8 +1640,7 @@ let _serverOrders=[];
 
 async function loadServerOrders(){
   try{
-    const key=localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+';
-    const r=await fetch('/api/orders',{headers:{'x-admin-key':key}});
+    const r=await fetch('/api/orders',{headers:{'x-admin-key':getApiKey()}});
     if(r.ok){
       const data=await r.json();
       if(Array.isArray(data)){
@@ -1744,7 +1755,7 @@ async function updateOrderStatus(newStatus){
   saveOrders(updated);
   // Save to server
   try{
-    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(_viewingOrder)});
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
   }catch(e){}
   renderOrdersTable();
   showToast('Estado actualizado: '+statusLabel(newStatus));
@@ -1760,7 +1771,7 @@ async function generateShippingLabel(){
   try{
     const r=await fetch('/api/shipping',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
       body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),carrier}),
     });
     const d=await r.json();
@@ -1983,7 +1994,7 @@ async function publishHero(){
   const orig=btn?.textContent||'🚀 Publicar Hero';
   if(btn){btn.textContent='⏳ Guardando…';btn.disabled=true;}
   try{
-    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(getHero())});
+    const r=await fetch('/api/hero',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(getHero())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('🎨 ¡Hero guardado! Visible en todos los dispositivos al instante');
   }catch(e){
@@ -2014,7 +2025,15 @@ function changePwd(){
   if(nw.length<4){showToast('❌ Mínimo 4 caracteres');return;}
   localStorage.setItem(ADMIN_PWD_KEY,nw);
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
-  showToast('🔑 Contraseña actualizada');
+  showToast('🔑 Contraseña del panel actualizada');
+}
+function changeApiKey(){
+  const nw=document.getElementById('api-key-input').value.trim();
+  if(nw.length<4){showToast('❌ Mínimo 4 caracteres');return;}
+  localStorage.setItem(ADMIN_API_KEY_KEY,nw);
+  document.getElementById('api-key-input').value='';
+  showToast('🔐 Clave de servidor actualizada — recarga los pedidos');
+  loadServerOrders();
 }
 function exportData(){
   const data={products:getProds(),orders:getOrders(),customers:getCusts(),hero:getHero()};
@@ -2125,7 +2144,7 @@ async function publishInventory(){
   const btn=event.currentTarget;
   const origTxt=btn.textContent;btn.textContent='⏳ Guardando...';btn.disabled=true;
   try{
-    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':localStorage.getItem(ADMIN_PWD_KEY)||'Answin1+'},body:JSON.stringify(getInventory())});
+    const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(getInventory())});
     if(!r.ok)throw new Error((await r.json()).error||'Error');
     showToast('✅ ¡Inventario guardado! Visible al instante en todos los dispositivos');
   }catch(e){
