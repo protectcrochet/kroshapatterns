@@ -203,6 +203,22 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
 .foot-links a:hover{color:var(--pink-mid);}
 .foot-copy{font-size:12px;opacity:.6;}
 
+/* addons */
+.addon-section{margin-bottom:4px;}
+.addon-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:8px;}
+.addon-row{display:flex;align-items:center;gap:12px;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:8px;}
+.addon-row:hover{border-color:var(--pink-deep);}
+.addon-row.checked{border-color:var(--pink-dark);background:var(--blush);}
+.addon-row.oos{opacity:.55;cursor:not-allowed;}
+.addon-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:#fff;}
+.addon-row.checked .addon-cb{background:var(--pink-dark);border-color:var(--pink-dark);}
+.addon-info{flex:1;}
+.addon-info strong{font-size:13px;color:var(--text);display:block;line-height:1.3;}
+.addon-info span{font-size:11.5px;color:var(--text-light);}
+.addon-price{font-size:13px;font-weight:700;color:var(--pink-dark);white-space:nowrap;}
+.skip-row{margin-top:8px;padding:12px 14px;background:var(--cream);border:1.5px dashed var(--border);border-radius:12px;display:flex;align-items:center;gap:12px;cursor:pointer;}
+.skip-cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--pink-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:var(--pink-dark);background:var(--white);}
+
 @media(max-width:900px){
   .product-wrap{grid-template-columns:1fr;}
   .gallery{position:static;}
@@ -304,6 +320,9 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
       <div class="kit-yarn-list" id="kit-yarn-list"></div>
     </div>
 
+    <!-- ADDONS -->
+    <div id="addons-section" style="display:none;margin-bottom:20px;"></div>
+
     <!-- INCLUDES -->
     <div class="includes-list" id="includes-list"></div>
 
@@ -394,6 +413,8 @@ const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,COP:217,ARS:50,B
 const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',COP:'COP $',ARS:'AR$',BRL:'R$'};
 let cur='MXN', lang='es';
 let prod=null, lbImgSrc='';
+let addonKit=false, addonEyes=false, skipPattern=false, addonYarns={};
+let _allProds=[];
 
 // Vercel rewrites /p/:id server-side, so the browser still sees /p/6 as the URL.
 // Try query string first (?id=6), then fall back to extracting from the path (/p/6).
@@ -433,10 +454,23 @@ function typeLabel(type){
   return type||'';
 }
 
+function calcTotal(){
+  if(!prod)return 0;
+  let total=skipPattern?0:prod.price;
+  if(addonKit&&prod.kitPrice)total+=prod.kitPrice;
+  if(addonEyes&&prod.eyesPrice)total+=prod.eyesPrice;
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=_allProds.find(p=>p.yarnColorName===color);
+    total+=(yp?yp.price:150)*qty;
+  });
+  return total;
+}
+
 function updatePriceDisplay(){
   if(!prod)return;
-  document.getElementById('price-main').textContent=f(prod.price);
-  document.getElementById('btn-buy').textContent=`${lang==='en'?'Buy now':'Comprar ahora'} — ${f(prod.price)}`;
+  const total=calcTotal();
+  document.getElementById('price-main').textContent=f(total);
+  document.getElementById('btn-buy').textContent=`${lang==='en'?'Buy now':'Comprar ahora'} — ${f(total)}`;
   if(prod.type==='kits'){
     document.getElementById('price-sub').textContent=lang==='en'?'Shipping included in Mexico':'Precio incluye envío en México';
     document.getElementById('price-badge').textContent=lang==='en'?'📦 Physical kit · Ships to your door':'📦 Kit físico · Envío a tu puerta';
@@ -447,6 +481,111 @@ function updatePriceDisplay(){
     document.getElementById('price-sub').textContent=lang==='en'?'Price in your local currency':'Precio en tu moneda local';
     document.getElementById('price-badge').textContent='';
   }
+}
+
+function toggleAddonKit(){
+  addonKit=!addonKit;
+  document.getElementById('addon-kit-row')?.classList.toggle('checked',addonKit);
+  document.getElementById('addon-kit-cb').textContent=addonKit?'✓':'';
+  updatePriceDisplay();
+}
+function toggleAddonEyes(){
+  addonEyes=!addonEyes;
+  document.getElementById('addon-eyes-row')?.classList.toggle('checked',addonEyes);
+  document.getElementById('addon-eyes-cb').textContent=addonEyes?'✓':'';
+  updatePriceDisplay();
+}
+function toggleYarnAddon(color,qty){
+  const key=color.replace(/[^a-zA-Z0-9]/g,'_');
+  if(addonYarns[color]){delete addonYarns[color];document.getElementById('addon-yarn-'+key)?.classList.remove('checked');const cb=document.getElementById('yarn-cb-'+key);if(cb)cb.textContent='';}
+  else{addonYarns[color]=qty;document.getElementById('addon-yarn-'+key)?.classList.add('checked');const cb=document.getElementById('yarn-cb-'+key);if(cb)cb.textContent='✓';}
+  updatePriceDisplay();
+}
+function toggleSkipPattern(){
+  skipPattern=!skipPattern;
+  const cb=document.getElementById('skip-cb');if(cb)cb.textContent=skipPattern?'✓':'';
+  const row=document.getElementById('skip-row');if(row)row.style.background=skipPattern?'var(--blush)':'var(--cream)';
+  if(skipPattern&&prod.kitPrice>0&&!addonKit)toggleAddonKit();
+  document.getElementById('btn-add').textContent=skipPattern?(lang==='en'?'🧶 Add materials':'🧶 Agregar materiales'):'🛍 Agregar al carrito';
+  updatePriceDisplay();
+}
+
+function renderAddons(p){
+  const sec=document.getElementById('addons-section');
+  if(!sec)return;
+  const yarnList=p.yarnList||[];
+  const hasKit=p.kitPrice>0;
+  const hasEyes=p.eyesPrice>0;
+  const hasYarns=yarnList.length>0;
+  if(p.type==='kits'||(!hasKit&&!hasEyes&&!hasYarns)){sec.style.display='none';return;}
+  let html='';
+  // Kit addon
+  if(hasKit){
+    const dots=yarnList.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${yarnList.map(y=>`<span title="${y.color}" style="width:14px;height:14px;border-radius:50%;background:${getYarnHex(y.color)};border:1.5px solid rgba(0,0,0,.1);display:inline-block;"></span>`).join('')}</div>`:'';
+    html+=`<div class="addon-section">
+      <div class="addon-section-title">🎁 ${lang==='en'?'Want to add materials?':'¿Quieres agregar los materiales?'}</div>
+      <div class="addon-row" id="addon-kit-row" onclick="toggleAddonKit()">
+        <div class="addon-cb" id="addon-kit-cb"></div>
+        <div class="addon-info">
+          <strong>🧶 ${lang==='en'?'Yarn kit for this pattern':'Kit de estambres para este patrón'}</strong>
+          <span>${lang==='en'?`Includes ${yarnList.length} pre-selected colors`:`Incluye los ${yarnList.length} colores del patrón`}</span>
+          ${dots}
+        </div>
+        <span class="addon-price">+${f(p.kitPrice)}</span>
+      </div>`;
+    if(hasEyes){
+      html+=`<div class="addon-row" id="addon-eyes-row" onclick="toggleAddonEyes()">
+        <div class="addon-cb" id="addon-eyes-cb"></div>
+        <img src="${p.eyesImg||'/images/IMG_5938.jpg'}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+        <div class="addon-info">
+          <strong>${lang==='en'?'Safety eyes':'Ojos de seguridad'}</strong>
+          <span>${lang==='en'?'Amigurumi safety eyes pair':'Par de ojos amigurumi'}</span>
+        </div>
+        <span class="addon-price">+${f(p.eyesPrice)}</span>
+      </div>`;
+    }
+    html+=`<div class="skip-row" id="skip-row" onclick="toggleSkipPattern()">
+      <div class="skip-cb" id="skip-cb"></div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">${lang==='en'?'Already have the pattern?':'¿Ya tienes el patrón?'}</div>
+        <div style="font-size:11.5px;color:var(--text-light);">${lang==='en'?'Buy only the materials without the PDF':'Compra solo los materiales sin el PDF'}</div>
+      </div>
+    </div>`;
+    html+='</div>';
+  } else if(hasYarns){
+    // Show individual yarns if no kit price
+    html+=`<div class="addon-section">
+      <div class="addon-section-title">🧶 ${lang==='en'?'Yarns I use':'Estambres que uso'}</div>`;
+    yarnList.forEach(y=>{
+      const key=y.color.replace(/[^a-zA-Z0-9]/g,'_');
+      const yp=_allProds.find(p=>p.yarnColorName===y.color);
+      const price=(yp?yp.price:150)*y.qty;
+      const yimg=getYarnImg(y.color);const hex=getYarnHex(y.color);
+      html+=`<div class="addon-row" id="addon-yarn-${key}" onclick="toggleYarnAddon('${y.color.replace(/'/g,"\\'")}',${y.qty})">
+        <div class="addon-cb" id="yarn-cb-${key}"></div>
+        ${yimg?`<img src="${yimg}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:32px;height:32px;border-radius:50%;background:${hex};flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);"></div>`}
+        <div class="addon-info">
+          <strong>${y.color}</strong>
+          <span>×${y.qty} ${lang==='en'?'skein':'ovillo'}${y.qty>1?'s':''} · 200g</span>
+        </div>
+        <span class="addon-price">+${f(price)}</span>
+      </div>`;
+    });
+    if(hasEyes){
+      html+=`<div class="addon-row" id="addon-eyes-row" onclick="toggleAddonEyes()">
+        <div class="addon-cb" id="addon-eyes-cb"></div>
+        <img src="${p.eyesImg||'/images/IMG_5938.jpg'}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+        <div class="addon-info">
+          <strong>${lang==='en'?'Safety eyes':'Ojos de seguridad'}</strong>
+          <span>${lang==='en'?'Amigurumi safety eyes pair':'Par de ojos amigurumi'}</span>
+        </div>
+        <span class="addon-price">+${f(p.eyesPrice)}</span>
+      </div>`;
+    }
+    html+='</div>';
+  }
+  sec.innerHTML=html;
+  sec.style.display=html?'':'none';
 }
 
 function openLb(){
@@ -474,22 +613,71 @@ function updateCartBadge(){
 function addToCart(){
   if(!prod)return;
   const cart=getCart();
-  const existing=cart.find(i=>i.id===prod.id);
-  if(existing)existing.qty=(existing.qty||1)+1;
-  else cart.push({
-    id:prod.id,
-    title:prod.title,
-    price:prod.price,
-    img:prod.images&&prod.images[0]||'',
-    qty:1,
-    patternSlug:prod.patternSlug||'',
-    pdfUrl:prod.pdfUrl||'',
-    shipSubsidy:prod.shipSubsidy||0,
-    boxLargo:prod.boxLargo||0,
-    boxAncho:prod.boxAncho||0,
-    boxAlto:prod.boxAlto||0,
-    boxPeso:prod.boxPeso||0,
+  const img=prod.images&&prod.images[0]||'';
+
+  // Base product (skip if user chose materials-only)
+  if(!skipPattern){
+    const existing=cart.find(i=>i.id===prod.id);
+    if(existing)existing.qty=(existing.qty||1)+1;
+    else cart.push({
+      id:prod.id,
+      title:prod.title,
+      price:prod.price,
+      img,
+      qty:1,
+      patternSlug:prod.patternSlug||'',
+      pdfUrl:prod.pdfUrl||'',
+      shipSubsidy:prod.shipSubsidy||0,
+      boxLargo:prod.boxLargo||0,
+      boxAncho:prod.boxAncho||0,
+      boxAlto:prod.boxAlto||0,
+      boxPeso:prod.boxPeso||0,
+    });
+  }
+
+  // Kit addon
+  if(addonKit&&prod.kitPrice){
+    const kitId=String(prod.id)+'_kit';
+    if(!cart.find(i=>i.id===kitId))cart.push({
+      id:kitId,
+      title:prod.title+' — Kit de materiales',
+      price:prod.kitPrice,
+      img,qty:1,patternSlug:'',pdfUrl:'',
+      shipSubsidy:prod.shipSubsidy||0,
+      boxLargo:prod.boxLargo||0,boxAncho:prod.boxAncho||0,
+      boxAlto:prod.boxAlto||0,boxPeso:prod.boxPeso||0,
+    });
+  }
+
+  // Eyes addon
+  if(addonEyes&&prod.eyesPrice){
+    const eyesId=String(prod.id)+'_eyes';
+    if(!cart.find(i=>i.id===eyesId))cart.push({
+      id:eyesId,
+      title:'Ojos de seguridad — '+prod.title,
+      price:prod.eyesPrice,
+      img:prod.eyesImg||'/images/IMG_5938.jpg',
+      qty:1,patternSlug:'',pdfUrl:'',
+      shipSubsidy:0,boxLargo:0,boxAncho:0,boxAlto:0,boxPeso:0,
+    });
+  }
+
+  // Yarn addons
+  Object.entries(addonYarns).forEach(([color,qty])=>{
+    const yp=_allProds.find(p=>p.yarnColorName===color);
+    const yarnId='yarn_'+color.replace(/[^a-zA-Z0-9]/g,'_');
+    const ex=cart.find(i=>i.id===yarnId);
+    if(ex)ex.qty=(ex.qty||0)+qty;
+    else cart.push({
+      id:yarnId,
+      title:color+' — Estambre',
+      price:yp?yp.price:150,
+      img:getYarnImg(color)||'',
+      qty,patternSlug:'',pdfUrl:'',
+      shipSubsidy:0,boxLargo:0,boxAncho:0,boxAlto:0,boxPeso:0,
+    });
   });
+
   saveCart(cart);
   updateCartBadge();
   showToast(lang==='en'?'🎀 Added to cart!':'🎀 ¡Agregado al carrito!');
@@ -519,6 +707,7 @@ function renderRelatedPrices(){
 
 function renderProduct(product,allProds){
   prod=product;
+  _allProds=allProds;
   const imgs=product.images||[];
   const firstImg=imgs[0]||'';
   lbImgSrc=firstImg;
@@ -588,6 +777,9 @@ function renderProduct(product,allProds){
     document.getElementById('kit-block').style.display='';
   }
 
+  // addons (cross-sell)
+  renderAddons(product);
+
   // includes list
   const incEl=document.getElementById('includes-list');
   const incItems=product.type==='kits'
@@ -605,7 +797,7 @@ function renderProduct(product,allProds){
   document.getElementById('reviews-section').style.display='';
 
   // related
-  _relatedProds=allProds.filter(p=>p.id!==product.id&&p.published!==false).slice(0,4);
+  _relatedProds=allProds.filter(p=>p.id!==product.id).slice(0,4);
   if(_relatedProds.length){
     const grid=document.getElementById('related-grid');
     grid.innerHTML=_relatedProds.map(p=>{
