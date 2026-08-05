@@ -275,7 +275,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <div class="modal-desc" id="mdesc"></div>
         <div class="detail-box">
           <div class="detail-chip"><div class="dl" data-es="PRECIO" data-en="PRICE">PRECIO</div><div class="dv" id="md-price"></div></div>
-          <div class="detail-chip"><div class="dl" data-es="FORMATO" data-en="FORMAT">FORMATO</div><div class="dv" id="md-format">PDF Digital</div></div>
+          <div class="detail-chip"><div class="dl" data-es="FORMATO" data-en="FORMAT">FORMATO</div><div class="dv" id="md-format">Patrón Digital</div></div>
           <div class="detail-chip"><div class="dl" data-es="NIVEL" data-en="LEVEL">NIVEL</div><div class="dv" id="md-level"></div></div>
           <div class="detail-chip"><div class="dl" data-es="ENTREGA" data-en="ACCESS">ENTREGA</div><div class="dv" data-es="ProtectCrochet" data-en="ProtectCrochet">ProtectCrochet</div></div>
         </div>
@@ -1035,7 +1035,7 @@ function openM(id){
         <div id="cb-skip-pattern" style="width:20px;height:20px;border-radius:6px;border:2px solid var(--pink-deep);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--pink-dark);flex-shrink:0;background:var(--white);"></div>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--text);">${lang==='es'?'¿Ya tienes el patrón?':'Already have the pattern?'}</div>
-          <div style="font-size:11.5px;color:var(--text-light);">${lang==='es'?'Compra solo los materiales sin el PDF':'Buy only the materials without the PDF'}</div>
+          <div style="font-size:11.5px;color:var(--text-light);">${lang==='es'?'Compra solo los materiales sin el patrón':'Buy only the materials without the pattern'}</div>
         </div>
       </div>`;
     }
@@ -1064,7 +1064,7 @@ function openM(id){
     btnBuy.style.display='';
     btnAdd.style.display='';
     if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
-    if(fmtEl)fmtEl.textContent='PDF Digital';
+    if(fmtEl)fmtEl.textContent='Patrón Digital';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   }

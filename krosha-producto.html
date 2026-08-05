@@ -476,7 +476,7 @@ function updatePriceDisplay(){
     document.getElementById('price-badge').textContent=lang==='en'?'📦 Physical kit · Ships to your door':'📦 Kit físico · Envío a tu puerta';
   } else if(prod.type==='patrones'){
     document.getElementById('price-sub').textContent=lang==='en'?'Instant access after payment':'Acceso inmediato al pagar';
-    document.getElementById('price-badge').textContent=lang==='en'?'📥 Instant download':'📥 Descarga inmediata';
+    document.getElementById('price-badge').textContent=lang==='en'?'📄 Instant pattern access':'📄 Acceso inmediato al patrón';
   } else {
     document.getElementById('price-sub').textContent=lang==='en'?'Price in your local currency':'Precio en tu moneda local';
     document.getElementById('price-badge').textContent='';
@@ -548,7 +548,7 @@ function renderAddons(p){
       <div class="skip-cb" id="skip-cb"></div>
       <div>
         <div style="font-size:13px;font-weight:700;color:var(--text);">${lang==='en'?'Already have the pattern?':'¿Ya tienes el patrón?'}</div>
-        <div style="font-size:11.5px;color:var(--text-light);">${lang==='en'?'Buy only the materials without the PDF':'Compra solo los materiales sin el PDF'}</div>
+        <div style="font-size:11.5px;color:var(--text-light);">${lang==='en'?'Buy only the materials without the pattern':'Compra solo los materiales sin el patrón'}</div>
       </div>
     </div>`;
     html+='</div>';
@@ -785,7 +785,7 @@ function renderProduct(product,allProds){
   const incItems=product.type==='kits'
     ?[['📦','Kit físico con estambres incluidos'],['🚚','Envío a domicilio en México'],['💬','Soporte por Instagram @kro_shaa']]
     :product.type==='patrones'
-    ?[['📋','Patrón en PDF con fotos paso a paso'],['🌎','Instrucciones en español e inglés'],['📐','Lista de materiales y medidas exactas'],['💬','Soporte por Instagram @kro_shaa'],['♾️','Acceso de por vida al archivo']]
+    ?[['📋','Patrón con fotos paso a paso'],['🌎','Instrucciones en español e inglés'],['📐','Lista de materiales y medidas exactas'],['💬','Soporte por Instagram @kro_shaa'],['♾️','Acceso de por vida']]
     :[['🧶','Estambre de alta calidad 200g'],['🎨','Color seleccionado'],['💬','Soporte por Instagram @kro_shaa']];
   incEl.innerHTML=incItems.map(([icon,txt])=>`<div class="inc-item"><div class="inc-icon">${icon}</div><span>${txt}</span></div>`).join('');
 
