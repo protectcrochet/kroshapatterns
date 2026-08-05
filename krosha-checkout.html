@@ -724,13 +724,12 @@ function chQty(btn,d,id){
   const cart=getCartItems();
   const item=cart.find(i=>String(i.id)===String(id));
   if(!item)return;
-  const isYarn=(item.img&&item.img.startsWith('yarn:'))||
-    item.title.toLowerCase().includes('estambre')||
-    item.title.toLowerCase().includes('ovillo');
-  const minQty=isYarn?3:1;
+  // Mínimo 3 solo para estambre suelto del catálogo (id numérico), no para add-ons de patrón (id 'yarn_...')
+  const isStandaloneYarn=typeof item.id==='number'&&(item.img&&item.img.startsWith('yarn:'));
+  const minQty=isStandaloneYarn?3:1;
   const newQty=item.qty+d;
   if(newQty<minQty){
-    if(isYarn)showToast(lang==='es'?'⚠️ Mínimo 3 ovillos por pedido':'⚠️ Minimum 3 skeins per order');
+    if(isStandaloneYarn)showToast(lang==='es'?'⚠️ Mínimo 3 ovillos por pedido':'⚠️ Minimum 3 skeins per order');
     return;
   }
   item.qty=newQty;
