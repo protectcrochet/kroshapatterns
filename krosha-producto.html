@@ -472,7 +472,7 @@ function renderAddons(p){
     yarnList.forEach(y=>{
       const key=y.color.replace(/[^a-zA-Z0-9]/g,'_');
       const yp=_allProds.find(q=>q.yarnColorName===y.color);
-      const price=(yp?yp.price:150)*y.qty;
+      const price=(yp?yp.price:yarnDefPrice(y.color))*y.qty;
       const yimg=getYarnImg(y.color);
       const hex=getYarnHex(y.color);
       html+=`<div class="addon-row" id="addon-yarn-${key}" onclick="toggleYarnAddon('${y.color.replace(/'/g,"\\'")}',${y.qty})">
@@ -482,7 +482,7 @@ function renderAddons(p){
           :`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);"></div>`}
         <div class="addon-info">
           <strong>${y.color}</strong>
-          <span>×${y.qty} ${lang==='en'?'skein':'ovillo'}${y.qty>1?'s':''} · 200g</span>
+          <span>×${y.qty} ${lang==='en'?'skein':'ovillo'}${y.qty>1?'s':''} · ${yarnGrams(y.color)}g</span>
         </div>
         <span class="addon-price">+${f(price)}</span>
       </div>`;
@@ -625,7 +625,7 @@ function addToCart(){
     else cart.push({
       id:yarnId,
       title:color+' — Estambre',
-      price:yp?yp.price:150,
+      price:yp?yp.price:yarnDefPrice(color),
       img:getYarnImg(color)||'',
       qty,patternSlug:'',pdfUrl:'',
       shipSubsidy:0,boxLargo:0,boxAncho:0,boxAlto:0,boxPeso:0,
@@ -890,6 +890,8 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#F5D0E0';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`/images/colores/${c.img}`:null;}
+function yarnGrams(n){return n==='Arena S'?100:200;}
+function yarnDefPrice(n){return n==='Arena S'?65:150;}
 
 // Colores por defecto por producto (igual que admin.html)
 const defaultYarnColors={

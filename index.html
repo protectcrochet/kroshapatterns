@@ -599,6 +599,7 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
+function yarnGrams(n){return n==='Arena S'?100:200;}
 function yarnColorsToList(yc){
   const counts={},order=[];
   Object.values(yc).forEach(color=>{
@@ -827,21 +828,24 @@ const defaultYarnColors={
 };
 
 // ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
-const yarnProducts=YARN_COLORS.map((c,i)=>({
-  id:100+i,
-  title:`Estambre ${c.name} 200g`,
-  titleEn:`${c.name} Yarn 200g`,
-  price:150,
-  type:'hilo',
-  skill:'',
-  images:[],
-  desc:`Estambre Premier Yarns Basix color ${c.name}. Presentación 200g. Acrílico suave de alta calidad.`,
-  descEn:`Premier Yarns Basix ${c.name}. 200g. High-quality soft acrylic yarn.`,
-  yarnColors:null,
-  yarnColorName:c.name,
-  kitPrice:0,
-  eyesPrice:0,
-}));
+const yarnProducts=YARN_COLORS.map((c,i)=>{
+  const g=yarnGrams(c.name),p=c.name==='Arena S'?65:150;
+  return{
+    id:100+i,
+    title:`Estambre ${c.name} ${g}g`,
+    titleEn:`${c.name} Yarn ${g}g`,
+    price:p,
+    type:'hilo',
+    skill:'',
+    images:[],
+    desc:`Estambre Premier Yarns Basix color ${c.name}. Presentación ${g}g. Acrílico suave de alta calidad.`,
+    descEn:`Premier Yarns Basix ${c.name}. ${g}g. High-quality soft acrylic yarn.`,
+    yarnColors:null,
+    yarnColorName:c.name,
+    kitPrice:0,
+    eyesPrice:0,
+  };
+});
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function typeLabel(t){return t==='kits'?'Kit Crochet':t==='estambres'?'Kit Estambres':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':t==='accesorios'?'Accesorio':'Patrón Digital';}
@@ -960,7 +964,7 @@ function openM(id){
       return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
         ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
-        <span style="font-size:11px;color:var(--text-light);">×${item.qty} ovillo${item.qty>1?'s':''} · 200g</span>
+        <span style="font-size:11px;color:var(--text-light);">×${item.qty} ovillo${item.qty>1?'s':''} · ${yarnGrams(item.color)}g</span>
       </div>`;
     }).join('');
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
@@ -987,7 +991,7 @@ function openM(id){
         ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <div class="addon-info">
           <strong>${item.color}</strong>
-          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · 200g</span>
+          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · ${yarnGrams(item.color)}g</span>
         </div>
         ${stockBadge||`<span class="addon-price">+${f(price)}</span>`}
       </div>`;
@@ -1052,7 +1056,7 @@ function openM(id){
     btnBuy.style.display='none';
     btnAdd.style.display='none';
     if(buySub)buySub.innerHTML=`<div style="background:var(--blush);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center;font-size:13px;color:var(--text-mid);line-height:1.5;">${lang==='es'?'🧶 Este estambre está disponible como add-on al comprar cualquier patrón':'🧶 This yarn is available as an add-on when buying any pattern'}</div>`;
-    if(fmtEl)fmtEl.textContent='200g · Acrílico';
+    if(fmtEl)fmtEl.textContent=`${yarnGrams(curProd.yarnColorName)}g · Acrílico`;
   } else if(curProd.isYarnKit){
     btnBuy.style.display='';
     btnAdd.style.display='';
@@ -1159,7 +1163,7 @@ function qAdd(id){
     existing.qty++;
   } else {
     const qty=isYarn?3:1;
-    cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} 200g`:p.title,price:p.price,img:imgVal,qty,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipSubsidy:p.shipSubsidy||0,boxLargo:p.boxLargo||0,boxAncho:p.boxAncho||0,boxAlto:p.boxAlto||0,boxPeso:p.boxPeso||0});
+    cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} ${yarnGrams(p.yarnColorName)}g`:p.title,price:p.price,img:imgVal,qty,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipSubsidy:p.shipSubsidy||0,boxLargo:p.boxLargo||0,boxAncho:p.boxAncho||0,boxAlto:p.boxAlto||0,boxPeso:p.boxPeso||0});
     if(isYarn)showToast(lang==='es'?`🧶 ${label} ×3 agregado (mínimo 3)`:`🧶 ${label} ×3 added (min. 3)`);
   }
   if(!isYarn||existing)saveCart(cart),updateCartBadge(),showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
@@ -1173,7 +1177,7 @@ function addYarnQtyToCart(colorName,qty){
   const cart=getCart();
   const existing=cart.find(i=>i.id===yp.id);
   if(existing)existing.qty+=qty;
-  else cart.push({id:yp.id,title:`Estambre ${colorName} 200g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty:Math.max(3,qty),shipSubsidy:0});
+  else cart.push({id:yp.id,title:`Estambre ${colorName} ${yarnGrams(colorName)}g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty:Math.max(3,qty),shipSubsidy:0});
   saveCart(cart);updateCartBadge();
   const total=existing?existing.qty:Math.max(3,qty);
   showToast(`🧶 ${colorName} ×${total} ${lang==='es'?'en carrito':'in cart'}`);
@@ -1203,7 +1207,7 @@ function addToCart(){
     const yp=yarnProducts.find(p=>p.yarnColorName===color);
     if(!yp)return;
     const ey=cart.find(i=>i.id===yp.id);
-    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} 200g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty,shipSubsidy:yp.shipSubsidy||10});
+    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} ${yarnGrams(color)}g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty,shipSubsidy:yp.shipSubsidy||10});
   });
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
