@@ -932,7 +932,7 @@ async function init(){
     // Normalize field names (admin stores nameEs/descEs, public uses title/desc)
     // yarnList fallback: use yarnColors from Redis, then defaultYarnColors by product id
     const _yc=rawProd.yarnColors||defaultYarnColors[rawProd.id]||null;
-    const _yl=rawProd.yarnList||(_yc&&Object.values(_yc).some(v=>v)?yarnColorsToList(_yc):[]);
+    const _yl=(rawProd.yarnList&&rawProd.yarnList.length)?rawProd.yarnList:(_yc&&Object.values(_yc).some(v=>v)?yarnColorsToList(_yc):[]);
     const product={
       ...rawProd,
       title:rawProd.nameEs||rawProd.title||'',
@@ -941,7 +941,11 @@ async function init(){
       descEn:rawProd.descEn||'',
       yarnList:_yl,
     };
-    const normalizedActive=activeProds.map(p=>({...p,title:p.nameEs||p.title||''}));
+    const normalizedActive=activeProds.map(p=>{
+      const yc2=p.yarnColors||defaultYarnColors[p.id]||null;
+      const yl2=(p.yarnList&&p.yarnList.length)?p.yarnList:(yc2&&Object.values(yc2).some(v=>v)?yarnColorsToList(yc2):[]);
+      return {...p,title:p.nameEs||p.title||'',yarnList:yl2};
+    });
     renderProduct(product,normalizedActive);
     updateCartBadge();
   }catch(e){
