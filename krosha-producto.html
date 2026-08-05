@@ -814,28 +814,91 @@ function renderProduct(product,allProds){
   }
 }
 
-// yarn color → image helper (matches colors used in admin)
-const YARN_IMG_MAP={};
-function getYarnImg(colorName){return YARN_IMG_MAP[colorName]||null;}
-const YARN_HEX_MAP={
-  'Blanco':'#F0F0F0','Gris Claro':'#C8C8C8','Gris':'#9E9E9E','Negro':'#222222',
-  'Limón':'#F5E642','Coral':'#FF6B6B','Ballet':'#F0B8C0','Rosa':'#F48FB1',
-  'Fucsia':'#E040FB','Taffy':'#F9A8D4','Rosa Inglés':'#E88DA0','Rojo':'#C0392B',
-  'Granate':'#8B1A2F','Borgoña':'#800020','Crepé':'#D4A0A0','Rosa Palo':'#F2C4C4',
-  'Malva Claro':'#D8A0B8','Thistle':'#C8A0D8','Morado':'#7B2D8B','Berenjena':'#614051',
-  'Azul Rey':'#1A50A0','Azul Cielo':'#87CEEB','Pizarra':'#708090','Azure':'#007FFF',
-  'Mezclilla':'#1560BD','Aqua':'#00CED1','Turquesa':'#40E0D0','Pavoreal':'#33A1A1',
-  'Crema':'#F5E6CC','Avellana':'#A0785A','Taupe':'#B09080','Pecán':'#8B6040',
-  'Verde Hoja':'#5A8A3C','Junípero':'#3A6B4A','Mostaza':'#FFDB58','Verde Bosque':'#228B22',
-  'Marino':'#000080','Aran':'#E8D8B8','Nuez Moscada':'#8B5E3C','Calabaza':'#D2601A',
-  'Lino':'#FAF0E6','Teal':'#008080','Brasa':'#C84820','Carbón':'#4A4A4A',
-  'Chocolate':'#5C3317','Dorado':'#DAA520','Durazno':'#FFCBA4','Naranja':'#FF8C00',
-  'Hot Pink':'#FF69B4','Almond':'#EFDECD','Mint':'#AAF0D1','Lavender':'#E6E6FA',
-  'Salmon':'#FA8072','Cream':'#FFFDD0','Ivory':'#FFFFF0','Peach':'#FFCBA4',
+// Mismo catálogo de colores que index.html y admin.html
+const YARN_COLORS=[
+  {name:'White',hex:'#FFFFFF'},{name:'Cream',hex:'#FFF8DC'},{name:'Ecru',hex:'#F5F0E8'},
+  {name:'Linen',hex:'#FAF0E6'},{name:'Aran',hex:'#E8D5B7'},{name:'Arena S',hex:'#F2DFC0'},
+  {name:'Almond',hex:'#DEB887'},{name:'Sand',hex:'#E8D5B0'},{name:'Buff',hex:'#F5DEB3'},
+  {name:'Warm Beige',hex:'#D4B896'},{name:'Wheat',hex:'#F5DEB3'},{name:'Camel',hex:'#C19A6B'},
+  {name:'Toffee',hex:'#A0785A'},{name:'Hazel',hex:'#8E7455'},{name:'Taupe',hex:'#8B7D7B'},
+  {name:'Nutmeg',hex:'#8C4E2A'},{name:'Gold',hex:'#FFD700'},{name:'Goldenrod',hex:'#DAA520'},
+  {name:'Mustard',hex:'#FFDB58'},{name:'Dijon Mustard',hex:'#C49A00'},{name:'Yellow',hex:'#FFF176'},
+  {name:'Lemon',hex:'#FFF44F'},{name:'Maize',hex:'#F4C430'},{name:'Sunshine',hex:'#FFE600'},
+  {name:'Sunny',hex:'#FFD966'},{name:'Butterscotch',hex:'#E3A857'},{name:'Orange',hex:'#FF8C00'},
+  {name:'Bright Orange',hex:'#FF6700'},{name:'Coral',hex:'#FF7F50'},{name:'Peach',hex:'#FFDAB9'},
+  {name:'Apricot',hex:'#FBCEB1'},{name:'Salmon',hex:'#FA8072'},{name:'Goldfish',hex:'#F4831F'},
+  {name:'Pumpkin',hex:'#FF7518'},{name:'Sweet Potato',hex:'#D2691E'},{name:'Ember',hex:'#C84B31'},
+  {name:'Red',hex:'#DC143C'},{name:'Cherry Red',hex:'#9B1B30'},{name:'Crimson',hex:'#B22222'},
+  {name:'Garnet',hex:'#6D1A36'},{name:'Burgundy',hex:'#800020'},{name:'Mahogany',hex:'#C04000'},
+  {name:'Chestnut',hex:'#954535'},{name:'Wine',hex:'#722F37'},{name:'Merlot',hex:'#73343A'},
+  {name:'Rouge',hex:'#C10020'},{name:'Blush',hex:'#FFB6C1'},{name:'Crepe',hex:'#F5C5C0'},
+  {name:'Ballet',hex:'#F4A7B9'},{name:'Pink',hex:'#FFC0CB'},{name:'Hot Pink',hex:'#FF69B4'},
+  {name:'Taffy',hex:'#FF8FAB'},{name:'Rose',hex:'#FF007F'},{name:'Raspberry',hex:'#E30B5C'},
+  {name:'Fuchsia',hex:'#FF00FF'},{name:'Mauve',hex:'#D4869E'},{name:'Light Mauve',hex:'#C8A0B4'},
+  {name:'Pale Orchid',hex:'#DDA0DD'},{name:'Orchid',hex:'#DA70D6'},{name:'Thistle',hex:'#C8A2C8'},
+  {name:'Lila',hex:'#D4A5C9'},{name:'Wisteria',hex:'#C9A0DC'},{name:'Lilac',hex:'#B57BCC'},
+  {name:'Purple',hex:'#800080'},{name:'Violet',hex:'#8B00FF'},{name:'Dark Purple',hex:'#4B0082'},
+  {name:'Plum',hex:'#DDA0DD'},{name:'Eggplant',hex:'#614051'},{name:'Navy',hex:'#001F5B'},
+  {name:'Royal Blue',hex:'#4169E1'},{name:'Blue',hex:'#2962FF'},{name:'Bright Blue',hex:'#0073CF'},
+  {name:'Azure',hex:'#0080FF'},{name:'Cadet',hex:'#5F9EA0'},{name:'Sky Blue',hex:'#87CEEB'},
+  {name:'Light Blue',hex:'#ADD8E6'},{name:'Carolina Sky',hex:'#9EC1CF'},{name:'Powder Blue',hex:'#B0E0E6'},
+  {name:'Slate',hex:'#708090'},{name:'Steel',hex:'#71797E'},{name:'Storm',hex:'#4F5B66'},
+  {name:'Denim',hex:'#1560BD'},{name:'Twilight',hex:'#4A3F6B'},{name:'Teal',hex:'#008080'},
+  {name:'Peacock',hex:'#006B75'},{name:'Turquoise',hex:'#40E0D0'},{name:'Seaglass',hex:'#7FB5A0'},
+  {name:'Aqua',hex:'#00CED1'},{name:'Mint',hex:'#98FF98'},{name:'Celery',hex:'#9ACD32'},
+  {name:'Spring Green',hex:'#00C85A'},{name:'Lime',hex:'#32CD32'},{name:'Sage',hex:'#BCB88A'},
+  {name:'Fern',hex:'#4F7942'},{name:'Leaf',hex:'#5D8233'},{name:'Green',hex:'#008000'},
+  {name:'Olive',hex:'#808000'},{name:'Artichoke',hex:'#707048'},{name:'Juniper',hex:'#3A5F4A'},
+  {name:'Emerald',hex:'#50C878'},{name:'Forest',hex:'#228B22'},{name:'Forest Green',hex:'#1A5C38'},
+  {name:'Pine',hex:'#1A472A'},{name:'Spruce',hex:'#0A3D2B'},{name:'Hunter',hex:'#355E3B'},
+  {name:'Thyme',hex:'#3D6B35'},{name:'Holly',hex:'#1A5E20'},{name:'Tan',hex:'#D2B48C'},
+  {name:'Brown',hex:'#8B4513'},{name:'Pecan',hex:'#A0704A'},{name:'Chocolate',hex:'#7B3F00'},
+  {name:'Cocoa',hex:'#4A2C2A'},{name:'Espresso',hex:'#3C2005'},{name:'Charcoal',hex:'#36454F'},
+  {name:'Grey',hex:'#9E9E9E'},{name:'Gray',hex:'#808080'},{name:'Silver',hex:'#C0C0C0'},
+  {name:'Light Gray',hex:'#D3D3D3'},{name:'Black',hex:'#1A1A1A'},
+];
+function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#F5D0E0';}
+function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
+
+// Colores por defecto por producto (igual que admin.html)
+const defaultYarnColors={
+  1:{piel:'Almond',cabello:'Hot Pink',vestido:'Pink',forro:'White',rosas:'Coral',detalles:'Gold'},
+  3:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  4:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  5:{piel:'Almond',cabello:'Red',vestido:'Turquoise',forro:'Lila',rosas:'Coral',detalles:'Gold'},
+  9:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  10:{piel:'Sage',cabello:'Black',vestido:'Black',forro:'Purple',rosas:'Purple',detalles:'Gold'},
+  11:{piel:'Almond',cabello:'Black',vestido:'Red',forro:'White',rosas:'Red',detalles:'Gold'},
+  13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},
+  14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},
+  15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},
+  17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lila',rosas:'',detalles:'Blue'},
+  18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},
+  19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  21:{piel:'Turquoise',cabello:'',vestido:'Blue',forro:'White',rosas:'',detalles:'Black'},
+  22:{piel:'Almond',cabello:'Black',vestido:'Black',forro:'White',rosas:'Gold',detalles:'Gold'},
+  23:{piel:'Almond',cabello:'Black',vestido:'Coral',forro:'White',rosas:'Rose',detalles:'Gold'},
+  24:{piel:'Almond',cabello:'Gold',vestido:'White',forro:'Sky Blue',rosas:'Rose',detalles:'Gold'},
+  26:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Black'},
+  27:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  28:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'',detalles:'Gold'},
+  31:{piel:'Almond',cabello:'Gold',vestido:'Purple',forro:'White',rosas:'Coral',detalles:'Gold'},
+  32:{piel:'White',cabello:'White',vestido:'Pink',forro:'White',rosas:'Blush',detalles:'Hot Pink'},
+  33:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},
+  35:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  36:{piel:'Coral',cabello:'Coral',vestido:'',forro:'White',rosas:'',detalles:'Black'},
+  37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},
+  38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},
+  39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},
 };
-function getYarnHex(colorName){
-  if(!colorName)return '#F5D0E0';
-  return YARN_HEX_MAP[colorName]||'#F5D0E0';
+function yarnColorsToList(yc){
+  const counts={},order=[];
+  Object.values(yc).forEach(color=>{
+    if(!color)return;
+    if(counts[color])counts[color]++;
+    else{counts[color]=1;order.push(color);}
+  });
+  return order.map(color=>({color,qty:counts[color]}));
 }
 
 async function init(){
@@ -857,12 +920,16 @@ async function init(){
       return;
     }
     // Normalize field names (admin stores nameEs/descEs, public uses title/desc)
+    // yarnList fallback: use yarnColors from Redis, then defaultYarnColors by product id
+    const _yc=rawProd.yarnColors||defaultYarnColors[rawProd.id]||null;
+    const _yl=rawProd.yarnList||(_yc&&Object.values(_yc).some(v=>v)?yarnColorsToList(_yc):[]);
     const product={
       ...rawProd,
       title:rawProd.nameEs||rawProd.title||'',
       titleEn:rawProd.nameEn||rawProd.titleEn||'',
       desc:rawProd.descEs||rawProd.desc||'',
       descEn:rawProd.descEn||'',
+      yarnList:_yl,
     };
     const normalizedActive=activeProds.map(p=>({...p,title:p.nameEs||p.title||''}));
     renderProduct(product,normalizedActive);
