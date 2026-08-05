@@ -518,21 +518,51 @@ function renderAddons(p){
   const hasEyes=p.eyesPrice>0;
   const hasYarns=yarnList.length>0;
   if(p.type==='kits'||(!hasKit&&!hasEyes&&!hasYarns)){sec.style.display='none';return;}
+
   let html='';
-  // Kit addon
-  if(hasKit){
-    const dots=yarnList.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${yarnList.map(y=>`<span title="${y.color}" style="width:14px;height:14px;border-radius:50%;background:${getYarnHex(y.color)};border:1.5px solid rgba(0,0,0,.1);display:inline-block;"></span>`).join('')}</div>`:'';
+
+  // ── 1. Colores individuales (siempre, igual que m-yarn-section en el modal) ──
+  if(hasYarns){
     html+=`<div class="addon-section">
-      <div class="addon-section-title">🎁 ${lang==='en'?'Want to add materials?':'¿Quieres agregar los materiales?'}</div>
-      <div class="addon-row" id="addon-kit-row" onclick="toggleAddonKit()">
+      <div class="addon-section-title">🧶 ${lang==='en'?'Yarns I use':'Estambres que uso'}</div>`;
+    yarnList.forEach(y=>{
+      const key=y.color.replace(/[^a-zA-Z0-9]/g,'_');
+      const yp=_allProds.find(q=>q.yarnColorName===y.color);
+      const price=(yp?yp.price:150)*y.qty;
+      const yimg=getYarnImg(y.color);
+      const hex=getYarnHex(y.color);
+      html+=`<div class="addon-row" id="addon-yarn-${key}" onclick="toggleYarnAddon('${y.color.replace(/'/g,"\\'")}',${y.qty})">
+        <div class="addon-cb" id="yarn-cb-${key}"></div>
+        ${yimg
+          ?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+          :`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);"></div>`}
+        <div class="addon-info">
+          <strong>${y.color}</strong>
+          <span>×${y.qty} ${lang==='en'?'skein':'ovillo'}${y.qty>1?'s':''} · 200g</span>
+        </div>
+        <span class="addon-price">+${f(price)}</span>
+      </div>`;
+    });
+    html+='</div>';
+  }
+
+  // ── 2. Paquete / kit bundle + ojos (igual que m-addon-section en el modal) ──
+  if(hasKit||hasEyes){
+    html+=`<div class="addon-section" style="margin-top:${hasYarns?'10px':'0'};">
+      <div class="addon-section-title">🎁 ${lang==='en'?'Want to add a bundle?':'¿Quieres agregar los materiales?'}</div>`;
+    if(hasKit){
+      const dots=yarnList.length
+        ?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;">${yarnList.map(y=>`<span title="${y.color}" style="width:14px;height:14px;border-radius:50%;background:${getYarnHex(y.color)};border:1.5px solid rgba(0,0,0,.1);display:inline-block;"></span>`).join('')}</div>`:'';
+      html+=`<div class="addon-row" id="addon-kit-row" onclick="toggleAddonKit()">
         <div class="addon-cb" id="addon-kit-cb"></div>
         <div class="addon-info">
-          <strong>🧶 ${lang==='en'?'Yarn kit for this pattern':'Kit de estambres para este patrón'}</strong>
-          <span>${lang==='en'?`Includes ${yarnList.length} pre-selected colors`:`Incluye los ${yarnList.length} colores del patrón`}</span>
+          <strong>📦 ${lang==='en'?'Full yarn kit (all colors)':'Kit completo de estambres'}</strong>
+          <span>${lang==='en'?`All ${yarnList.length} colors in one bundle`:`Los ${yarnList.length} colores juntos con descuento`}</span>
           ${dots}
         </div>
         <span class="addon-price">+${f(p.kitPrice)}</span>
       </div>`;
+    }
     if(hasEyes){
       html+=`<div class="addon-row" id="addon-eyes-row" onclick="toggleAddonEyes()">
         <div class="addon-cb" id="addon-eyes-cb"></div>
@@ -550,42 +580,22 @@ function renderAddons(p){
         <div style="font-size:13px;font-weight:700;color:var(--text);">${lang==='en'?'Already have the pattern?':'¿Ya tienes el patrón?'}</div>
         <div style="font-size:11.5px;color:var(--text-light);">${lang==='en'?'Buy only the materials without the pattern':'Compra solo los materiales sin el patrón'}</div>
       </div>
+    </div></div>`;
+  } else if(hasEyes){
+    // Solo ojos, sin kit
+    html+=`<div class="addon-row" id="addon-eyes-row" onclick="toggleAddonEyes()" style="margin-top:4px;">
+      <div class="addon-cb" id="addon-eyes-cb"></div>
+      <img src="${p.eyesImg||'/images/IMG_5938.jpg'}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+      <div class="addon-info">
+        <strong>${lang==='en'?'Safety eyes':'Ojos de seguridad'}</strong>
+        <span>${lang==='en'?'Amigurumi safety eyes pair':'Par de ojos amigurumi'}</span>
+      </div>
+      <span class="addon-price">+${f(p.eyesPrice)}</span>
     </div>`;
-    html+='</div>';
-  } else if(hasYarns){
-    // Show individual yarns if no kit price
-    html+=`<div class="addon-section">
-      <div class="addon-section-title">🧶 ${lang==='en'?'Yarns I use':'Estambres que uso'}</div>`;
-    yarnList.forEach(y=>{
-      const key=y.color.replace(/[^a-zA-Z0-9]/g,'_');
-      const yp=_allProds.find(p=>p.yarnColorName===y.color);
-      const price=(yp?yp.price:150)*y.qty;
-      const yimg=getYarnImg(y.color);const hex=getYarnHex(y.color);
-      html+=`<div class="addon-row" id="addon-yarn-${key}" onclick="toggleYarnAddon('${y.color.replace(/'/g,"\\'")}',${y.qty})">
-        <div class="addon-cb" id="yarn-cb-${key}"></div>
-        ${yimg?`<img src="${yimg}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:32px;height:32px;border-radius:50%;background:${hex};flex-shrink:0;border:1.5px solid rgba(0,0,0,.1);"></div>`}
-        <div class="addon-info">
-          <strong>${y.color}</strong>
-          <span>×${y.qty} ${lang==='en'?'skein':'ovillo'}${y.qty>1?'s':''} · 200g</span>
-        </div>
-        <span class="addon-price">+${f(price)}</span>
-      </div>`;
-    });
-    if(hasEyes){
-      html+=`<div class="addon-row" id="addon-eyes-row" onclick="toggleAddonEyes()">
-        <div class="addon-cb" id="addon-eyes-cb"></div>
-        <img src="${p.eyesImg||'/images/IMG_5938.jpg'}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-        <div class="addon-info">
-          <strong>${lang==='en'?'Safety eyes':'Ojos de seguridad'}</strong>
-          <span>${lang==='en'?'Amigurumi safety eyes pair':'Par de ojos amigurumi'}</span>
-        </div>
-        <span class="addon-price">+${f(p.eyesPrice)}</span>
-      </div>`;
-    }
-    html+='</div>';
   }
+
   sec.innerHTML=html;
-  sec.style.display=html?'':'none';
+  sec.style.display=html?'block':'none';
 }
 
 function openLb(){
