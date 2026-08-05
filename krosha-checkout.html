@@ -358,7 +358,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           <div class="form-grid full">
             <div class="field">
               <label data-es="CORREO ELECTRÓNICO" data-en="EMAIL">CORREO ELECTRÓNICO</label>
-              <input type="email" id="checkout-email" placeholder="tu@email.com">
+              <input type="email" id="checkout-email" placeholder="tu@email.com" onblur="saveAbandonedCart()">
             </div>
           </div>
           <div class="form-grid" style="margin-top:12px;">
@@ -1248,8 +1248,30 @@ async function _saveAddressToAccount(){
   }catch(e){}
 }
 
+// ── CARRITOS ABANDONADOS ──
+function saveAbandonedCart(){
+  try{
+    const email=document.getElementById('checkout-email')?.value?.trim();
+    if(!email||!/^[^@]+@[^@]+\.[^@]+$/.test(email))return;
+    const cart=getCartItems();
+    if(!cart.length)return;
+    const name=document.getElementById('checkout-name')?.value?.trim()||'';
+    const total=getCartTotal();
+    fetch('/api/abandoned-carts',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,name,cart,total,currency:cur||'MXN'})}).catch(()=>{});
+  }catch(e){}
+}
+function deleteAbandonedCart(email){
+  if(!email)return;
+  fetch('/api/abandoned-carts',{method:'DELETE',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email})}).catch(()=>{});
+}
+
 // ── SUCCESS ──
 function showSuccess(payMethod,orderRef,items,total,downloadToken){
+  const email=document.getElementById('checkout-email')?.value?.trim()||
+    localStorage.getItem('krosha_pending_email')||'';
+  deleteAbandonedCart(email);
   localStorage.removeItem(CART_KEY);
   updateNavCart();
   const refEl=document.getElementById('confirm-order-ref');

@@ -228,6 +228,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('customers',this)"><span class="sb-icon">👥</span> Clientes</div>
       <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
       <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
+      <div class="sb-item" onclick="goTab('analytics',this)"><span class="sb-icon">📈</span> Análisis</div>
       <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
     </nav>
     <div class="sb-bottom">
@@ -473,6 +474,50 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
         </div>
         <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ── ANÁLISIS ── -->
+    <div class="tab-section" id="tab-analytics">
+      <div class="page-header">
+        <div class="page-title">Análisis <em>📈</em></div>
+        <button class="btn btn-outline" onclick="loadAnalytics()">🔄 Actualizar</button>
+      </div>
+
+      <!-- Funnel -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;" id="funnel-cards">
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:var(--pink-dark);" id="fn-total">—</div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:4px;font-weight:600;">🛒 Iniciaron checkout</div>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:#16a34a;" id="fn-orders">—</div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:4px;font-weight:600;">✅ Completaron el pago</div>
+        </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;text-align:center;">
+          <div style="font-size:28px;font-weight:700;color:#dc2626;" id="fn-abandoned">—</div>
+          <div style="font-size:12px;color:var(--text-light);margin-top:4px;font-weight:600;">❌ Abandonaron</div>
+        </div>
+      </div>
+
+      <!-- Barra de conversión -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:28px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-size:13px;font-weight:700;color:var(--text);">Tasa de conversión</span>
+          <span style="font-size:18px;font-weight:700;color:var(--pink-dark);" id="fn-rate">—%</span>
+        </div>
+        <div style="background:var(--pink-mid);border-radius:20px;height:10px;overflow:hidden;">
+          <div id="fn-bar" style="height:100%;background:var(--pink-dark);border-radius:20px;width:0%;transition:width .6s;"></div>
+        </div>
+      </div>
+
+      <!-- Carritos abandonados -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:16px;font-weight:700;color:var(--text);">🛒 Carritos abandonados</div>
+        <span style="font-size:12px;color:var(--text-light);" id="abandoned-count"></span>
+      </div>
+      <div id="abandoned-table-wrap">
+        <div style="text-align:center;padding:40px;color:var(--text-light);font-size:13px;">Cargando…</div>
       </div>
     </div>
 
@@ -2159,6 +2204,66 @@ function goTab(name,el){
   el.classList.add('active');
   if(name==='inventory')renderInventory();
   if(name==='orders')loadServerOrders();
+  if(name==='analytics')loadAnalytics();
+}
+
+// ── ANALYTICS ──
+async function loadAnalytics(){
+  document.getElementById('abandoned-table-wrap').innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light);font-size:13px;">Cargando…</div>';
+  let carts=[];
+  try{
+    const r=await fetch('/api/abandoned-carts',{headers:{'x-admin-key':getApiKey()}});
+    if(r.ok) carts=await r.json();
+  }catch(e){console.warn('abandoned-carts error',e);}
+
+  // Asegurar que _serverOrders esté cargado
+  if(!_serverOrders.length){
+    try{
+      const r2=await fetch('/api/orders',{headers:{'x-admin-key':getApiKey()}});
+      if(r2.ok){const d=await r2.json();if(Array.isArray(d))_serverOrders=d;}
+    }catch(e){}
+  }
+
+  const completedOrders=getAllOrders().length;
+  const abandonedCount=Array.isArray(carts)?carts.length:0;
+  const total=completedOrders+abandonedCount;
+  const rate=total>0?Math.round((completedOrders/total)*100):0;
+
+  document.getElementById('fn-total').textContent=total||'0';
+  document.getElementById('fn-orders').textContent=completedOrders;
+  document.getElementById('fn-abandoned').textContent=abandonedCount;
+  document.getElementById('fn-rate').textContent=rate+'%';
+  document.getElementById('fn-bar').style.width=rate+'%';
+  document.getElementById('abandoned-count').textContent=abandonedCount+' carritos';
+
+  renderAbandonedTable(Array.isArray(carts)?carts:[]);
+}
+
+function renderAbandonedTable(carts){
+  const wrap=document.getElementById('abandoned-table-wrap');
+  if(!carts.length){
+    wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light);font-size:13px;">Sin carritos abandonados 🎉</div>';
+    return;
+  }
+  const fmt=d=>{if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})+' '+dt.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});};
+  const rows=carts.map(c=>{
+    const items=(c.cart||[]).map(i=>`${i.title||i.name||'?'} ×${i.qty||1}`).join(', ');
+    const total=c.total?'$'+Number(c.total).toFixed(0)+' '+(c.currency||'MXN'):'—';
+    return`<tr>
+      <td><strong>${c.email||'—'}</strong></td>
+      <td>${c.name||'—'}</td>
+      <td style="font-size:12px;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${items}">${items||'—'}</td>
+      <td><strong>${total}</strong></td>
+      <td style="font-size:12px;color:var(--text-light);">${fmt(c.savedAt)}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText('${(c.email||'').replace(/'/g,"\\'")}').then(()=>showToast('📋 Email copiado'))">Copiar email</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div style="overflow-x:auto;"><table class="data-table">
+    <thead><tr>
+      <th>Email</th><th>Nombre</th><th>Productos</th><th>Total</th><th>Fecha</th><th>Acción</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
 }
 
 // ── TOAST ──
