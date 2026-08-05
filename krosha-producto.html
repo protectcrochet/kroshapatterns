@@ -152,20 +152,6 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .pay-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding-bottom:6px;}
 .pay-pill{background:var(--pink-bg);border:1.5px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text-mid);font-weight:600;}
 
-/* reviews */
-.reviews-section{max-width:1200px;margin:0 auto;padding:0 2rem 80px;}
-.reviews-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;}
-.reviews-head h2{font-family:'Fraunces',serif;font-size:30px;font-weight:600;color:var(--text);}
-.reviews-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
-.rcard{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:22px;}
-.rcard-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.ravatar{width:40px;height:40px;border-radius:50%;background:var(--pink-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.rname{font-size:14px;font-weight:700;color:var(--text);}
-.rcountry{font-size:12px;color:var(--text-light);}
-.rstars{font-size:14px;color:#F5A623;margin-bottom:8px;}
-.rtext{font-size:13.5px;color:var(--text-mid);line-height:1.6;}
-.rdate{font-size:11px;color:var(--text-light);margin-top:8px;}
-
 /* related */
 .related-section{max-width:1200px;margin:0 auto;padding:0 2rem 80px;}
 .related-section h2{font-family:'Fraunces',serif;font-size:30px;font-weight:600;margin-bottom:24px;color:var(--text);}
@@ -345,48 +331,6 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:40px 2rem 
   <h2>🎀 Producto no encontrado</h2>
   <p>Este producto ya no está disponible o el enlace es incorrecto.</p>
   <a href="/">Ver todos los productos</a>
-</div>
-
-<!-- REVIEWS -->
-<div class="reviews-section" id="reviews-section" style="display:none;">
-  <div class="reviews-head">
-    <div>
-      <h2>Lo que dicen mis clientas 💬</h2>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-        <span style="font-size:20px;color:#F5A623;">★★★★★</span>
-        <span style="font-size:14px;color:var(--text-mid);font-weight:600;">4.9/5 · 48 reseñas</span>
-      </div>
-    </div>
-  </div>
-  <div class="reviews-grid">
-    <div class="rcard">
-      <div class="rcard-top">
-        <div class="ravatar">👩</div>
-        <div><div class="rname">María G.</div><div class="rcountry">🇲🇽 México</div></div>
-      </div>
-      <div class="rstars">★★★★★</div>
-      <div class="rtext">¡Hermoso patrón! Muy claro y detallado. Mi munequita quedó perfecta. Las instrucciones en español son clarísimas.</div>
-      <div class="rdate">Hace 3 días</div>
-    </div>
-    <div class="rcard">
-      <div class="rcard-top">
-        <div class="ravatar">🧑</div>
-        <div><div class="rname">Laura M.</div><div class="rcountry">🇩🇴 República Dominicana</div></div>
-      </div>
-      <div class="rstars">★★★★★</div>
-      <div class="rtext">Descargué el PDF en segundos y empecé de inmediato. El estambre que ordené llegó súper rápido. ¡Feliz con mi compra!</div>
-      <div class="rdate">Hace 1 semana</div>
-    </div>
-    <div class="rcard">
-      <div class="rcard-top">
-        <div class="ravatar">👩‍🦱</div>
-        <div><div class="rname">Ana P.</div><div class="rcountry">🇺🇸 Estados Unidos</div></div>
-      </div>
-      <div class="rstars">★★★★★</div>
-      <div class="rtext">I bought this pattern and it's so well written! The photos in every step make it super easy to follow. Already finished mine 🧸</div>
-      <div class="rdate">Hace 2 semanas</div>
-    </div>
-  </div>
 </div>
 
 <!-- RELATED -->
@@ -804,8 +748,6 @@ function renderProduct(product,allProds){
 
   // show product
   document.getElementById('product-wrap').style.display='';
-  document.getElementById('reviews-section').style.display='';
-
   // related
   _relatedProds=allProds.filter(p=>p.id!==product.id).slice(0,4);
   if(_relatedProds.length){
