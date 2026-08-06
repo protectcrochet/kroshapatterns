@@ -26,92 +26,141 @@ export default async function handler(req, res) {
     alto: Number(alto) || 10,
   };
 
-  const results = {};
-
-  // Primero: explorar la raíz del API para encontrar documentación o endpoints disponibles
+  // Explorar la raíz del API con GET para encontrar documentación/paths disponibles
   const exploreUrls = [
     'https://api.t1envios.com/',
     'https://api.t1envios.com/docs',
     'https://api.t1envios.com/swagger',
+    'https://api.t1envios.com/swagger-ui',
+    'https://api.t1envios.com/swagger-ui.html',
+    'https://api.t1envios.com/api-docs',
     'https://api.t1envios.com/api',
     'https://api.t1envios.com/health',
+    'https://api.t1envios.com/status',
     'https://services.t1envios.com/',
+    'https://services.t1envios.com/docs',
     'https://services.t1envios.com/api',
+    'https://gateway.t1envios.com/',
+    'https://gateway.t1envios.com/api',
   ];
   const exploration = {};
   for (const url of exploreUrls) {
     try {
-      const r = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+      const r = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'x-api-key': apiKey,
+        },
+      });
       const text = await r.text().catch(() => '');
-      exploration[url] = { status: r.status, snippet: text.slice(0, 300) };
+      exploration[url] = { status: r.status, snippet: text.slice(0, 500) };
     } catch (e) {
       exploration[url] = { error: e.message };
     }
   }
 
-  // Probar varios endpoints y formatos que usa T1 Envios
+  // Todos los bases y paths a probar (POST)
   const bases = [
     'https://api.t1envios.com',
-    'https://api.plataformat1.com',
     'https://services.t1envios.com',
+    'https://gateway.t1envios.com',
   ];
+
   const paths = [
-    '/cotizacion',
-    '/rates',
-    '/shipping/rates',
-    '/api/cotizacion',
-    '/api/rates',
+    // Versión v1
+    '/api/v1/rates',
+    '/api/v1/cotizacion',
+    '/api/v1/cotizaciones',
+    '/api/v1/quote',
+    '/api/v1/shipping/rates',
+    '/api/v1/shipping/quote',
+    '/api/v1/shipping/quotation',
+    '/api/v1/shipment/rate',
+    '/api/v1/shipments/rates',
+    '/api/v1/envios',
+    '/api/v1/envio/cotizar',
+    '/api/v1/guias/cotizar',
+    '/api/v1/parcels/rates',
+    '/api/v1/parcel/quote',
+    '/api/v1/precio',
+    // Versión v2
+    '/api/v2/rates',
+    '/api/v2/cotizacion',
+    '/api/v2/cotizaciones',
+    '/api/v2/quote',
+    '/api/v2/shipping/rates',
+    // Versión v3
     '/api/v3/rates',
+    '/api/v3/cotizacion',
+    '/api/v3/shipping/rates',
+    // Versión v4 (podría ser la nueva para API keys)
+    '/api/v4/rates',
+    '/api/v4/cotizacion',
+    '/api/v4/shipping/rates',
+    // Sin versión
+    '/cotizacion',
+    '/cotizaciones',
+    '/cotizar',
+    '/rates',
+    '/quote',
+    '/shipping/rates',
+    '/shipping/quote',
+    '/api/cotizacion',
+    '/api/cotizaciones',
+    '/api/rates',
+    '/api/quote',
+    '/api/shipping/rates',
+    '/v1/rates',
     '/v1/cotizacion',
+    '/v2/rates',
     '/v2/cotizacion',
   ];
-  const headers_variants = [
+
+  // Variantes de auth para el nuevo formato t1-...
+  const authVariants = [
     (k) => ({ 'Authorization': `Bearer ${k}`, 'Content-Type': 'application/json' }),
     (k) => ({ 'x-api-key': k, 'Content-Type': 'application/json' }),
+    (k) => ({ 'Authorization': `ApiKey ${k}`, 'Content-Type': 'application/json' }),
     (k) => ({ 'Authorization': `Token ${k}`, 'Content-Type': 'application/json' }),
-    (k) => ({ 'api-key': k, 'Content-Type': 'application/json' }),
   ];
 
-  const attempts = [];
+  const results = {};
+
+  // Solo probar las 2 variantes de auth más probables para no exceder timeout
   for (const base of bases) {
     for (const path of paths) {
-      attempts.push({
-        label: `${base}${path} Bearer`,
-        url: `${base}${path}`,
-        headers: headers_variants[0](apiKey),
-      });
-      attempts.push({
-        label: `${base}${path} x-api-key`,
-        url: `${base}${path}`,
-        headers: headers_variants[1](apiKey),
-      });
-    }
-  }
-
-  for (const attempt of attempts) {
-    try {
-      const r = await fetch(attempt.url, {
-        method: 'POST',
-        headers: attempt.headers,
-        body: JSON.stringify(payload),
-      });
-      const data = await r.json().catch(() => ({}));
-      results[attempt.label] = { status: r.status, ok: r.ok, data };
-      if (r.ok) {
-        return res.status(200).json({ success: true, method: attempt.label, rates: data, allAttempts: results });
+      for (const [idx, authFn] of authVariants.slice(0, 2).entries()) {
+        const label = `${base}${path} [${idx === 0 ? 'Bearer' : 'x-api-key'}]`;
+        try {
+          const r = await fetch(`${base}${path}`, {
+            method: 'POST',
+            headers: authFn(apiKey),
+            body: JSON.stringify(payload),
+          });
+          const text = await r.text().catch(() => '');
+          let data = {};
+          try { data = JSON.parse(text); } catch { data = { raw: text.slice(0, 200) }; }
+          results[label] = { status: r.status, ok: r.ok, data };
+          if (r.ok) {
+            return res.status(200).json({ success: true, method: label, rates: data, exploration, allAttempts: results });
+          }
+        } catch (e) {
+          results[label] = { error: e.message };
+        }
       }
-    } catch (e) {
-      results[attempt.label] = { error: e.message };
     }
   }
 
-  // Filtrar solo los que no son 404 para facilitar diagnóstico
-  const nonNotFound = Object.entries(results).filter(([,v]) => v.status && v.status !== 404);
+  // Filtrar los que no son 404 (400, 401, 403, 422 son más informativos)
+  const interesting = Object.fromEntries(
+    Object.entries(results).filter(([, v]) => v.status && v.status !== 404)
+  );
+
   return res.status(200).json({
     success: false,
-    message: 'Ningún formato funcionó — se necesita documentación de T1 con el endpoint correcto',
+    message: 'Ningún formato funcionó',
     exploration,
-    interesting: Object.fromEntries(nonNotFound),
-    allAttempts: results,
+    interesting,
+    totalTried: Object.keys(results).length,
   });
 }
