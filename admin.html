@@ -2246,7 +2246,7 @@ async function loadBlobFiles(){
           </div>
           <select id="blob-sel-${b.url.slice(-12)}" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'Nunito',sans-serif;min-width:200px;">
             <option value="">— seleccionar producto —</option>
-            ${prods.map(p=>`<option value="${p.id}" ${alreadyAssigned&&alreadyAssigned.id===p.id?'selected':''}>${p.nameEs||p.title}</option>`).join('')}
+            ${prods.map(p=>`<option value="${p.id}" ${alreadyAssigned&&String(alreadyAssigned.id)===String(p.id)?'selected':''}>${p.nameEs||p.title}</option>`).join('')}
           </select>
           <button class="btn btn-pink btn-sm" onclick="assignBlobToProduct('${b.url}','blob-sel-${b.url.slice(-12)}')">Asignar</button>
           <a href="${b.url}" target="_blank" style="font-size:12px;color:var(--pink-dark);white-space:nowrap;">Ver PDF</a>
