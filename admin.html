@@ -634,6 +634,14 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           </div>
         </div>
       </div>
+
+      <!-- Asignar PDFs desde Vercel Blob -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📁 Archivos en Vercel Blob → asignar a productos</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Carga todos los PDFs subidos y arrástralos al producto correspondiente con un clic.</div>
+        <button class="btn btn-outline btn-sm" onclick="loadBlobFiles()">🔄 Cargar archivos</button>
+        <div id="blob-assign-wrap" style="margin-top:16px;"></div>
+      </div>
     </div>
 
   </div><!-- /main -->
@@ -2214,6 +2222,62 @@ function changePwd(){
   localStorage.setItem(ADMIN_PWD_KEY,nw);
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
+}
+async function loadBlobFiles(){
+  const wrap=document.getElementById('blob-assign-wrap');
+  wrap.innerHTML='<div style="color:var(--text-light);font-size:13px;">⏳ Cargando archivos…</div>';
+  try{
+    const r=await fetch('/api/list-blobs',{headers:{'x-admin-key':getApiKey()}});
+    if(!r.ok)throw new Error('Error '+r.status);
+    const blobs=await r.json();
+    const pdfs=blobs.filter(b=>b.pathname.toLowerCase().endsWith('.pdf'));
+    if(!pdfs.length){wrap.innerHTML='<div style="color:var(--text-light);font-size:13px;">No hay archivos PDF en Vercel Blob.</div>';return;}
+    const prods=getProds().filter(p=>p.type==='patrones'&&p.status!=='archived');
+    wrap.innerHTML=`
+      <div style="font-size:12px;color:var(--text-light);margin-bottom:12px;">${pdfs.length} PDF(s) encontrado(s). Haz clic en "Asignar" para vincularlo al producto correcto.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+      ${pdfs.map(b=>{
+        const name=b.pathname.split('/').pop();
+        const alreadyAssigned=prods.find(p=>p.pdfUrl===b.url);
+        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);">📄 ${name}</div>
+            ${alreadyAssigned?`<div style="font-size:11px;color:#2E7D52;margin-top:2px;">✅ Ya asignado a: ${alreadyAssigned.nameEs||alreadyAssigned.title}</div>`:''}
+          </div>
+          <select id="blob-sel-${b.url.slice(-12)}" style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'Nunito',sans-serif;min-width:200px;">
+            <option value="">— seleccionar producto —</option>
+            ${prods.map(p=>`<option value="${p.id}" ${alreadyAssigned&&alreadyAssigned.id===p.id?'selected':''}>${p.nameEs||p.title}</option>`).join('')}
+          </select>
+          <button class="btn btn-pink btn-sm" onclick="assignBlobToProduct('${b.url}','blob-sel-${b.url.slice(-12)}')">Asignar</button>
+          <a href="${b.url}" target="_blank" style="font-size:12px;color:var(--pink-dark);white-space:nowrap;">Ver PDF</a>
+        </div>`;
+      }).join('')}
+      </div>`;
+  }catch(e){
+    wrap.innerHTML=`<div style="color:#C0392B;font-size:13px;">❌ Error: ${e.message}</div>`;
+  }
+}
+async function assignBlobToProduct(url,selId){
+  const sel=document.getElementById(selId);
+  if(!sel||!sel.value){showToast('⚠️ Selecciona un producto primero','warn');return;}
+  const prodId=sel.value;
+  const prods=getProds();
+  const idx=prods.findIndex(p=>String(p.id)===String(prodId));
+  if(idx===-1){showToast('❌ Producto no encontrado','warn');return;}
+  prods[idx].pdfUrl=url;
+  try{
+    const r=await fetch('/api/products',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
+      body:JSON.stringify({products:prods})
+    });
+    if(!r.ok)throw new Error('Error '+r.status);
+    _serverProds=prods;
+    showToast(`✅ PDF asignado a "${prods[idx].nameEs||prods[idx].title}"`);
+    loadBlobFiles();
+  }catch(e){
+    showToast('❌ Error al guardar: '+e.message,'warn');
+  }
 }
 function populateEmailTestSelector(){
   const sel=document.getElementById('email-test-product');
