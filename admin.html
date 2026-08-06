@@ -579,12 +579,17 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <!-- Diagnóstico de correos -->
       <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📧 Diagnóstico de correos (Resend)</div>
-        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Envía un correo de prueba a tu cuenta para verificar que Resend esté funcionando correctamente.</div>
-        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <button class="btn btn-pink btn-sm" style="height:42px;" onclick="sendTestEmail()">📤 Enviar correo de prueba</button>
-          <button class="btn btn-outline btn-sm" style="height:42px;" onclick="testEmailPdf()">📄 Probar con PDF</button>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Simula la compra de cualquier patrón y verifica que el correo con acceso llegue correctamente a kroshapattern@gmail.com.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="field" style="flex:1;min-width:220px;margin-bottom:0;">
+            <label>Producto a probar</label>
+            <select id="email-test-product" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);">
+              <option value="__simple__">— Correo simple (sin patrón) —</option>
+            </select>
+          </div>
+          <button class="btn btn-pink btn-sm" style="height:42px;" onclick="runEmailDiagnostic()">📤 Enviar prueba</button>
         </div>
-        <div id="email-test-result" style="margin-top:12px;font-size:12px;display:none;padding:10px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;"></div>
+        <div id="email-test-result" style="font-size:12px;display:none;padding:10px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;"></div>
       </div>
 
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
@@ -2210,6 +2215,37 @@ function changePwd(){
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
 }
+function populateEmailTestSelector(){
+  const sel=document.getElementById('email-test-product');
+  if(!sel)return;
+  // Limpiar opciones anteriores excepto la primera
+  while(sel.options.length>1)sel.remove(1);
+  const prods=getProds();
+  // Primero los que tienen PDF o PC
+  const withDelivery=prods.filter(p=>(p.pdfUrl||p.patternSlug)&&p.status!=='archived');
+  const withoutDelivery=prods.filter(p=>!p.pdfUrl&&!p.patternSlug&&p.status!=='archived');
+  if(withDelivery.length){
+    const g=document.createElement('optgroup');g.label='Con entrega digital configurada';
+    withDelivery.forEach(p=>{
+      const o=document.createElement('option');
+      o.value=String(p.id);
+      const tag=p.pdfUrl?'📄 PDF':p.patternSlug?'🔐 PC':'';
+      o.textContent=`${tag} ${p.nameEs||p.title} ($${p.price} MXN)`;
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  }
+  if(withoutDelivery.length){
+    const g=document.createElement('optgroup');g.label='Sin entrega digital (solo correo)';
+    withoutDelivery.forEach(p=>{
+      const o=document.createElement('option');
+      o.value=String(p.id);
+      o.textContent=`${p.nameEs||p.title} ($${p.price} MXN)`;
+      g.appendChild(o);
+    });
+    sel.appendChild(g);
+  }
+}
 async function _runEmailTest(items,label){
   const el=document.getElementById('email-test-result');
   el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
@@ -2222,9 +2258,9 @@ async function _runEmailTest(items,label){
         customerEmail:'kroshapattern@gmail.com',
         customerName:'Prueba Admin',
         items,
-        total:99,
+        total:items.reduce((s,i)=>s+(i.price*i.qty),0),
         currency:'MXN',
-        payMethod:'prueba',
+        payMethod:'Prueba',
         orderRef:'TEST-'+Date.now(),
         forceResend:true,
       })
@@ -2232,7 +2268,8 @@ async function _runEmailTest(items,label){
     const d=await r.json();
     if(r.ok&&d.success){
       el.style.background='#D4EFE3';el.style.color='#2E7D52';
-      el.textContent='✅ '+label+' enviado a kroshapattern@gmail.com\nRef: '+d.orderRef+(d.downloadToken?'\nToken: '+d.downloadToken:'');
+      const tokenLine=d.downloadToken?`\n🔗 Link de descarga: https://kroshapatterns.com/descargar.html?token=${d.downloadToken}`:'';
+      el.textContent=`✅ ${label} enviado a kroshapattern@gmail.com\nRef: ${d.orderRef}${tokenLine}`;
     } else {
       el.style.background='#FDECEA';el.style.color='#C0392B';
       el.textContent='❌ Error '+r.status+': '+(d.error||JSON.stringify(d));
@@ -2242,23 +2279,25 @@ async function _runEmailTest(items,label){
     el.textContent='❌ Error de red: '+e.message;
   }
 }
-function sendTestEmail(){
-  _runEmailTest([{id:'test-1',title:'Producto de prueba',price:99,qty:1,patternSlug:'',pdfUrl:''}],'Correo simple');
-}
-function testEmailPdf(){
-  const sally=getProds().find(p=>p.id===18||p.id==='18');
+function runEmailDiagnostic(){
+  const sel=document.getElementById('email-test-product');
+  const val=sel.value;
   const el=document.getElementById('email-test-result');
-  if(!sally){
-    el.style.display='block';el.style.background='#FDECEA';el.style.color='#C0392B';
-    el.textContent='❌ No se encontró el producto Sally (id:18). Asegúrate de que esté guardado en el admin.';
+  if(val==='__simple__'){
+    _runEmailTest([{id:'test-1',title:'Producto de prueba',price:99,qty:1,patternSlug:'',pdfUrl:''}],'Correo simple');
     return;
   }
-  if(!sally.pdfUrl&&!sally.patternSlug){
+  const p=getProds().find(x=>String(x.id)===val);
+  if(!p){
     el.style.display='block';el.style.background='#FDECEA';el.style.color='#C0392B';
-    el.textContent='❌ Sally (id:18) no tiene pdfUrl ni patternSlug configurado. Ábrelo en Productos, ingresa el link PDF y guarda.';
-    return;
+    el.textContent='❌ Producto no encontrado.';return;
   }
-  _runEmailTest([{id:sally.id,title:sally.nameEs||sally.title||'Ramo Magico Sally 45 cm',price:sally.price||290,qty:1,patternSlug:sally.patternSlug||'',pdfUrl:sally.pdfUrl||''}],'Correo PDF Sally real');
+  if(!p.pdfUrl&&!p.patternSlug){
+    el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
+    el.textContent=`⚠️ "${p.nameEs||p.title}" no tiene pdfUrl ni patternSlug configurado.\nEl correo se enviará sin link de descarga.\n\nPara agregar: Productos → editar → campo "URL del PDF" o "Slug ProtectCrochet".`;
+    if(!confirm('Este producto no tiene entrega digital. ¿Enviar el correo de todas formas?'))return;
+  }
+  _runEmailTest([{id:p.id,title:p.nameEs||p.title,price:p.price||0,qty:1,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''}],`Compra de "${p.nameEs||p.title}"`);
 }
 async function testApiKey(){
   const candidate=document.getElementById('api-key-input').value.trim()||getApiKey();
@@ -2411,6 +2450,7 @@ function goTab(name,el){
   if(name==='inventory')renderInventory();
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
+  if(name==='settings')populateEmailTestSelector();
 }
 
 // ── ANALYTICS ──
