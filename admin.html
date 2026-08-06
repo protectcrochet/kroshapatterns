@@ -1813,8 +1813,25 @@ function viewOrder(refOrId){
           const price=item.price?`$${(item.price*qty).toFixed(0)}`:'';
           let imgHtml='';
           if(item.img&&item.img.startsWith('yarn:')){
-            const hex=item.img.replace('yarn:','');
-            imgHtml=`<div style="width:38px;height:38px;border-radius:8px;background:${hex};border:1.5px solid rgba(0,0,0,.1);flex-shrink:0;"></div>`;
+            // Intentar obtener la foto de la bola de estambre
+            let colorName='';
+            if(typeof item.id==='string'&&item.id.startsWith('yarn_')){
+              colorName=item.id.replace('yarn_','');
+            } else {
+              // "Estambre Blue 200g" → "Blue"
+              colorName=(item.title||'').replace(/^Estambre\s+/i,'').replace(/\s+\d+g\s*$/i,'').trim();
+              if(!ADMIN_COLOR_IMGS[colorName]){
+                // "Blue Yarn 200g" → "Blue"
+                colorName=(item.title||'').replace(/\s+Yarn\s+\d+g\s*$/i,'').trim();
+              }
+            }
+            const yarnFile=ADMIN_COLOR_IMGS[colorName];
+            if(yarnFile){
+              imgHtml=`<img src="/images/colores/${yarnFile}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0;">`;
+            } else {
+              const hex=item.img.replace('yarn:','');
+              imgHtml=`<div style="width:38px;height:38px;border-radius:8px;background:${hex};border:1.5px solid rgba(0,0,0,.1);flex-shrink:0;"></div>`;
+            }
           } else if(item.img&&(item.img.startsWith('http')||item.img.startsWith('/'))){
             imgHtml=`<img src="${item.img}" style="width:38px;height:38px;border-radius:8px;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0;">`;
           } else {
