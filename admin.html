@@ -1966,8 +1966,16 @@ async function resendOrderAccess(){
   const btn=document.getElementById('order-detail-resend-btn');
   btn.textContent='⏳ Reenviando...';btn.disabled=true;
   try{
-    // We need items as array — parse from products string if needed
-    const items=(_viewingOrder.itemsRaw||[{title:_viewingOrder.products||'Patrón',price:_viewingOrder.total,patternSlug:null,pdfUrl:null}]);
+    // Usar itemsRaw si existe, o construir desde products string
+    let items=(_viewingOrder.itemsRaw||[{title:_viewingOrder.products||'Patrón',price:_viewingOrder.total,qty:1,patternSlug:null,pdfUrl:null}]);
+    // Enriquecer con patternSlug/pdfUrl actuales del catálogo (por si el pedido se guardó sin esos campos)
+    const prods=getProds();
+    items=items.map(item=>{
+      if(item.patternSlug||item.pdfUrl) return item;
+      const p=prods.find(x=>String(x.id)===String(item.id));
+      if(p) return{...item,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''};
+      return item;
+    });
     const r=await fetch('/api/send-confirmation',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
