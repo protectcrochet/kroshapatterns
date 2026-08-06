@@ -144,31 +144,25 @@ export default async function handler(req, res) {
         `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">🔐 <strong>${i.title}</strong> — recibirás tu acceso por correo desde <strong>acceso@protectcrochet.com</strong></div>`
       ).join('');
 
-      const backupBtn = hasPdfAttachments && downloadToken ? `
-        <div style="margin-top:14px;font-size:11px;color:#B48EA8;">
-          ¿No puedes abrir el adjunto? <a href="https://kroshapatterns.com/descargar.html?token=${downloadToken}" style="color:#C06090;font-weight:bold;">Descarga aquí</a>
-        </div>` : '';
-
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">🎀 Tus patrones</div>
           ${hasPdfAttachments ? `<div style="font-size:13px;color:#7A4D65;margin-bottom:10px;">Tu patrón viene adjunto en este correo 📎</div>${attachedList}` : ''}
           ${pcList}
-          ${backupBtn}
-          <p style="font-size:11px;color:#B48EA8;margin:12px 0 0;">¿Problemas? Escríbenos a hola@kroshapatterns.com 🎀</p>
+          <p style="font-size:11px;color:#B48EA8;margin:12px 0 0;">¿Problemas? Escríbenos a kroshapatterns@gmail.com 🎀</p>
         </div>`;
     } else if (pcItems.length > 0) {
       // fallback (no debería llegar aquí)
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Acceso a tus patrones</div>
-          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás un correo de <strong>acceso@protectcrochet.com</strong> con tu link de acceso. Si no lo ves en 5 minutos, revisa spam o escríbenos a hola@kroshapatterns.com.</p>
+          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás un correo de <strong>acceso@protectcrochet.com</strong> con tu link de acceso. Si no lo ves en 5 minutos, revisa spam o escríbenos a kroshapatterns@gmail.com.</p>
         </div>`;
     } else {
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:6px;">📦 Entrega de tu pedido</div>
-          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás tu acceso por correo en breve. ¿Dudas? Escríbenos a hola@kroshapatterns.com</p>
+          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás tu acceso por correo en breve. ¿Dudas? Escríbenos a kroshapatterns@gmail.com</p>
         </div>`;
     }
 
