@@ -73,17 +73,34 @@ export default async function handler(req, res) {
       return { ...item, resolvedUrl: null, deliveryType: 'manual' };
     }));
 
-    // ── Token Upstash para PDFs y ProtectCrochet ──
-    let downloadToken = null;
+    // ── PDFs y ProtectCrochet ──
     const pdfItems = resolvedItems.filter(i => i.deliveryType === 'pdf');
     const pcItems = resolvedItems.filter(i => i.deliveryType === 'protect');
 
-    // Generar token si hay PDFs o si hay PC items con access_url (como backup)
+    // Descargar PDFs para adjuntar al correo
+    const attachments = [];
+    for (const item of pdfItems) {
+      if (!item.resolvedUrl) continue;
+      try {
+        const pdfRes = await fetch(item.resolvedUrl);
+        if (!pdfRes.ok) throw new Error(`HTTP ${pdfRes.status}`);
+        const buf = await pdfRes.arrayBuffer();
+        const filename = (item.title || 'patron')
+          .normalize('NFD').replace(/[̀-ͯ]/g, '')
+          .replace(/[^a-zA-Z0-9\s]/g, '').trim()
+          .replace(/\s+/g, '_') + '.pdf';
+        attachments.push({ filename, content: Buffer.from(buf).toString('base64') });
+      } catch (e) {
+        console.error(`Error adjuntando PDF "${item.title}":`, e.message);
+      }
+    }
+
+    // Token backup (para ProtectCrochet y como respaldo si falla adjunto)
+    let downloadToken = null;
     const tokenItems = [
       ...pdfItems.map(i => ({ title: i.title, url: i.resolvedUrl, type: 'pdf' })),
       ...pcItems.filter(i => i.resolvedUrl).map(i => ({ title: i.title, url: i.resolvedUrl, type: 'protect' })),
     ];
-
     if (tokenItems.length > 0) {
       try {
         const { Redis } = await import('@upstash/redis');
@@ -93,12 +110,7 @@ export default async function handler(req, res) {
         });
         const { randomBytes } = await import('crypto');
         downloadToken = 'kp_' + randomBytes(16).toString('hex');
-
-        await redis.set(`dl:${downloadToken}`, {
-          email: customerEmail,
-          orderRef: ref,
-          items: tokenItems,
-        });
+        await redis.set(`dl:${downloadToken}`, { email: customerEmail, orderRef: ref, items: tokenItems });
       } catch (kvErr) {
         console.error('KV token error (non-fatal):', kvErr);
       }
@@ -119,28 +131,29 @@ export default async function handler(req, res) {
     const manualItems = resolvedItems.filter(i => i.deliveryType === 'manual' && i.title !== 'Envío' && i.title !== 'Shipping');
 
     let deliverySection = '';
-    const hasDownloadable = pdfItems.length > 0 || pcItems.some(i => i.resolvedUrl);
+    const hasPdfAttachments = attachments.length > 0;
+    const hasPcLinks = pcItems.some(i => i.resolvedUrl);
 
-    if (hasDownloadable && downloadToken) {
-      const downloadUrl = `https://kroshapatterns.com/descargar.html?token=${downloadToken}`;
-      // Listar cada patrón con su link directo si está disponible
-      const patternLinks = [
-        ...pcItems.map(i => i.resolvedUrl
-          ? `<div style="margin:6px 0;"><a href="${i.resolvedUrl}" style="color:#C06090;font-weight:bold;font-size:13px;">🔐 ${i.title}</a></div>`
-          : `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">📩 ${i.title} — llegará de acceso@protectcrochet.com</div>`),
-        ...pdfItems.map(i => `<div style="margin:6px 0;font-size:13px;color:#3A1E2E;">📄 ${i.title}</div>`),
-      ].join('');
+    if (hasPdfAttachments || hasPcLinks) {
+      const attachedList = attachments.map(a =>
+        `<div style="margin:6px 0;font-size:13px;color:#3A1E2E;">📎 ${a.filename.replace(/_/g,' ').replace('.pdf','')}</div>`
+      ).join('');
+      const pcLinks = pcItems.map(i => i.resolvedUrl
+        ? `<div style="margin:6px 0;"><a href="${i.resolvedUrl}" style="color:#C06090;font-weight:bold;font-size:13px;">🔐 ${i.title}</a></div>`
+        : `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">📩 ${i.title} — llegará de acceso@protectcrochet.com</div>`
+      ).join('');
+      const backupBtn = downloadToken ? `
+        <div style="margin-top:14px;font-size:11px;color:#B48EA8;">
+          ¿No puedes abrir el adjunto? <a href="https://kroshapatterns.com/descargar.html?token=${downloadToken}" style="color:#C06090;font-weight:bold;">Descarga aquí</a>
+        </div>` : '';
 
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
-          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">🎀 Accede a tus patrones</div>
-          ${patternLinks}
-          <div style="margin-top:14px;">
-            <a href="${downloadUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:14px 28px;border-radius:24px;font-size:14px;font-weight:bold;">
-              📥 Ver todos mis patrones
-            </a>
-          </div>
-          <p style="font-size:11px;color:#B48EA8;margin:10px 0 0;">¿Problemas? Escríbenos a hola@kroshapatterns.com 🎀</p>
+          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">🎀 Tus patrones</div>
+          ${hasPdfAttachments ? `<div style="font-size:13px;color:#7A4D65;margin-bottom:10px;">Tu patrón viene adjunto en este correo 📎</div>${attachedList}` : ''}
+          ${pcLinks}
+          ${backupBtn}
+          <p style="font-size:11px;color:#B48EA8;margin:12px 0 0;">¿Problemas? Escríbenos a hola@kroshapatterns.com 🎀</p>
         </div>`;
     } else if (pcItems.length > 0) {
       // PC items pero sin access_url (API falló) — indicar que llegarán por correo
@@ -232,6 +245,7 @@ export default async function handler(req, res) {
       to: customerEmail,
       subject: `🎀 ¡Pedido confirmado! #${ref} — KroshaPatterns`,
       html: emailHtml,
+      ...(attachments.length ? { attachments } : {}),
     });
 
     // Guardar pedido en Redis, reducir inventario y enriquecer correo admin
