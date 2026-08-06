@@ -1851,10 +1851,30 @@ function viewOrder(refOrId){
     </div>
     ${o.shippingAddress?`
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;">
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:4px;">DIRECCIÓN DE ENVÍO</div>
-      <div style="font-size:13px;color:var(--text);">${o.shippingAddress.street} ${o.shippingAddress.number||''}, ${o.shippingAddress.colonia||''}</div>
-      <div style="font-size:13px;color:var(--text);">${o.shippingAddress.city}, ${o.shippingAddress.state} CP ${o.shippingAddress.zip}</div>
-    </div>`:''}`;
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">📍 DIRECCIÓN DE ENVÍO</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.7;">
+        ${[o.shippingAddress.street,o.shippingAddress.number].filter(Boolean).join(' ')}${o.shippingAddress.colonia?', '+o.shippingAddress.colonia:''}<br>
+        ${o.shippingAddress.city}${o.shippingAddress.state?', '+o.shippingAddress.state:''} &nbsp;CP ${o.shippingAddress.zip}<br>
+        ${o.shippingAddress.country&&o.shippingAddress.country!=='MX'?o.shippingAddress.country+'<br>':''}
+        ${o.shippingAddress.phone?'📞 '+o.shippingAddress.phone:''}
+      </div>
+    </div>
+    ${o.shippingRate?`
+    <div style="background:#EEF6FF;border:1.5px solid #C0D8F8;border-radius:10px;padding:12px 14px;margin-top:8px;">
+      <div style="font-size:11px;color:#1a5fa6;margin-bottom:6px;font-weight:700;">🚚 PAQUETERÍA SELECCIONADA</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${(o.shippingRate.carrier||'').toUpperCase()}</div>
+          <div style="font-size:12px;color:var(--text-mid);">${o.shippingRate.serviceDescription||o.shippingRate.service||''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:14px;font-weight:700;color:#1a5fa6;">$${o.shippingRate.price} MXN</div>
+          <div style="font-size:12px;color:var(--text-light);">⏱ ${o.shippingRate.days||'?'} día${o.shippingRate.days==1?'':'s'} hábil${o.shippingRate.days==1?'':'es'}</div>
+        </div>
+      </div>
+    </div>`:''}
+    `:''}
+    `;
 
   // Mostrar sección de guía solo si tiene dirección física
   const shipSec=document.getElementById('shipping-section');
