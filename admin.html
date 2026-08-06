@@ -576,6 +576,17 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div id="api-key-status" style="margin-top:10px;font-size:12px;display:none;padding:8px 12px;border-radius:8px;"></div>
       </div>
 
+      <!-- Diagnóstico de correos -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📧 Diagnóstico de correos (Resend)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Envía un correo de prueba a tu cuenta para verificar que Resend esté funcionando correctamente.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <button class="btn btn-pink btn-sm" style="height:42px;" onclick="sendTestEmail()">📤 Enviar correo de prueba</button>
+          <button class="btn btn-outline btn-sm" style="height:42px;" onclick="testEmailPdf()">📄 Probar con PDF</button>
+        </div>
+        <div id="email-test-result" style="margin-top:12px;font-size:12px;display:none;padding:10px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;"></div>
+      </div>
+
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🔑 Seguridad del panel</div>
@@ -2198,6 +2209,44 @@ function changePwd(){
   localStorage.setItem(ADMIN_PWD_KEY,nw);
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
+}
+async function _runEmailTest(items,label){
+  const el=document.getElementById('email-test-result');
+  el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
+  el.textContent='⏳ Enviando correo de prueba…';
+  try{
+    const r=await fetch('/api/send-confirmation',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        customerEmail:'kroshapattern@gmail.com',
+        customerName:'Prueba Admin',
+        items,
+        total:99,
+        currency:'MXN',
+        payMethod:'prueba',
+        orderRef:'TEST-'+Date.now(),
+        forceResend:true,
+      })
+    });
+    const d=await r.json();
+    if(r.ok&&d.success){
+      el.style.background='#D4EFE3';el.style.color='#2E7D52';
+      el.textContent='✅ '+label+' enviado a kroshapattern@gmail.com\nRef: '+d.orderRef+(d.downloadToken?'\nToken: '+d.downloadToken:'');
+    } else {
+      el.style.background='#FDECEA';el.style.color='#C0392B';
+      el.textContent='❌ Error '+r.status+': '+(d.error||JSON.stringify(d));
+    }
+  }catch(e){
+    el.style.background='#FDECEA';el.style.color='#C0392B';
+    el.textContent='❌ Error de red: '+e.message;
+  }
+}
+function sendTestEmail(){
+  _runEmailTest([{id:'test-1',title:'Producto de prueba',price:99,qty:1,patternSlug:'',pdfUrl:''}],'Correo simple');
+}
+function testEmailPdf(){
+  _runEmailTest([{id:'test-pdf',title:'Patrón PDF de prueba',price:99,qty:1,patternSlug:'',pdfUrl:'https://kroshapatterns.com/test-dummy.pdf'}],'Correo con PDF');
 }
 async function testApiKey(){
   const candidate=document.getElementById('api-key-input').value.trim()||getApiKey();
