@@ -132,17 +132,19 @@ export default async function handler(req, res) {
 
     let deliverySection = '';
     const hasPdfAttachments = attachments.length > 0;
-    const hasPcLinks = pcItems.some(i => i.resolvedUrl);
+    const hasPcItems = pcItems.length > 0;
 
-    if (hasPdfAttachments || hasPcLinks) {
+    if (hasPdfAttachments || hasPcItems) {
       const attachedList = attachments.map(a =>
         `<div style="margin:6px 0;font-size:13px;color:#3A1E2E;">📎 ${a.filename.replace(/_/g,' ').replace('.pdf','')}</div>`
       ).join('');
-      const pcLinks = pcItems.map(i => i.resolvedUrl
-        ? `<div style="margin:6px 0;"><a href="${i.resolvedUrl}" style="color:#C06090;font-weight:bold;font-size:13px;">🔐 ${i.title}</a></div>`
-        : `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">📩 ${i.title} — llegará de acceso@protectcrochet.com</div>`
+
+      // PC siempre muestra mensaje de correo desde ProtectCrochet (no link directo)
+      const pcList = pcItems.map(i =>
+        `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">🔐 <strong>${i.title}</strong> — recibirás tu acceso por correo desde <strong>acceso@protectcrochet.com</strong></div>`
       ).join('');
-      const backupBtn = downloadToken ? `
+
+      const backupBtn = hasPdfAttachments && downloadToken ? `
         <div style="margin-top:14px;font-size:11px;color:#B48EA8;">
           ¿No puedes abrir el adjunto? <a href="https://kroshapatterns.com/descargar.html?token=${downloadToken}" style="color:#C06090;font-weight:bold;">Descarga aquí</a>
         </div>` : '';
@@ -151,12 +153,12 @@ export default async function handler(req, res) {
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">🎀 Tus patrones</div>
           ${hasPdfAttachments ? `<div style="font-size:13px;color:#7A4D65;margin-bottom:10px;">Tu patrón viene adjunto en este correo 📎</div>${attachedList}` : ''}
-          ${pcLinks}
+          ${pcList}
           ${backupBtn}
           <p style="font-size:11px;color:#B48EA8;margin:12px 0 0;">¿Problemas? Escríbenos a hola@kroshapatterns.com 🎀</p>
         </div>`;
     } else if (pcItems.length > 0) {
-      // PC items pero sin access_url (API falló) — indicar que llegarán por correo
+      // fallback (no debería llegar aquí)
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Acceso a tus patrones</div>
