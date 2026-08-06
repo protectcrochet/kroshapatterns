@@ -1050,6 +1050,7 @@ async function processStripe(email,name,btn){
     if(error){
       const errEl=document.getElementById('stripe-error');
       if(errEl)errEl.textContent=error.message;
+      saveAbandonedCart('payment_error', error.message);
       btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
       btn.disabled=false;btn.style.opacity='1';
     } else if(paymentIntent&&paymentIntent.status==='succeeded'){
@@ -1060,6 +1061,7 @@ async function processStripe(email,name,btn){
     const errEl=document.getElementById('stripe-error');
     if(errEl)errEl.textContent=e.message;
     else showToast('⚠️ '+e.message);
+    saveAbandonedCart('payment_error', e.message);
     btn.textContent=lang==='es'?'Confirmar y pagar':'Confirm & pay';
     btn.disabled=false;btn.style.opacity='1';
   }
@@ -1254,7 +1256,7 @@ async function _saveAddressToAccount(){
 }
 
 // ── CARRITOS ABANDONADOS ──
-function saveAbandonedCart(){
+function saveAbandonedCart(reason='abandoned',paymentError=null){
   try{
     const email=document.getElementById('checkout-email')?.value?.trim();
     if(!email||!/^[^@]+@[^@]+\.[^@]+$/.test(email))return;
@@ -1263,7 +1265,7 @@ function saveAbandonedCart(){
     const name=document.getElementById('checkout-name')?.value?.trim()||'';
     const total=getCartTotal();
     fetch('/api/abandoned-carts',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email,name,cart,total,currency:cur||'MXN'})}).catch(()=>{});
+      body:JSON.stringify({email,name,cart,total,currency:cur||'MXN',reason,paymentError})}).catch(()=>{});
   }catch(e){}
 }
 function deleteAbandonedCart(email){

@@ -21,12 +21,17 @@ export default async function handler(req, res) {
 
   // POST: guardar carrito abandonado (llamado desde checkout cuando el usuario escribe su email)
   if (req.method === 'POST') {
-    const { email, name, cart, total, currency } = req.body || {};
+    const { email, name, cart, total, currency, reason, paymentError } = req.body || {};
     if (!email || !Array.isArray(cart) || !cart.length) return res.status(400).json({ error: 'email y cart requeridos' });
     const raw = await redis.get('krosha:abandoned_carts');
     const carts = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
     const idx = carts.findIndex(c => c.email === email);
-    const entry = { email, name: name || '', cart, total: total || 0, currency: currency || 'MXN', savedAt: new Date().toISOString() };
+    const entry = {
+      email, name: name || '', cart, total: total || 0, currency: currency || 'MXN',
+      reason: reason || 'abandoned',        // 'abandoned' | 'payment_error'
+      paymentError: paymentError || null,   // mensaje de error si aplica
+      savedAt: new Date().toISOString(),
+    };
     if (idx >= 0) carts[idx] = entry;
     else carts.unshift(entry);
     if (carts.length > 300) carts.length = 300;
