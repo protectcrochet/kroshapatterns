@@ -2246,7 +2246,19 @@ function sendTestEmail(){
   _runEmailTest([{id:'test-1',title:'Producto de prueba',price:99,qty:1,patternSlug:'',pdfUrl:''}],'Correo simple');
 }
 function testEmailPdf(){
-  _runEmailTest([{id:'test-pdf',title:'Patrón PDF de prueba',price:99,qty:1,patternSlug:'',pdfUrl:'https://kroshapatterns.com/test-dummy.pdf'}],'Correo con PDF');
+  const sally=getProds().find(p=>p.id===18||p.id==='18');
+  const el=document.getElementById('email-test-result');
+  if(!sally){
+    el.style.display='block';el.style.background='#FDECEA';el.style.color='#C0392B';
+    el.textContent='❌ No se encontró el producto Sally (id:18). Asegúrate de que esté guardado en el admin.';
+    return;
+  }
+  if(!sally.pdfUrl&&!sally.patternSlug){
+    el.style.display='block';el.style.background='#FDECEA';el.style.color='#C0392B';
+    el.textContent='❌ Sally (id:18) no tiene pdfUrl ni patternSlug configurado. Ábrelo en Productos, ingresa el link PDF y guarda.';
+    return;
+  }
+  _runEmailTest([{id:sally.id,title:sally.nameEs||sally.title||'Ramo Magico Sally 45 cm',price:sally.price||290,qty:1,patternSlug:sally.patternSlug||'',pdfUrl:sally.pdfUrl||''}],'Correo PDF Sally real');
 }
 async function testApiKey(){
   const candidate=document.getElementById('api-key-input').value.trim()||getApiKey();
