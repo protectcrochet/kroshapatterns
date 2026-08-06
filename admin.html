@@ -636,6 +636,36 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
       </div>
 
+      <!-- Prueba T1 Envios -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🚚 Prueba T1 Envíos (aislada del checkout)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Prueba el API key de T1 sin afectar nada en la tienda. Solo cotiza y muestra resultados.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>API Key T1</label>
+            <input type="text" id="t1-test-key" placeholder="t1-..." style="font-family:monospace;font-size:12px;">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>CP Destino</label>
+            <input type="text" id="t1-test-cp" placeholder="64000" maxlength="5">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Peso (kg)</label>
+            <input type="number" id="t1-test-peso" value="0.3" step="0.1" min="0.1">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Medidas (cm)</label>
+            <div style="display:flex;gap:4px;">
+              <input type="number" id="t1-test-largo" value="20" placeholder="L" style="width:50px;">
+              <input type="number" id="t1-test-ancho" value="15" placeholder="A" style="width:50px;">
+              <input type="number" id="t1-test-alto" value="10" placeholder="H" style="width:50px;">
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-pink btn-sm" onclick="runT1Test()">🔍 Probar cotización</button>
+        <div id="t1-test-result" style="margin-top:14px;font-size:12px;display:none;padding:12px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;max-height:300px;overflow-y:auto;"></div>
+      </div>
+
       <!-- Asignar PDFs desde Vercel Blob -->
       <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📁 Archivos en Vercel Blob → asignar a productos</div>
@@ -2245,6 +2275,39 @@ function changePwd(){
   localStorage.setItem(ADMIN_PWD_KEY,nw);
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
+}
+async function runT1Test(){
+  const el=document.getElementById('t1-test-result');
+  el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
+  el.textContent='⏳ Probando API T1 Envíos…';
+  const apiKey=document.getElementById('t1-test-key').value.trim();
+  const cp_destino=document.getElementById('t1-test-cp').value.trim();
+  const peso=document.getElementById('t1-test-peso').value;
+  const largo=document.getElementById('t1-test-largo').value;
+  const ancho=document.getElementById('t1-test-ancho').value;
+  const alto=document.getElementById('t1-test-alto').value;
+  if(!apiKey||!cp_destino){el.style.background='#FDECEA';el.style.color='#C0392B';el.textContent='❌ Ingresa el API key y el CP destino.';return;}
+  try{
+    const r=await fetch('/api/t1-test',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
+      body:JSON.stringify({apiKey,cp_destino,peso:Number(peso),largo:Number(largo),ancho:Number(ancho),alto:Number(alto)})
+    });
+    const d=await r.json();
+    if(d.success){
+      el.style.background='#D4EFE3';el.style.color='#2E7D52';
+      const rates=d.rates;
+      const rateLines=Array.isArray(rates)?rates.map(r=>`• ${r.carrier||r.servicio||'?'} — $${r.price||r.total||'?'} MXN — ${r.days||r.dias||'?'} días`).join('\n')
+        :JSON.stringify(rates,null,2);
+      el.textContent=`✅ Método que funcionó: ${d.method}\n\nTarifas:\n${rateLines}`;
+    } else {
+      el.style.background='#FDECEA';el.style.color='#C0392B';
+      el.textContent='❌ '+d.message+'\n\nRespuestas:\n'+JSON.stringify(d.allAttempts,null,2);
+    }
+  }catch(e){
+    el.style.background='#FDECEA';el.style.color='#C0392B';
+    el.textContent='❌ Error: '+e.message;
+  }
 }
 async function loadBlobFiles(){
   const wrap=document.getElementById('blob-assign-wrap');
