@@ -2309,7 +2309,22 @@ async function runT1Test(){
       el.textContent=`✅ Método que funcionó: ${d.method}\n\nTarifas:\n${rateLines}`;
     } else {
       el.style.background='#FDECEA';el.style.color='#C0392B';
-      el.textContent='❌ '+d.message+'\n\nRespuestas:\n'+JSON.stringify(d.allAttempts,null,2);
+      let out='❌ '+d.message+'\n';
+      if(d.totalTried) out+=`\nEndpoints probados: ${d.totalTried}\n`;
+      if(d.exploration && Object.keys(d.exploration).length){
+        out+='\n--- EXPLORACIÓN (GET raíz) ---\n';
+        for(const [url,info] of Object.entries(d.exploration)){
+          if(info.error) out+=`${url} → ERROR: ${info.error}\n`;
+          else out+=`${url} → HTTP ${info.status}\n${info.snippet ? info.snippet.slice(0,150)+'\n' : ''}`;
+        }
+      }
+      if(d.interesting && Object.keys(d.interesting).length){
+        out+='\n--- RESPUESTAS INTERESANTES (no-404) ---\n';
+        out+=JSON.stringify(d.interesting,null,2);
+      } else {
+        out+='\n(Todas las respuestas fueron 404 — path incorrecto)';
+      }
+      el.textContent=out;
     }
   }catch(e){
     el.style.background='#FDECEA';el.style.color='#C0392B';
