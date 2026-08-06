@@ -28,6 +28,27 @@ export default async function handler(req, res) {
 
   const results = {};
 
+  // Primero: explorar la raíz del API para encontrar documentación o endpoints disponibles
+  const exploreUrls = [
+    'https://api.t1envios.com/',
+    'https://api.t1envios.com/docs',
+    'https://api.t1envios.com/swagger',
+    'https://api.t1envios.com/api',
+    'https://api.t1envios.com/health',
+    'https://services.t1envios.com/',
+    'https://services.t1envios.com/api',
+  ];
+  const exploration = {};
+  for (const url of exploreUrls) {
+    try {
+      const r = await fetch(url, { headers: { 'Authorization': `Bearer ${apiKey}` } });
+      const text = await r.text().catch(() => '');
+      exploration[url] = { status: r.status, snippet: text.slice(0, 300) };
+    } catch (e) {
+      exploration[url] = { error: e.message };
+    }
+  }
+
   // Probar varios endpoints y formatos que usa T1 Envios
   const bases = [
     'https://api.t1envios.com',
@@ -89,6 +110,7 @@ export default async function handler(req, res) {
   return res.status(200).json({
     success: false,
     message: 'Ningún formato funcionó — se necesita documentación de T1 con el endpoint correcto',
+    exploration,
     interesting: Object.fromEntries(nonNotFound),
     allAttempts: results,
   });
