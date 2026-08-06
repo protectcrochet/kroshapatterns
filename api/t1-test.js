@@ -29,28 +29,43 @@ export default async function handler(req, res) {
   const results = {};
 
   // Probar varios endpoints y formatos que usa T1 Envios
-  const attempts = [
-    {
-      label: 'v2 Bearer',
-      url: 'https://api.t1envios.com/api/v2/rates',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    },
-    {
-      label: 'v1 Bearer',
-      url: 'https://api.t1envios.com/api/v1/rates',
-      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    },
-    {
-      label: 'v2 x-api-key',
-      url: 'https://api.t1envios.com/api/v2/rates',
-      headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
-    },
-    {
-      label: 'v1 Token',
-      url: 'https://api.t1envios.com/api/v1/rates',
-      headers: { 'Authorization': `Token ${apiKey}`, 'Content-Type': 'application/json' },
-    },
+  const bases = [
+    'https://api.t1envios.com',
+    'https://api.plataformat1.com',
+    'https://services.t1envios.com',
   ];
+  const paths = [
+    '/cotizacion',
+    '/rates',
+    '/shipping/rates',
+    '/api/cotizacion',
+    '/api/rates',
+    '/api/v3/rates',
+    '/v1/cotizacion',
+    '/v2/cotizacion',
+  ];
+  const headers_variants = [
+    (k) => ({ 'Authorization': `Bearer ${k}`, 'Content-Type': 'application/json' }),
+    (k) => ({ 'x-api-key': k, 'Content-Type': 'application/json' }),
+    (k) => ({ 'Authorization': `Token ${k}`, 'Content-Type': 'application/json' }),
+    (k) => ({ 'api-key': k, 'Content-Type': 'application/json' }),
+  ];
+
+  const attempts = [];
+  for (const base of bases) {
+    for (const path of paths) {
+      attempts.push({
+        label: `${base}${path} Bearer`,
+        url: `${base}${path}`,
+        headers: headers_variants[0](apiKey),
+      });
+      attempts.push({
+        label: `${base}${path} x-api-key`,
+        url: `${base}${path}`,
+        headers: headers_variants[1](apiKey),
+      });
+    }
+  }
 
   for (const attempt of attempts) {
     try {
@@ -69,5 +84,12 @@ export default async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ success: false, message: 'Ningún formato funcionó — revisa el API key o la documentación', allAttempts: results });
+  // Filtrar solo los que no son 404 para facilitar diagnóstico
+  const nonNotFound = Object.entries(results).filter(([,v]) => v.status && v.status !== 404);
+  return res.status(200).json({
+    success: false,
+    message: 'Ningún formato funcionó — se necesita documentación de T1 con el endpoint correcto',
+    interesting: Object.fromEntries(nonNotFound),
+    allAttempts: results,
+  });
 }
