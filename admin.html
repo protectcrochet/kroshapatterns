@@ -1979,9 +1979,12 @@ async function resendOrderAccess(){
         currency:_viewingOrder.currency||'MXN',
         payMethod:_viewingOrder.method||'stripe',
         orderRef:_viewingOrder.ref||String(_viewingOrder.id),
+        forceResend:true,
       })
     });
-    if(!r.ok)throw new Error((await r.json()).error||'Error');
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    if(d.duplicate)throw new Error('El sistema no procesó el reenvío (duplicate flag inesperado)');
     showToast('📧 Correo de acceso reenviado a '+_viewingOrder.email);
   }catch(e){
     showToast('❌ Error al reenviar: '+e.message,'warn');

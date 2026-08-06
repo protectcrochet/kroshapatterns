@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress, shippingRate, shippingPackage } = req.body;
+    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress, shippingRate, shippingPackage, forceResend } = req.body;
 
     if (!customerEmail || !items?.length) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -43,7 +43,8 @@ export default async function handler(req, res) {
     const ref = orderRef || `KP-${Date.now().toString().slice(-6)}`;
 
     // ── Dedup: si el pedido ya existe en Redis, no reenviar correo ──
-    if (orderRef) {
+    // forceResend=true lo salta (usado desde el admin para reenviar acceso)
+    if (orderRef && !forceResend) {
       try {
         const { Redis } = await import('@upstash/redis');
         const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
@@ -72,11 +73,18 @@ export default async function handler(req, res) {
       return { ...item, resolvedUrl: null, deliveryType: 'manual' };
     }));
 
-    // ── Token Upstash para PDFs (ProtectCrochet ya manda su propio correo) ──
+    // ── Token Upstash para PDFs y ProtectCrochet ──
     let downloadToken = null;
     const pdfItems = resolvedItems.filter(i => i.deliveryType === 'pdf');
+    const pcItems = resolvedItems.filter(i => i.deliveryType === 'protect');
 
-    if (pdfItems.length > 0) {
+    // Generar token si hay PDFs o si hay PC items con access_url (como backup)
+    const tokenItems = [
+      ...pdfItems.map(i => ({ title: i.title, url: i.resolvedUrl, type: 'pdf' })),
+      ...pcItems.filter(i => i.resolvedUrl).map(i => ({ title: i.title, url: i.resolvedUrl, type: 'protect' })),
+    ];
+
+    if (tokenItems.length > 0) {
       try {
         const { Redis } = await import('@upstash/redis');
         const redis = new Redis({
@@ -89,7 +97,7 @@ export default async function handler(req, res) {
         await redis.set(`dl:${downloadToken}`, {
           email: customerEmail,
           orderRef: ref,
-          items: pdfItems.map(i => ({ title: i.title, url: i.resolvedUrl, type: 'pdf' })),
+          items: tokenItems,
         });
       } catch (kvErr) {
         console.error('KV token error (non-fatal):', kvErr);
@@ -108,27 +116,38 @@ export default async function handler(req, res) {
       </tr>`).join('');
 
     // ── Sección de entrega en el correo ──
-    const pcItems = resolvedItems.filter(i => i.deliveryType === 'protect');
-    const manualItems = resolvedItems.filter(i => i.deliveryType === 'manual');
+    const manualItems = resolvedItems.filter(i => i.deliveryType === 'manual' && i.title !== 'Envío' && i.title !== 'Shipping');
 
     let deliverySection = '';
+    const hasDownloadable = pdfItems.length > 0 || pcItems.some(i => i.resolvedUrl);
 
-    if (pcItems.length > 0 && pdfItems.length === 0) {
+    if (hasDownloadable && downloadToken) {
+      const downloadUrl = `https://kroshapatterns.com/descargar.html?token=${downloadToken}`;
+      // Listar cada patrón con su link directo si está disponible
+      const patternLinks = [
+        ...pcItems.map(i => i.resolvedUrl
+          ? `<div style="margin:6px 0;"><a href="${i.resolvedUrl}" style="color:#C06090;font-weight:bold;font-size:13px;">🔐 ${i.title}</a></div>`
+          : `<div style="margin:6px 0;font-size:13px;color:#7A4D65;">📩 ${i.title} — llegará de acceso@protectcrochet.com</div>`),
+        ...pdfItems.map(i => `<div style="margin:6px 0;font-size:13px;color:#3A1E2E;">📄 ${i.title}</div>`),
+      ].join('');
+
+      deliverySection = `
+        <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
+          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:12px;">🎀 Accede a tus patrones</div>
+          ${patternLinks}
+          <div style="margin-top:14px;">
+            <a href="${downloadUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:14px 28px;border-radius:24px;font-size:14px;font-weight:bold;">
+              📥 Ver todos mis patrones
+            </a>
+          </div>
+          <p style="font-size:11px;color:#B48EA8;margin:10px 0 0;">¿Problemas? Escríbenos a hola@kroshapatterns.com 🎀</p>
+        </div>`;
+    } else if (pcItems.length > 0) {
+      // PC items pero sin access_url (API falló) — indicar que llegarán por correo
       deliverySection = `
         <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
           <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Acceso a tus patrones</div>
-          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás un correo de <strong>acceso@protectcrochet.com</strong> con tu link de acceso personalizado. Si no lo ves en 5 minutos, revisa tu carpeta de spam.</p>
-        </div>`;
-    } else if (pdfItems.length > 0 && downloadToken) {
-      const downloadUrl = `https://kroshapatterns.com/descargar.html?token=${downloadToken}`;
-      deliverySection = `
-        <div style="background:#FFF8EC;border-radius:12px;padding:18px;margin-bottom:24px;border:1px solid #F0E0C0;text-align:center;">
-          <div style="font-size:15px;font-weight:bold;color:#3A1E2E;margin-bottom:8px;">📦 Descarga tus patrones</div>
-          <a href="${downloadUrl}" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:14px 28px;border-radius:24px;font-size:14px;font-weight:bold;">
-            📥 Descargar mis patrones
-          </a>
-          ${pcItems.length > 0 ? `<p style="font-size:12px;color:#7A4D65;margin:12px 0 0;">Los patrones de ProtectCrochet llegarán por separado a tu correo desde acceso@protectcrochet.com.</p>` : ''}
-          <p style="font-size:11px;color:#B48EA8;margin:8px 0 0;">¿No funciona? Escríbenos a hola@kroshapatterns.com 🎀</p>
+          <p style="font-size:13px;color:#7A4D65;margin:0;">Recibirás un correo de <strong>acceso@protectcrochet.com</strong> con tu link de acceso. Si no lo ves en 5 minutos, revisa spam o escríbenos a hola@kroshapatterns.com.</p>
         </div>`;
     } else {
       deliverySection = `
