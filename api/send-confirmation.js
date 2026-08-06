@@ -280,13 +280,14 @@ export default async function handler(req, res) {
         if (orders.length > 500) orders.length = 500;
         await redis.set('krosha:orders', JSON.stringify(orders));
 
-        // Reduce yarn inventory for kit/hilo items
+        // Reduce yarn inventory only for physical items (kits/hilo), never for patrones
         const invRaw = await redis.get('krosha:inventory');
         let inv = invRaw ? (typeof invRaw === 'string' ? JSON.parse(invRaw) : invRaw) : {};
         let invChanged = false;
         for (const item of items) {
           const prod = allProds.find(p => String(p.id) === String(item.id));
           if (!prod) continue;
+          if (prod.type === 'patrones') continue; // digital — never touch inventory
           const yarnList = prod.yarnList || [];
           for (const y of yarnList) {
             if (y.color && typeof inv[y.color] === 'number' && inv[y.color] > 0) {

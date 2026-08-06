@@ -1,7 +1,7 @@
-// api/orders.js — Pedidos en Redis (GET admin, POST interno)
+// api/orders.js — Pedidos en Redis (GET admin, POST interno, DELETE admin)
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-key');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -38,6 +38,21 @@ export default async function handler(req, res) {
       await redis.set('krosha:orders', JSON.stringify(orders));
     }
     return res.status(200).json({ ok: true });
+  }
+
+  if (req.method === 'DELETE') {
+    const expected = process.env.ADMIN_KEY || 'Answin1+';
+    if (req.headers['x-admin-key'] !== expected) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    const { id } = req.query;
+    if (!id) return res.status(400).json({ error: 'Falta id' });
+    const raw = await redis.get('krosha:orders');
+    const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+    const filtered = orders.filter(o => String(o.id) !== String(id) && String(o.ref) !== String(id));
+    if (filtered.length === orders.length) return res.status(404).json({ error: 'Pedido no encontrado' });
+    await redis.set('krosha:orders', JSON.stringify(filtered));
+    return res.status(200).json({ ok: true, deleted: orders.length - filtered.length });
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

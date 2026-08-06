@@ -929,6 +929,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <option value="cancelled">❌ Cancelado</option>
       </select>
       <button class="btn btn-outline" id="order-detail-resend-btn" onclick="resendOrderAccess()" style="flex:1;">📧 Reenviar acceso</button>
+      <button class="btn btn-red btn-sm" onclick="deleteOrder()" style="white-space:nowrap;">🗑️ Eliminar pedido</button>
     </div>
   </div>
 </div>
@@ -2023,6 +2024,27 @@ async function resendOrderAccess(){
   }finally{btn.textContent='📧 Reenviar acceso';btn.disabled=false;}
 }
 
+async function deleteOrder(){
+  if(!_viewingOrder)return;
+  const label=_viewingOrder.name||_viewingOrder.email||'este pedido';
+  if(!confirm(`¿Eliminar el pedido de ${label}?\n\nEsto lo borrará permanentemente del registro de ventas.`))return;
+  try{
+    const r=await fetch(`/api/orders?id=${encodeURIComponent(_viewingOrder.id||_viewingOrder.ref)}`,{
+      method:'DELETE',
+      headers:{'x-admin-key':getApiKey()}
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    // Quitar del cache local
+    _serverOrders=_serverOrders.filter(o=>String(o.id)!==String(_viewingOrder.id)&&String(o.ref)!==String(_viewingOrder.ref));
+    document.getElementById('order-detail-modal').classList.remove('open');
+    _viewingOrder=null;
+    renderOrders();
+    showToast('🗑️ Pedido eliminado');
+  }catch(e){
+    showToast('❌ Error al eliminar: '+e.message,'warn');
+  }
+}
 function openOrderModal(){
   document.getElementById('order-edit-id').value='';
   document.getElementById('order-modal-title').textContent='Nuevo pedido';
