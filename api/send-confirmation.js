@@ -226,7 +226,6 @@ export default async function handler(req, res) {
         <tr>
           <td style="background:#F5D0E0;padding:20px;text-align:center;">
             <p style="font-size:12px;color:#8B3565;margin:0;">© 2026 KroshaPatterns · kroshapatterns.com</p>
-            <p style="font-size:11px;color:#B48EA8;margin:4px 0 0;">Patrones de crochet con amor, diseñados por Jennyfer 🎀</p>
           </td>
         </tr>
 
