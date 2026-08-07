@@ -2439,9 +2439,18 @@ async function _runEmailTest(items,label){
     });
     const d=await r.json();
     if(r.ok&&d.success){
-      el.style.background='#D4EFE3';el.style.color='#2E7D52';
-      const tokenLine=d.downloadToken?`\n🔗 Link de descarga: https://kroshapatterns.com/descargar.html?token=${d.downloadToken}`:'';
-      el.textContent=`✅ ${label} enviado a kroshapattern@gmail.com\nRef: ${d.orderRef}${tokenLine}`;
+      const pdfOk = d.pdfItemCount===0 || d.attachmentCount>0;
+      el.style.background=pdfOk?'#D4EFE3':'#FFF9E6';
+      el.style.color=pdfOk?'#2E7D52':'#856404';
+      let msg=`✅ Correo enviado a kroshapattern@gmail.com\nRef: ${d.orderRef}`;
+      if(d.pdfItemCount>0){
+        if(d.attachmentCount>0) msg+=`\n📎 PDF adjunto (${d.attachmentCount} archivo${d.attachmentCount>1?'s':''})`;
+        else msg+=`\n⚠️ El correo se envió PERO el PDF NO pudo adjuntarse`;
+        if(d.pdfErrors?.length) msg+=`\nErrores:\n${d.pdfErrors.join('\n')}`;
+      }
+      if(d.pcItemCount>0) msg+=`\n🔐 ProtectCrochet notificado`;
+      if(d.downloadToken) msg+=`\n🔗 Token backup: https://kroshapatterns.com/descargar.html?token=${d.downloadToken}`;
+      el.textContent=msg;
     } else {
       el.style.background='#FDECEA';el.style.color='#C0392B';
       el.textContent='❌ Error '+r.status+': '+(d.error||JSON.stringify(d));

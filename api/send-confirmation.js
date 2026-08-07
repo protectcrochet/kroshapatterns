@@ -79,19 +79,26 @@ export default async function handler(req, res) {
 
     // Descargar PDFs para adjuntar al correo
     const attachments = [];
+    const pdfErrors = [];
     for (const item of pdfItems) {
-      if (!item.resolvedUrl) continue;
+      if (!item.resolvedUrl) {
+        pdfErrors.push(`"${item.title}": sin pdfUrl`);
+        continue;
+      }
       try {
         const pdfRes = await fetch(item.resolvedUrl);
-        if (!pdfRes.ok) throw new Error(`HTTP ${pdfRes.status}`);
+        if (!pdfRes.ok) throw new Error(`HTTP ${pdfRes.status} desde ${item.resolvedUrl}`);
         const buf = await pdfRes.arrayBuffer();
+        if (buf.byteLength === 0) throw new Error('PDF vacío (0 bytes)');
         const filename = (item.title || 'patron')
           .normalize('NFD').replace(/[̀-ͯ]/g, '')
           .replace(/[^a-zA-Z0-9\s]/g, '').trim()
           .replace(/\s+/g, '_') + '.pdf';
         attachments.push({ filename, content: Buffer.from(buf).toString('base64') });
+        console.log(`[send-confirmation] PDF adjunto OK: ${filename} (${buf.byteLength} bytes)`);
       } catch (e) {
-        console.error(`Error adjuntando PDF "${item.title}":`, e.message);
+        console.error(`[send-confirmation] Error adjuntando PDF "${item.title}":`, e.message);
+        pdfErrors.push(`"${item.title}": ${e.message}`);
       }
     }
 
@@ -378,7 +385,15 @@ export default async function handler(req, res) {
         ${enviaBlock}`,
     });
 
-    return res.status(200).json({ success: true, orderRef: ref, downloadToken });
+    return res.status(200).json({
+      success: true,
+      orderRef: ref,
+      downloadToken,
+      attachmentCount: attachments.length,
+      pdfItemCount: pdfItems.length,
+      pcItemCount: pcItems.length,
+      ...(pdfErrors.length ? { pdfErrors } : {}),
+    });
 
   } catch (err) {
     console.error('Email error:', err);
