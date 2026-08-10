@@ -287,24 +287,38 @@ export default async function handler(req, res) {
         await redis.set('krosha:orders', JSON.stringify(orders));
 
         // Reduce yarn inventory only for physical items (kits/hilo), never for patrones
+        // item.type and item.yarnColorName are now included in cart items from index.html
         const invRaw = await redis.get('krosha:inventory');
         let inv = invRaw ? (typeof invRaw === 'string' ? JSON.parse(invRaw) : invRaw) : {};
         let invChanged = false;
         for (const item of items) {
+          // Use type from cart item first, fallback to Redis product data
           const prod = allProds.find(p => String(p.id) === String(item.id));
-          if (!prod) continue;
-          if (prod.type === 'patrones') continue; // digital — never touch inventory
-          const yarnList = prod.yarnList || [];
+          const itemType = item.type || prod?.type || '';
+          if (!itemType || itemType === 'patrones') continue;
+
+          // Individual yarn with a color name — decrement that color by qty purchased
+          const yarnColorName = item.yarnColorName || prod?.yarnColorName || '';
+          if (yarnColorName && typeof inv[yarnColorName] === 'number') {
+            inv[yarnColorName] = Math.max(0, inv[yarnColorName] - (item.qty || 1));
+            invChanged = true;
+            console.log(`[send-confirmation] Inventory -${item.qty||1} "${yarnColorName}" → ${inv[yarnColorName]}`);
+            continue;
+          }
+
+          // Kit with yarnList — decrement each component color
+          const yarnList = item.yarnList || prod?.yarnList || [];
           for (const y of yarnList) {
             if (y.color && typeof inv[y.color] === 'number' && inv[y.color] > 0) {
               inv[y.color] = Math.max(0, inv[y.color] - (y.qty || 1));
               invChanged = true;
+              console.log(`[send-confirmation] Inventory -${y.qty||1} "${y.color}" (kit ${item.title}) → ${inv[y.color]}`);
             }
           }
         }
         if (invChanged) {
           await redis.set('krosha:inventory', JSON.stringify(inv));
-          console.log('[send-confirmation] Inventory updated for order', ref);
+          console.log('[send-confirmation] Inventory saved for order', ref);
         }
       }
     } catch (redisErr) {

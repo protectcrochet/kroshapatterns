@@ -1163,7 +1163,7 @@ function qAdd(id){
     existing.qty++;
   } else {
     const qty=isYarn?3:1;
-    cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} ${yarnGrams(p.yarnColorName)}g`:p.title,price:p.price,img:imgVal,qty,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipSubsidy:p.shipSubsidy||0,boxLargo:p.boxLargo||0,boxAncho:p.boxAncho||0,boxAlto:p.boxAlto||0,boxPeso:p.boxPeso||0});
+    cart.push({id:p.id,title:p.yarnColorName?`Estambre ${p.yarnColorName} ${yarnGrams(p.yarnColorName)}g`:p.title,price:p.price,img:imgVal,qty,type:p.type||'',yarnColorName:p.yarnColorName||'',patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||'',shipSubsidy:p.shipSubsidy||0,boxLargo:p.boxLargo||0,boxAncho:p.boxAncho||0,boxAlto:p.boxAlto||0,boxPeso:p.boxPeso||0});
     if(isYarn)showToast(lang==='es'?`🧶 ${label} ×3 agregado (mínimo 3)`:`🧶 ${label} ×3 added (min. 3)`);
   }
   if(!isYarn||existing)saveCart(cart),updateCartBadge(),showToast(`🧶 ${label} ${lang==='es'?'agregado':'added'}`);
@@ -1177,7 +1177,7 @@ function addYarnQtyToCart(colorName,qty){
   const cart=getCart();
   const existing=cart.find(i=>i.id===yp.id);
   if(existing)existing.qty+=qty;
-  else cart.push({id:yp.id,title:`Estambre ${colorName} ${yarnGrams(colorName)}g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty:Math.max(3,qty),shipSubsidy:0});
+  else cart.push({id:yp.id,title:`Estambre ${colorName} ${yarnGrams(colorName)}g`,price:yp.price,img:getYarnImg(colorName)||`yarn:${getYarnHex(colorName)}`,qty:Math.max(3,qty),type:'hilo',yarnColorName:colorName,shipSubsidy:0});
   saveCart(cart);updateCartBadge();
   const total=existing?existing.qty:Math.max(3,qty);
   showToast(`🧶 ${colorName} ×${total} ${lang==='es'?'en carrito':'in cart'}`);
@@ -1189,7 +1189,7 @@ function addToCart(){
   // Si "ya tienes el patrón", no agregar el PDF — solo los materiales
   if(!skipPattern){
     const existing=cart.find(i=>i.id===curProd.id);
-    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
+    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:curProd.type||'',yarnColorName:curProd.yarnColorName||'',patternSlug:curProd.patternSlug||'',pdfUrl:curProd.pdfUrl||'',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
   } else if(!addonKit&&!addonEyes&&!Object.keys(addonYarns).length){
     showToast(lang==='es'?'⚠️ Selecciona al menos un material':'⚠️ Select at least one material');return;
   }
