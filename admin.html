@@ -1826,7 +1826,18 @@ function getAllOrders(){
   return merged.sort((a,b)=>new Date(b.date||b.id)-new Date(a.date||a.id));
 }
 
-function isPhysicalOrder(o){return !!(o.shippingAddress&&(o.shippingAddress.street||o.shippingAddress.city));}
+function isPhysicalOrder(o){
+  // Dirección de envío con datos
+  if(o.shippingAddress&&(o.shippingAddress.street||o.shippingAddress.city||o.shippingAddress.zip)) return true;
+  // Tiene tarifa o paquete de envío calculado
+  if(o.shippingRate||o.shippingPackage) return true;
+  // Productos contienen "Kit" o "Estambre" o "Hilo" (físicos)
+  const prods=(o.products||'').toLowerCase();
+  if(prods.includes('kit')||prods.includes('estambre')||prods.includes('hilo')) return true;
+  // itemsRaw contiene algún item de tipo físico
+  if(Array.isArray(o.itemsRaw)&&o.itemsRaw.some(i=>(i.type==='kits'||i.type==='hilo'))) return true;
+  return false;
+}
 function renderOrdersTable(){
   const orders=getAllOrders();
   const filtered=orders.filter(o=>{
