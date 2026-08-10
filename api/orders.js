@@ -30,13 +30,17 @@ export default async function handler(req, res) {
     if (!order || typeof order !== 'object') return res.status(400).json({ error: 'Datos inválidos' });
     const raw = await redis.get('krosha:orders');
     const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
-    // Avoid duplicates by orderRef
-    if (!orders.find(o => o.ref === order.ref)) {
+    const idx = orders.findIndex(o =>
+      (order.ref && o.ref === order.ref) || (order.id && String(o.id) === String(order.id))
+    );
+    if (idx >= 0) {
+      // Upsert: actualizar pedido existente (ej. cambio de estado)
+      orders[idx] = { ...orders[idx], ...order };
+    } else {
       orders.unshift(order);
-      // Keep last 500 orders
       if (orders.length > 500) orders.length = 500;
-      await redis.set('krosha:orders', JSON.stringify(orders));
     }
+    await redis.set('krosha:orders', JSON.stringify(orders));
     return res.status(200).json({ ok: true });
   }
 
