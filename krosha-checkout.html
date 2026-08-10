@@ -367,7 +367,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               <input type="text" id="checkout-name" placeholder="Tu nombre completo">
             </div>
             <div class="field">
-              <label data-es="TELÉFONO (opcional)" data-en="PHONE (optional)">TELÉFONO (opcional)</label>
+              <label id="lbl-phone" data-es="TELÉFONO (opcional)" data-en="PHONE (optional)">TELÉFONO (opcional)</label>
               <input type="tel" id="checkout-phone" placeholder="10 dígitos">
             </div>
           </div>
@@ -1390,10 +1390,17 @@ async function confirmOrder(){
     const city=document.getElementById('ship-city')?.value?.trim();
     const state=document.getElementById('ship-state')?.value?.trim();
     const zip=document.getElementById('ship-zip')?.value?.trim();
+    const phone=document.getElementById('checkout-phone')?.value?.trim();
     const missingFields=!street||!city||!zip||(isMXship&&(!colonia||!state));
     if(missingFields){
       showToast(lang==='es'?'⚠️ Completa todos los campos de dirección':'⚠️ Fill all address fields');
       document.getElementById('ship-street')?.scrollIntoView({behavior:'smooth',block:'center'});
+      return;
+    }
+    if(!phone||phone.replace(/\D/g,'').length<7){
+      showToast(lang==='es'?'⚠️ El teléfono es obligatorio para envíos físicos':'⚠️ Phone number is required for physical orders');
+      document.getElementById('checkout-phone')?.focus();
+      document.getElementById('checkout-phone')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
     if(shipCost<=0){
@@ -1472,6 +1479,15 @@ function hasPhysicalItems(){
   });
 }
 
+function _updatePhoneLabel(){
+  const lbl=document.getElementById('lbl-phone');
+  const inp=document.getElementById('checkout-phone');
+  if(!lbl)return;
+  const isPhys=hasPhysicalItems();
+  lbl.textContent=isPhys?(lang==='es'?'TELÉFONO *':'PHONE *'):(lang==='es'?'TELÉFONO (opcional)':'PHONE (optional)');
+  if(inp)inp.placeholder=isPhys?(lang==='es'?'Requerido — 10 dígitos':'Required — 10 digits'):'10 dígitos';
+}
+
 function updateShipping(){
   const box=document.getElementById('shipping-info-box');
   const shipFields=document.getElementById('ship-fields');
@@ -1525,6 +1541,7 @@ function updateShipping(){
   // Auto-quote if ship-zip already filled
   const existingZip=document.getElementById('ship-zip')?.value?.trim();
   if(existingZip&&_cpValidForCountry(existingZip,country)) cotizarEnvio();
+  _updatePhoneLabel();
 }
 
 // Valida que el CP tenga formato mínimo según el país
