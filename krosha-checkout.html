@@ -1677,6 +1677,10 @@ function selectShipRate(idx){
 }
 
 function _totalShipSubsidy(){
+  // El subsidio solo aplica para envíos nacionales (México)
+  // Para envíos internacionales se cobra la tarifa completa siempre
+  const country=document.getElementById('country-sel')?.value||'MX';
+  if(country!=='MX') return 0;
   // Suma shipSubsidy de cada item del carrito (campo guardado en el producto desde el admin)
   // Fallback: si el producto no tiene shipSubsidy pero parece ovillo, usa $10
   return getCartItems().reduce((total, i)=>{
