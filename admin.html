@@ -944,7 +944,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 
     <!-- SECCIÓN GUÍA DE ENVÍO -->
     <div id="shipping-section" style="display:none;background:#F5F5FF;border:1.5px solid #D0C8F8;border-radius:14px;padding:16px;margin-top:16px;">
-      <div style="font-size:13px;font-weight:700;color:#3A1E2E;margin-bottom:10px;">🚚 Generar guía de envío</div>
+      <div style="font-size:13px;font-weight:700;color:#3A1E2E;margin-bottom:10px;">🚚 Generar guía de envío (Envia.com)</div>
       <div id="shipment-existing" style="display:none;margin-bottom:10px;"></div>
       <div id="shipment-form">
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
@@ -962,6 +962,38 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-pink" id="gen-guia-btn" onclick="generateShippingLabel()" style="height:36px;">📦 Generar guía</button>
         </div>
         <div id="gen-guia-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+
+      <!-- Guía manual -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid #D0C8F8;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em;">📝 O ingresa guía manualmente</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-light);display:block;margin-bottom:3px;">PAQUETERÍA</label>
+            <select id="manual-carrier" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+              <option value="DHL">DHL</option>
+              <option value="FedEx">FedEx</option>
+              <option value="Estafeta">Estafeta</option>
+              <option value="Redpack">Redpack</option>
+              <option value="Paquetexpress">Paquetexpress</option>
+              <option value="UPS">UPS</option>
+              <option value="Correos de México">Correos de México</option>
+              <option value="Sendex">Sendex</option>
+              <option value="J&T Express">J&T Express</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:700;color:var(--text-light);display:block;margin-bottom:3px;">NÚMERO DE GUÍA / TRACKING</label>
+            <input type="text" id="manual-tracking" placeholder="Ej. 1234567890" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <label style="font-size:11px;font-weight:700;color:var(--text-light);display:block;margin-bottom:3px;">LINK DE RASTREO (opcional)</label>
+          <input type="url" id="manual-track-url" placeholder="https://..." style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+        </div>
+        <button class="btn btn-pink" onclick="sendShippingEmail()" style="width:100%;">📧 Guardar guía y notificar al cliente</button>
+        <div id="manual-guia-result" style="margin-top:8px;font-size:12px;"></div>
       </div>
     </div>
 
@@ -2077,6 +2109,51 @@ async function generateShippingLabel(){
     result.innerHTML=`<span style="color:var(--red);">❌ Error de conexión</span>`;
   }finally{
     btn.textContent='📦 Generar guía';btn.disabled=false;
+  }
+}
+
+async function sendShippingEmail(){
+  if(!_viewingOrder)return;
+  const carrier=document.getElementById('manual-carrier').value;
+  const tracking=document.getElementById('manual-tracking').value.trim();
+  const trackUrl=document.getElementById('manual-track-url').value.trim();
+  const result=document.getElementById('manual-guia-result');
+  if(!tracking){
+    result.innerHTML='<span style="color:var(--red);">⚠️ Ingresa el número de guía</span>';
+    return;
+  }
+  result.innerHTML='<span style="color:var(--text-light);">⏳ Enviando correo...</span>';
+  try{
+    // Guardar tracking en el pedido
+    _viewingOrder.tracking={carrier,trackingNumber:tracking,trackUrl:trackUrl||null,sentAt:new Date().toISOString()};
+    _viewingOrder.status='shipped';
+    _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{..._viewingOrder}:o);
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
+    document.getElementById('order-detail-status').value='shipped';
+    // Enviar correo al cliente
+    const r=await fetch('/api/send-shipping-email',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
+      body:JSON.stringify({
+        orderRef:_viewingOrder.ref||_viewingOrder.id,
+        customerEmail:_viewingOrder.email,
+        customerName:_viewingOrder.name,
+        carrier,
+        trackingNumber:tracking,
+        trackUrl:trackUrl||null,
+        products:_viewingOrder.products||'',
+      }),
+    });
+    const d=await r.json();
+    if(r.ok&&d.ok){
+      result.innerHTML='<span style="color:var(--green);">✅ Correo enviado y estado actualizado a Enviado</span>';
+      renderOrdersTable();
+      showToast('📧 Correo de rastreo enviado a '+_viewingOrder.email);
+    }else{
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al enviar correo'}</span>`;
+    }
+  }catch(e){
+    result.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
   }
 }
 
