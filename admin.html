@@ -1979,16 +1979,23 @@ function viewOrder(refOrId){
     </div>
     ${(()=>{
       const a=o.shippingAddress;
-      const addrHtml=a&&(a.street||a.city||a.zip)?`
-      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;">
-        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">📍 DIRECCIÓN DE ENVÍO</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.8;">
+      const hasAddr=a&&(a.street||a.city||a.zip||a.colonia||a.phone);
+      const addrHtml=hasAddr?`
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;" id="addr-display-block">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:11px;color:var(--text-light);">📍 DIRECCIÓN DE ENVÍO</div>
+          <button onclick="toggleAddrEdit()" style="font-size:11px;color:var(--pink-dark);background:none;border:none;cursor:pointer;font-weight:700;">✏️ Editar</button>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.9;">
           ${[a.street,a.number].filter(Boolean).join(' ')}${a.colonia?', '+a.colonia:''}<br>
           ${[a.city,a.state].filter(Boolean).join(', ')}${a.zip?' &nbsp;CP '+a.zip:''}<br>
-          ${a.country&&a.country!=='MX'?a.country+'<br>':''}
-          ${a.phone?'📞 '+a.phone:''}
+          ${a.country&&a.country!=='MX'?'<strong>'+a.country+'</strong><br>':''}
+          ${a.phone?'📞 '+a.phone:'<span style="color:var(--text-light);font-size:12px;">Sin teléfono registrado</span>'}
         </div>
-      </div>`:'';
+      </div>`:`
+      <div style="background:#FFF9E6;border-radius:10px;padding:10px 14px;border:1.5px dashed #F0C050;margin-top:8px;font-size:12px;color:#856404;">
+        ⚠️ No hay dirección guardada para este pedido. Puedes agregarla abajo.
+      </div>`;
       const r=o.shippingRate;
       const rateHtml=r?`
       <div style="background:#EEF6FF;border:1.5px solid #C0D8F8;border-radius:10px;padding:12px 14px;margin-top:8px;">
@@ -2004,14 +2011,44 @@ function viewOrder(refOrId){
           </div>
         </div>
       </div>`:'';
-      return addrHtml+rateHtml;
+      const trackHtml=o.tracking?`
+      <div style="background:#D4EFE3;border-radius:10px;padding:12px 14px;border:1.5px solid #b0ddc8;margin-top:8px;">
+        <div style="font-size:11px;color:#2E7D52;margin-bottom:4px;font-weight:700;">✅ GUÍA REGISTRADA</div>
+        <div style="font-size:13px;color:var(--text);font-weight:700;">${o.tracking.carrier} — ${o.tracking.trackingNumber}</div>
+        ${o.tracking.trackUrl?`<a href="${o.tracking.trackUrl}" target="_blank" style="font-size:12px;color:#2E7D52;">🔍 Rastrear</a>`:''}
+      </div>`:'';
+      return addrHtml+rateHtml+trackHtml;
     })()}
+
+    <!-- Formulario editar/agregar dirección (oculto por defecto) -->
+    <div id="addr-edit-form" style="display:none;background:#F5F5FF;border:1.5px solid #D0C8F8;border-radius:12px;padding:14px;margin-top:8px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-bottom:10px;text-transform:uppercase;">📍 Dirección de envío</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CALLE Y NÚMERO</label>
+          <input id="ae-street" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">COLONIA</label>
+          <input id="ae-colonia" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CIUDAD</label>
+          <input id="ae-city" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">ESTADO</label>
+          <input id="ae-state" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CP</label>
+          <input id="ae-zip" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">TELÉFONO</label>
+          <input id="ae-phone" type="tel" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveOrderAddress()" class="btn btn-pink btn-sm" style="flex:1;">💾 Guardar dirección</button>
+        <button onclick="toggleAddrEdit()" class="btn btn-outline btn-sm">Cancelar</button>
+      </div>
+      <div id="addr-save-result" style="margin-top:6px;font-size:12px;"></div>
+    </div>
     `;
 
-  // Mostrar sección de guía solo si tiene dirección física
+  // Mostrar sección de guía para todos los pedidos físicos
   const shipSec=document.getElementById('shipping-section');
   const shipExisting=document.getElementById('shipment-existing');
-  if(o.shippingAddress){
+  if(isPhysicalOrder(o)){
     shipSec.style.display='';
     if(o.shipment){
       shipExisting.style.display='';
@@ -2033,6 +2070,49 @@ function viewOrder(refOrId){
   document.getElementById('order-detail-modal').classList.add('open');
 }
 function closeOrderDetail(){document.getElementById('order-detail-modal').classList.remove('open');_viewingOrder=null;}
+
+function toggleAddrEdit(){
+  const form=document.getElementById('addr-edit-form');
+  if(!form)return;
+  const showing=form.style.display!=='none';
+  if(!showing&&_viewingOrder){
+    const a=_viewingOrder.shippingAddress||{};
+    document.getElementById('ae-street').value=a.street||'';
+    document.getElementById('ae-colonia').value=a.colonia||'';
+    document.getElementById('ae-city').value=a.city||'';
+    document.getElementById('ae-state').value=a.state||'';
+    document.getElementById('ae-zip').value=a.zip||'';
+    document.getElementById('ae-phone').value=a.phone||'';
+    document.getElementById('addr-save-result').innerHTML='';
+  }
+  form.style.display=showing?'none':'';
+}
+async function saveOrderAddress(){
+  if(!_viewingOrder)return;
+  const addr={
+    street:document.getElementById('ae-street').value.trim(),
+    colonia:document.getElementById('ae-colonia').value.trim(),
+    city:document.getElementById('ae-city').value.trim(),
+    state:document.getElementById('ae-state').value.trim(),
+    zip:document.getElementById('ae-zip').value.trim(),
+    phone:document.getElementById('ae-phone').value.trim(),
+    country:(_viewingOrder.shippingAddress?.country)||'MX',
+  };
+  const res=document.getElementById('addr-save-result');
+  res.innerHTML='<span style="color:var(--text-light);">Guardando...</span>';
+  _viewingOrder.shippingAddress=addr;
+  _viewingOrder.isPhysical=true;
+  _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{..._viewingOrder}:o);
+  try{
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
+    res.innerHTML='<span style="color:var(--green);">✅ Dirección guardada</span>';
+    renderOrdersTable();
+    // Reabrir para refrescar la vista
+    setTimeout(()=>viewOrder(_viewingOrder.ref||_viewingOrder.id),600);
+  }catch(e){
+    res.innerHTML='<span style="color:var(--red);">❌ Error al guardar</span>';
+  }
+}
 
 function _updatePhysToggleBtn(){
   const btn=document.getElementById('order-phys-toggle');
