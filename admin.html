@@ -356,16 +356,22 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
         <select class="filter-sel" onchange="filterOrders('',this.value)">
           <option value="">Todos los estados</option>
-          <option value="pending">Pendiente</option>
-          <option value="paid">Pagado</option>
-          <option value="shipped">Enviado</option>
-          <option value="cancelled">Cancelado</option>
+          <option value="pending">⏳ Pendiente</option>
+          <option value="paid">✅ Pagado</option>
+          <option value="shipped">🚚 Enviado</option>
+          <option value="cancelled">❌ Cancelado</option>
+        </select>
+        <select class="filter-sel" onchange="filterOrders('','',this.value)">
+          <option value="">📦 Todos los tipos</option>
+          <option value="physical">📦 Envío físico</option>
+          <option value="physical_pending">📦🔴 Físicos por enviar</option>
+          <option value="digital">📄 Solo digitales</option>
         </select>
       </div>
       <div style="overflow-x:auto;">
         <table class="data-table">
           <thead><tr>
-            <th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Fecha</th><th>Acciones</th>
+            <th>#</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Estado</th><th>Tipo</th><th>Fecha</th><th>Acciones</th>
           </tr></thead>
           <tbody id="orders-tbody"></tbody>
         </table>
@@ -1792,7 +1798,7 @@ async function clientBlobUpload(file){
 }
 
 // ── ORDERS ──
-let orderFilter='',orderStatusFilter='';
+let orderFilter='',orderStatusFilter='',orderTypeFilter='';
 let _serverOrders=[];
 
 async function loadServerOrders(){
@@ -1820,25 +1826,37 @@ function getAllOrders(){
   return merged.sort((a,b)=>new Date(b.date||b.id)-new Date(a.date||a.id));
 }
 
+function isPhysicalOrder(o){return !!(o.shippingAddress&&(o.shippingAddress.street||o.shippingAddress.city));}
 function renderOrdersTable(){
   const orders=getAllOrders();
   const filtered=orders.filter(o=>{
     const ms=!orderFilter||o.name.toLowerCase().includes(orderFilter.toLowerCase())||o.email.toLowerCase().includes(orderFilter.toLowerCase());
     const mst=!orderStatusFilter||o.status===orderStatusFilter;
-    return ms&&mst;
+    const isPhys=isPhysicalOrder(o);
+    let mtp=true;
+    if(orderTypeFilter==='physical') mtp=isPhys;
+    else if(orderTypeFilter==='physical_pending') mtp=isPhys&&o.status!=='shipped'&&o.status!=='cancelled';
+    else if(orderTypeFilter==='digital') mtp=!isPhys;
+    return ms&&mst&&mtp;
   });
-  document.getElementById('orders-tbody').innerHTML=filtered.length?filtered.map(o=>`
-    <tr>
+  document.getElementById('orders-tbody').innerHTML=filtered.length?filtered.map(o=>{
+    const isPhys=isPhysicalOrder(o);
+    const typeBadge=isPhys
+      ?`<span style="display:inline-flex;align-items:center;gap:3px;background:#EBF5FF;color:#1a5fa6;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">📦 Físico</span>`
+      :`<span style="display:inline-flex;align-items:center;gap:3px;background:#F0FFF4;color:#276749;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">📄 Digital</span>`;
+    return`<tr${isPhys&&o.status!=='shipped'&&o.status!=='cancelled'?' style="background:rgba(235,245,255,.45);"':''}>
       <td><strong>#${String(o.ref||o.id).slice(-6)}</strong></td>
       <td><strong>${o.name||'—'}</strong><div style="font-size:12px;color:var(--text-light);">${o.email}</div></td>
       <td style="font-size:12px;max-width:150px;color:var(--text-mid);">${(o.products||'').substring(0,60)}${(o.products||'').length>60?'…':''}</td>
       <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div></td>
       <td><span class="order-status ${o.status}">${statusLabel(o.status)}</span></td>
+      <td>${typeBadge}</td>
       <td style="font-size:12px;color:var(--text-light);">${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</td>
       <td><button class="btn btn-outline btn-sm" onclick="viewOrder('${o.ref||o.id}')">👁 Ver</button></td>
-    </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">No hay pedidos aún.</td></tr>';
+    </tr>`;
+  }).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light);">No hay pedidos con ese filtro.</td></tr>';
 }
-function filterOrders(s,st){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;renderOrdersTable();}
+function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
 let _viewingOrder=null;
