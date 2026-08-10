@@ -972,6 +972,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <option value="shipped">🚚 Enviado</option>
         <option value="cancelled">❌ Cancelado</option>
       </select>
+      <button id="order-phys-toggle" class="btn btn-outline btn-sm" onclick="toggleOrderPhysical()" style="white-space:nowrap;"></button>
       <button class="btn btn-outline" id="order-detail-resend-btn" onclick="resendOrderAccess()" style="flex:1;">📧 Reenviar acceso</button>
       <button class="btn btn-red btn-sm" onclick="deleteOrder()" style="white-space:nowrap;">🗑️ Eliminar pedido</button>
     </div>
@@ -1827,6 +1828,9 @@ function getAllOrders(){
 }
 
 function isPhysicalOrder(o){
+  // Flag manual puesto desde el admin
+  if(o.isPhysical===true) return true;
+  if(o.isPhysical===false) return false;
   // Dirección de envío con datos
   if(o.shippingAddress&&(o.shippingAddress.street||o.shippingAddress.city||o.shippingAddress.zip)) return true;
   // Tiene tarifa o paquete de envío calculado
@@ -1993,9 +1997,32 @@ function viewOrder(refOrId){
   }
   document.getElementById('gen-guia-result').innerHTML='';
   document.getElementById('order-detail-status').value=o.status||'paid';
+  _updatePhysToggleBtn();
   document.getElementById('order-detail-modal').classList.add('open');
 }
 function closeOrderDetail(){document.getElementById('order-detail-modal').classList.remove('open');_viewingOrder=null;}
+
+function _updatePhysToggleBtn(){
+  const btn=document.getElementById('order-phys-toggle');
+  if(!btn||!_viewingOrder)return;
+  const isPhys=isPhysicalOrder(_viewingOrder);
+  btn.textContent=isPhys?'📦 Físico ✓':'📄 Marcar físico';
+  btn.style.background=isPhys?'#EBF5FF':'';
+  btn.style.color=isPhys?'#1a5fa6':'';
+  btn.style.borderColor=isPhys?'#93C5FD':'';
+}
+async function toggleOrderPhysical(){
+  if(!_viewingOrder)return;
+  const wasPhys=isPhysicalOrder(_viewingOrder);
+  _viewingOrder.isPhysical=!wasPhys;
+  _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{...o,isPhysical:_viewingOrder.isPhysical}:o);
+  try{
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
+  }catch(e){}
+  _updatePhysToggleBtn();
+  renderOrdersTable();
+  showToast(_viewingOrder.isPhysical?'📦 Marcado como físico':'📄 Marcado como digital');
+}
 
 async function updateOrderStatus(newStatus){
   if(!_viewingOrder)return;
