@@ -182,15 +182,28 @@ export default async function handler(req, res) {
     console.log('[envia-quote]', pais_destino, cp_destino, 'status:', r.status, 'data:', JSON.stringify(data).slice(0,1000));
 
     const items = data.data || (Array.isArray(data) ? data : []);
+
+    // Envia.com puede devolver el precio en distintos campos según la versión de API
+    function extractPrice(r) {
+      return r.totalPrice || r.price || r.amount || r.totalAmount || r.rate || r.total || 0;
+    }
+    function extractCarrier(r) {
+      return r.carrier || r.carrierName || r.provider || '';
+    }
+    function extractDays(r) {
+      return r.deliveryEstimate || r.estimatedDelivery || r.days || r.transitDays || '?';
+    }
+
     const rates = items
-      .filter(r => r.totalPrice || r.price)
+      .filter(r => extractPrice(r) > 0)
       .map(r => ({
-        carrier: r.carrier || '',
-        service: r.service || '',
-        serviceDescription: r.serviceDescription || r.service || '',
-        days: r.deliveryEstimate || r.days || '?',
-        price: r.totalPrice || r.price,
-        currency: 'MXN',
+        carrier: extractCarrier(r),
+        service: r.service || r.serviceCode || '',
+        serviceDescription: r.serviceDescription || r.serviceName || r.service || '',
+        days: extractDays(r),
+        price: extractPrice(r),
+        currency: r.currency || 'MXN',
+        _raw: r,
       }));
 
     // Si la respuesta sin carrier no trajo nada, intenta por separado con cada carrier
@@ -207,15 +220,16 @@ export default async function handler(req, res) {
       results.forEach((result, i) => {
         if (result.status === 'fulfilled') {
           const val = result.value;
-          const items = val.data || (Array.isArray(val) ? val : []);
-          items.filter(r => r.totalPrice || r.price).forEach(r => {
+          const items2 = val.data || (Array.isArray(val) ? val : []);
+          items2.filter(r => extractPrice(r) > 0).forEach(r => {
             rates.push({
-              carrier: r.carrier || CARRIERS[i],
-              service: r.service || '',
-              serviceDescription: r.serviceDescription || r.service || '',
-              days: r.deliveryEstimate || r.days || '?',
-              price: r.totalPrice || r.price,
-              currency: 'MXN',
+              carrier: extractCarrier(r) || CARRIERS[i],
+              service: r.service || r.serviceCode || '',
+              serviceDescription: r.serviceDescription || r.serviceName || r.service || '',
+              days: extractDays(r),
+              price: extractPrice(r),
+              currency: r.currency || 'MXN',
+              _raw: r,
             });
           });
         }
@@ -223,7 +237,7 @@ export default async function handler(req, res) {
     }
 
     rates.sort((a, b) => a.price - b.price);
-    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: rates.length === 0 ? data : undefined, _state: getDestState(pais_destino, cp_destino) });
+    return res.status(200).json({ ok: true, rates, internacional: !isMX, _debug: data, _state: getDestState(pais_destino, cp_destino) });
 
   } catch (e) {
     return res.status(500).json({ error: e.message });

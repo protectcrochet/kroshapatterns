@@ -679,6 +679,24 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div id="t1-test-result" style="margin-top:14px;font-size:12px;display:none;padding:12px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;max-height:300px;overflow-y:auto;"></div>
       </div>
 
+      <!-- Prueba Envia.com -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📦 Prueba Envia.com (cotización real)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Prueba directamente si un código postal tiene cobertura. Muestra la respuesta cruda del API.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;flex:1;min-width:120px;">
+            <label>CP Destino</label>
+            <input type="text" id="envia-test-cp" placeholder="60954" maxlength="5" style="width:100%;box-sizing:border-box;">
+          </div>
+          <div class="field" style="margin-bottom:0;flex:1;min-width:80px;">
+            <label>Peso (kg)</label>
+            <input type="number" id="envia-test-peso" value="0.5" step="0.1" min="0.1" style="width:100%;box-sizing:border-box;">
+          </div>
+          <button class="btn btn-pink btn-sm" onclick="runEnviaTest()" style="height:38px;">🔍 Probar</button>
+        </div>
+        <div id="envia-test-result" style="display:none;margin-top:12px;border-radius:10px;overflow:hidden;"></div>
+      </div>
+
       <!-- Asignar PDFs desde Vercel Blob -->
       <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📁 Archivos en Vercel Blob → asignar a productos</div>
@@ -2496,6 +2514,39 @@ function changePwd(){
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
 }
+async function runEnviaTest(){
+  const el=document.getElementById('envia-test-result');
+  const cp=(document.getElementById('envia-test-cp')?.value||'').trim();
+  const peso=parseFloat(document.getElementById('envia-test-peso')?.value||'0.5')||0.5;
+  if(!cp||!/^\d{5}$/.test(cp)){showToast('⚠️ Ingresa un CP válido de 5 dígitos');return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="background:#FFF9E6;padding:12px 14px;font-size:12px;color:#856404;">⏳ Consultando Envia.com para CP ${cp}…</div>`;
+  try{
+    const r=await fetch('/api/envia-quote',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cp_destino:cp,pais_destino:'MX',peso,largo:25,ancho:25,alto:15}),
+    });
+    const d=await r.json();
+    const rates=d.rates||[];
+    let html='';
+    if(rates.length){
+      html+=`<div style="background:#D4EFE3;padding:10px 14px;font-size:12.5px;font-weight:700;color:#2E7D52;">✅ ${rates.length} tarifa(s) encontrada(s) para CP ${cp} — Estado: ${d._state||'?'}</div>`;
+      html+=`<div style="padding:10px 14px;background:#F5FFF9;font-size:12px;">`;
+      rates.forEach(r=>{ html+=`<div style="margin-bottom:4px;">📦 <strong>${r.carrier}</strong> ${r.serviceDescription||r.service} — $${r.price} MXN (${r.days} días)</div>`; });
+      html+=`</div>`;
+    } else {
+      html+=`<div style="background:#FEF2F2;padding:10px 14px;font-size:12.5px;font-weight:700;color:#991B1B;">❌ Sin tarifas para CP ${cp} (Estado: ${d._state||'?'})</div>`;
+    }
+    // Respuesta cruda
+    html+=`<details style="background:#F8F8F8;"><summary style="padding:8px 14px;font-size:11px;cursor:pointer;color:var(--text-light);">Ver respuesta cruda de Envia.com</summary>
+      <pre style="padding:10px 14px;margin:0;font-size:10.5px;overflow-x:auto;">${JSON.stringify(d._debug,null,2)}</pre></details>`;
+    el.innerHTML=html;
+  }catch(e){
+    el.innerHTML=`<div style="background:#FEF2F2;padding:12px 14px;font-size:12px;color:#991B1B;">❌ Error: ${e.message}</div>`;
+  }
+}
+
 async function runT1Test(){
   const el=document.getElementById('t1-test-result');
   el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
