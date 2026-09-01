@@ -513,6 +513,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
           <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
           <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setTodoAgotado()">🚫 Todo agotado</button>
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
         </div>
         <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
@@ -2873,6 +2874,26 @@ function setAllStock(){
   saveInventory(inv);
   renderInventory();
   showToast(`Stock de todos los colores actualizado a ${n}`);
+}
+
+async function setTodoAgotado(){
+  showConfirm('¿Poner todos los estambres en AGOTADO?', 'Todos los colores quedarán con 0 unidades y se guardará en el servidor.', async ()=>{
+    const inv=getInventory();
+    YARN_COLORS.forEach(c=>{inv[c]=0;});
+    saveInventory(inv);
+    renderInventory();
+    // Guardar directamente en Redis
+    try{
+      const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(inv)});
+      if(r.ok){
+        showToast('🚫 Todos los estambres marcados como agotados y guardados');
+      } else {
+        showToast('⚠️ Error al guardar en servidor — verifica tu sesión');
+      }
+    }catch(e){
+      showToast('⚠️ Error de red: '+e.message);
+    }
+  });
 }
 
 async function publishInventory(){
