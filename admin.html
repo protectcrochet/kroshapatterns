@@ -321,7 +321,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-products">
       <div class="page-header">
         <div class="page-title">Productos <em>🧸</em></div>
-        <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setKitsAgotados()">🚫 Kits agotados</button>
+          <button class="btn btn-sm" style="background:#16A34A;color:#fff;border:none;" onclick="setKitsActivos()">✅ Activar kits</button>
+          <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
+        </div>
       </div>
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar producto..." oninput="filterProdsTable(this.value)">
@@ -758,6 +762,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <select id="pf-status">
           <option value="active">Activo</option>
           <option value="draft">Borrador</option>
+          <option value="soldOut">🚫 Agotado</option>
         </select>
       </div>
       <div class="field">
@@ -1395,6 +1400,22 @@ function saveProds(d){
   localStorage.setItem(PRODS_KEY,JSON.stringify(d));
   _scheduleSync();
 }
+
+async function _setBulkKitStatus(newStatus,msg,toast){
+  showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
+    const prods=getProds();
+    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo')p.status=newStatus;});
+    saveProds(prods);
+    renderProdsTable();
+    try{
+      const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({products:prods})});
+      if(r.ok){showToast(toast);}
+      else{showToast('⚠️ Error al guardar en servidor');}
+    }catch(e){showToast('⚠️ Error de red: '+e.message);}
+  });
+}
+function setKitsAgotados(){_setBulkKitStatus('soldOut','¿Marcar todos los kits y estambres como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
+function setKitsActivos(){_setBulkKitStatus('active','¿Activar todos los kits y estambres?','✅ Todos los kits activados');}
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
 function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
