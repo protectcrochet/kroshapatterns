@@ -50,8 +50,29 @@ export default async function handler(req, res) {
         const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
         const raw = await redis.get('krosha:orders');
         const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
-        if (orders.find(o => o.ref === ref)) {
-          console.log(`Dedup: pedido ${ref} ya procesado, omitiendo correo.`);
+        const existingIdx = orders.findIndex(o => o.ref === ref);
+        if (existingIdx >= 0) {
+          // Pedido duplicado — pero si ahora tenemos dirección y antes no había, guardarla
+          const existing = orders[existingIdx];
+          let updated = false;
+          if (shippingAddress && !existing.shippingAddress) {
+            existing.shippingAddress = shippingAddress;
+            updated = true;
+          }
+          if (shippingRate && !existing.shippingRate) {
+            existing.shippingRate = shippingRate;
+            updated = true;
+          }
+          if (shippingPackage && !existing.shippingPackage) {
+            existing.shippingPackage = shippingPackage;
+            updated = true;
+          }
+          if (updated) {
+            await redis.set('krosha:orders', JSON.stringify(orders));
+            console.log(`Dedup: pedido ${ref} ya existía, actualizada dirección de envío.`);
+          } else {
+            console.log(`Dedup: pedido ${ref} ya procesado, omitiendo correo.`);
+          }
           return res.status(200).json({ success: true, orderRef: ref, duplicate: true });
         }
       } catch (e) { /* no bloquear si Redis falla */ }

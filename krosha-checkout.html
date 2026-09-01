@@ -1109,6 +1109,21 @@ async function confirmOrderMP(paymentType){
     const total=getCartTotal();
     const body={items,customerEmail:email,customerName:name,currency:cur};
     if(paymentType)body.paymentType=paymentType; // 'card' | 'oxxo' | null
+    // Incluir dirección en la preferencia para que el webhook también la tenga
+    if(hasPhysicalItems()){
+      const shipAddr={
+        street:document.getElementById('ship-street')?.value?.trim()||'',
+        colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
+        city:document.getElementById('ship-city')?.value?.trim()||'',
+        state:document.getElementById('ship-state')?.value?.trim()||'',
+        zip:document.getElementById('ship-zip')?.value?.trim()||'',
+        phone:document.getElementById('checkout-phone')?.value?.trim()||'',
+        country:document.getElementById('country-sel')?.value||'MX',
+      };
+      body.shippingAddress=shipAddr;
+      if(_shipRates[_selRateIdx])body.shippingRate=_shipRates[_selRateIdx];
+      if(_lastShipPackage)body.shippingPackage=_lastShipPackage;
+    }
     const res=await fetch('/api/create-mp-preference',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error Mercado Pago');
@@ -1147,11 +1162,26 @@ async function processMercadoPago(email,name,btn){
     }
     const total=getCartTotal();
 
+    // Incluir dirección para que el webhook también la tenga
+    const mpBody={items,customerEmail:email,customerName:name,currency:cur};
+    if(hasPhysicalItems()){
+      mpBody.shippingAddress={
+        street:document.getElementById('ship-street')?.value?.trim()||'',
+        colonia:document.getElementById('ship-colonia')?.value?.trim()||'',
+        city:document.getElementById('ship-city')?.value?.trim()||'',
+        state:document.getElementById('ship-state')?.value?.trim()||'',
+        zip:document.getElementById('ship-zip')?.value?.trim()||'',
+        phone:document.getElementById('checkout-phone')?.value?.trim()||'',
+        country:document.getElementById('country-sel')?.value||'MX',
+      };
+      if(_shipRates[_selRateIdx])mpBody.shippingRate=_shipRates[_selRateIdx];
+      if(_lastShipPackage)mpBody.shippingPackage=_lastShipPackage;
+    }
     // Call backend to create MP preference
     const res=await fetch('/api/create-mp-preference',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items,customerEmail:email,customerName:name,currency:cur}),
+      body:JSON.stringify(mpBody),
     });
     const data=await res.json();
     if(!res.ok)throw new Error(data.error||'Error con Mercado Pago');

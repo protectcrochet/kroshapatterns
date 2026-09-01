@@ -61,6 +61,9 @@ export default async function handler(req, res) {
           currency,
           payMethod: 'mercadopago',
           orderRef: ref,
+          shippingAddress: orderData.shippingAddress || null,
+          shippingRate: orderData.shippingRate || null,
+          shippingPackage: orderData.shippingPackage || null,
         }),
       });
     } else {
