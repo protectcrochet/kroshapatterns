@@ -628,7 +628,7 @@ function isOutOfStock(color){return getStock(color)===0;}
 let _publishedProducts=null;
 
 function _mapProducts(arr){
-  return arr.filter(p=>p.status==='active'||!p.status).map(p=>({
+  return arr.filter(p=>p.status==='active'||p.status==='soldOut'||!p.status).map(p=>({
     id:p.id,
     title:p.nameEs||p.title||'',
     titleEn:p.nameEn||p.titleEn||'',
