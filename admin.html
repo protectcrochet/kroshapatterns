@@ -1415,10 +1415,30 @@ function saveProds(d){
   _scheduleSync();
 }
 
+function _getGeneratedKitEstambres(prods){
+  const storedIds=new Set(prods.map(p=>p.id));
+  const result=[];
+  prods.forEach(p=>{
+    if(p.type==='kits'||p.type==='hilo'||p.type==='estambres')return;
+    const yc=p.yarnColors||(defaultYarnColors[p.id])||null;
+    const yl=p.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+    if(!yl||!yl.length)return;
+    const kitId=1000+p.id;
+    if(storedIds.has(kitId))return;
+    const shortName=(p.nameEs||p.title||'')
+      .replace(/^(Ramo M[aá]gico\s*|Mu[nñ]eca Ramo M[aá]gico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
+      .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    result.push({id:kitId,title:`Kit Estambres ${shortName}`,images:p.images||[],type:'estambres'});
+  });
+  return result;
+}
+
 function renderKitStock(){
   const inv=getInventory();
   const prods=getProds();
-  const kits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+  const storedKits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+  const generatedKits=_getGeneratedKitEstambres(prods);
+  const kits=[...storedKits,...generatedKits];
   const grid=document.getElementById('kit-stock-grid');
   const sumEl=document.getElementById('kit-stock-summary');
   if(!grid)return;
@@ -1452,7 +1472,9 @@ async function _setBulkKitStatus(newStock,msg,toast){
   showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
     const inv=getInventory();
     const prods=getProds();
-    prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres').forEach(p=>{inv['kit_'+p.id]=newStock;});
+    const storedKits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+    const generatedKits=_getGeneratedKitEstambres(prods);
+    [...storedKits,...generatedKits].forEach(p=>{inv['kit_'+p.id]=newStock;});
     saveInventory(inv);
     renderKitStock();
     try{
