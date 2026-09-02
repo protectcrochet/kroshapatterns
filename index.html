@@ -888,8 +888,9 @@ function renderCard(p,i,wish){
   const hex=isYarnColor?getYarnHex(p.yarnColorName):'';
   const yimg=isYarnColor?getYarnImg(p.yarnColorName):null;
   const delay=Math.min(i,12)*0.04;
+  const isSoldOut=p.status==='soldOut';
   return `
-  <div class="pcard" data-type="${p.type}" data-id="${p.id}" style="animation:fadeUp .4s ease ${delay}s both;" onclick="openM(${p.id})">
+  <div class="pcard${isSoldOut?' sold-out':''}" data-type="${p.type}" data-id="${p.id}" style="animation:fadeUp .4s ease ${delay}s both;${isSoldOut?'opacity:.7;':''}" onclick="${isSoldOut?'':'openM('+p.id+')'}">
     <div class="pcard-img">
       ${isYarnColor
         ?yimg
@@ -897,15 +898,18 @@ function renderCard(p,i,wish){
           :`<div class="yarn-ball-wrap" style="background:${hex}22;"><div class="yarn-ball" style="background:radial-gradient(circle at 38% 35%,rgba(255,255,255,.5) 0%,transparent 70%),${hex};"></div></div>`
         :`<img src="${p.images[0]||''}" alt="${p.title}" loading="lazy" style="object-position:${p.imagePosition||'50% 20%'};transform:scale(${p.imageZoom||1});transform-origin:${p.imagePosition||'50% 20%'};" onerror="this.style.display='none'">`
       }
-      <span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>
+      ${isSoldOut
+        ?`<span class="pbadge" style="background:#DC2626;">🚫 Agotado</span>`
+        :`<span class="pbadge ${typeBadge(p.type)}">${typeLabel(p.type)}</span>`
+      }
       <button class="pwish" onclick="event.stopPropagation();toggleWish(this)">${wish.includes(p.id)?'♥':'♡'}</button>
     </div>
     <div class="pcard-body">
       <div class="pcard-cat">${typeLabel(p.type)}</div>
       <div class="pcard-name">${isYarnColor?p.yarnColorName:(lang==='en'&&p.titleEn?p.titleEn:p.title)}</div>
       <div class="pcard-foot">
-        <div class="pcard-price">${f(p.price)}</div>
-        <button class="btn-plus" onclick="event.stopPropagation();qAdd(${p.id})">+</button>
+        <div class="pcard-price">${isSoldOut?'<span style="font-size:12px;color:#DC2626;font-weight:700;">Sin stock</span>':f(p.price)}</div>
+        ${isSoldOut?'<button class="btn-plus" style="opacity:.35;cursor:not-allowed;" disabled>+</button>':`<button class="btn-plus" onclick="event.stopPropagation();qAdd(${p.id})">+</button>`}
       </div>
     </div>
   </div>`;
@@ -1052,6 +1056,14 @@ function openM(id){
   const btnAdd=document.getElementById('mbtn-add');
   const buySub=document.querySelector('.buy-price-sub');
   const fmtEl=document.getElementById('md-format');
+  // Agotado — bloquear botones
+  if(curProd.status==='soldOut'){
+    btnBuy.style.display='none';
+    btnAdd.style.display='none';
+    if(buySub)buySub.innerHTML=`<div style="background:#FEE2E2;border:1.5px solid #FCA5A5;border-radius:12px;padding:12px 14px;text-align:center;font-size:14px;color:#DC2626;font-weight:700;">🚫 ${lang==='es'?'Agotado temporalmente — vuelve pronto':'Temporarily out of stock — check back soon'}</div>`;
+    document.getElementById('ov').classList.add('open');
+    return;
+  }
   if(curProd.yarnColorName){
     btnBuy.style.display='none';
     btnAdd.style.display='none';

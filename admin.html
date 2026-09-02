@@ -321,7 +321,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-products">
       <div class="page-header">
         <div class="page-title">Productos <em>🧸</em></div>
-        <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setKitsAgotados()">🚫 Kits agotados</button>
+          <button class="btn btn-sm" style="background:#16A34A;color:#fff;border:none;" onclick="setKitsActivos()">✅ Activar kits</button>
+          <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
+        </div>
       </div>
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar producto..." oninput="filterProdsTable(this.value)">
@@ -513,6 +517,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
           <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
           <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setTodoAgotado()">🚫 Todo agotado</button>
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
         </div>
         <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
@@ -679,6 +684,24 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div id="t1-test-result" style="margin-top:14px;font-size:12px;display:none;padding:12px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;max-height:300px;overflow-y:auto;"></div>
       </div>
 
+      <!-- Prueba Envia.com -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📦 Prueba Envia.com (cotización real)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Prueba directamente si un código postal tiene cobertura. Muestra la respuesta cruda del API.</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;">
+          <div class="field" style="margin-bottom:0;flex:1;min-width:120px;">
+            <label>CP Destino</label>
+            <input type="text" id="envia-test-cp" placeholder="60954" maxlength="5" style="width:100%;box-sizing:border-box;">
+          </div>
+          <div class="field" style="margin-bottom:0;flex:1;min-width:80px;">
+            <label>Peso (kg)</label>
+            <input type="number" id="envia-test-peso" value="0.5" step="0.1" min="0.1" style="width:100%;box-sizing:border-box;">
+          </div>
+          <button class="btn btn-pink btn-sm" onclick="runEnviaTest()" style="height:38px;">🔍 Probar</button>
+        </div>
+        <div id="envia-test-result" style="display:none;margin-top:12px;border-radius:10px;overflow:hidden;"></div>
+      </div>
+
       <!-- Asignar PDFs desde Vercel Blob -->
       <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-top:20px;">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px;">📁 Archivos en Vercel Blob → asignar a productos</div>
@@ -739,6 +762,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <select id="pf-status">
           <option value="active">Activo</option>
           <option value="draft">Borrador</option>
+          <option value="soldOut">🚫 Agotado</option>
         </select>
       </div>
       <div class="field">
@@ -1376,6 +1400,22 @@ function saveProds(d){
   localStorage.setItem(PRODS_KEY,JSON.stringify(d));
   _scheduleSync();
 }
+
+async function _setBulkKitStatus(newStatus,msg,toast){
+  showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
+    const prods=getProds();
+    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo')p.status=newStatus;});
+    saveProds(prods);
+    renderProdsTable();
+    try{
+      const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({products:prods})});
+      if(r.ok){showToast(toast);}
+      else{showToast('⚠️ Error al guardar en servidor');}
+    }catch(e){showToast('⚠️ Error de red: '+e.message);}
+  });
+}
+function setKitsAgotados(){_setBulkKitStatus('soldOut','¿Marcar todos los kits y estambres como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
+function setKitsActivos(){_setBulkKitStatus('active','¿Activar todos los kits y estambres?','✅ Todos los kits activados');}
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
 function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
@@ -1979,16 +2019,23 @@ function viewOrder(refOrId){
     </div>
     ${(()=>{
       const a=o.shippingAddress;
-      const addrHtml=a&&(a.street||a.city||a.zip)?`
-      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;">
-        <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">📍 DIRECCIÓN DE ENVÍO</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.8;">
+      const hasAddr=a&&(a.street||a.city||a.zip||a.colonia||a.phone);
+      const addrHtml=hasAddr?`
+      <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-top:8px;" id="addr-display-block">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:11px;color:var(--text-light);">📍 DIRECCIÓN DE ENVÍO</div>
+          <button onclick="toggleAddrEdit()" style="font-size:11px;color:var(--pink-dark);background:none;border:none;cursor:pointer;font-weight:700;">✏️ Editar</button>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.9;">
           ${[a.street,a.number].filter(Boolean).join(' ')}${a.colonia?', '+a.colonia:''}<br>
           ${[a.city,a.state].filter(Boolean).join(', ')}${a.zip?' &nbsp;CP '+a.zip:''}<br>
-          ${a.country&&a.country!=='MX'?a.country+'<br>':''}
-          ${a.phone?'📞 '+a.phone:''}
+          ${a.country&&a.country!=='MX'?'<strong>'+a.country+'</strong><br>':''}
+          ${a.phone?'📞 '+a.phone:'<span style="color:var(--text-light);font-size:12px;">Sin teléfono registrado</span>'}
         </div>
-      </div>`:'';
+      </div>`:`
+      <div style="background:#FFF9E6;border-radius:10px;padding:10px 14px;border:1.5px dashed #F0C050;margin-top:8px;font-size:12px;color:#856404;">
+        ⚠️ No hay dirección guardada para este pedido. Puedes agregarla abajo.
+      </div>`;
       const r=o.shippingRate;
       const rateHtml=r?`
       <div style="background:#EEF6FF;border:1.5px solid #C0D8F8;border-radius:10px;padding:12px 14px;margin-top:8px;">
@@ -2004,14 +2051,44 @@ function viewOrder(refOrId){
           </div>
         </div>
       </div>`:'';
-      return addrHtml+rateHtml;
+      const trackHtml=o.tracking?`
+      <div style="background:#D4EFE3;border-radius:10px;padding:12px 14px;border:1.5px solid #b0ddc8;margin-top:8px;">
+        <div style="font-size:11px;color:#2E7D52;margin-bottom:4px;font-weight:700;">✅ GUÍA REGISTRADA</div>
+        <div style="font-size:13px;color:var(--text);font-weight:700;">${o.tracking.carrier} — ${o.tracking.trackingNumber}</div>
+        ${o.tracking.trackUrl?`<a href="${o.tracking.trackUrl}" target="_blank" style="font-size:12px;color:#2E7D52;">🔍 Rastrear</a>`:''}
+      </div>`:'';
+      return addrHtml+rateHtml+trackHtml;
     })()}
+
+    <!-- Formulario editar/agregar dirección (oculto por defecto) -->
+    <div id="addr-edit-form" style="display:none;background:#F5F5FF;border:1.5px solid #D0C8F8;border-radius:12px;padding:14px;margin-top:8px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text-light);margin-bottom:10px;text-transform:uppercase;">📍 Dirección de envío</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CALLE Y NÚMERO</label>
+          <input id="ae-street" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">COLONIA</label>
+          <input id="ae-colonia" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CIUDAD</label>
+          <input id="ae-city" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">ESTADO</label>
+          <input id="ae-state" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">CP</label>
+          <input id="ae-zip" type="text" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+        <div><label style="font-size:10px;font-weight:700;color:var(--text-light);display:block;margin-bottom:2px;">TELÉFONO</label>
+          <input id="ae-phone" type="tel" style="width:100%;box-sizing:border-box;border:1.5px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;font-family:'Nunito',sans-serif;"></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveOrderAddress()" class="btn btn-pink btn-sm" style="flex:1;">💾 Guardar dirección</button>
+        <button onclick="toggleAddrEdit()" class="btn btn-outline btn-sm">Cancelar</button>
+      </div>
+      <div id="addr-save-result" style="margin-top:6px;font-size:12px;"></div>
+    </div>
     `;
 
-  // Mostrar sección de guía solo si tiene dirección física
+  // Mostrar sección de guía para todos los pedidos físicos
   const shipSec=document.getElementById('shipping-section');
   const shipExisting=document.getElementById('shipment-existing');
-  if(o.shippingAddress){
+  if(isPhysicalOrder(o)){
     shipSec.style.display='';
     if(o.shipment){
       shipExisting.style.display='';
@@ -2033,6 +2110,49 @@ function viewOrder(refOrId){
   document.getElementById('order-detail-modal').classList.add('open');
 }
 function closeOrderDetail(){document.getElementById('order-detail-modal').classList.remove('open');_viewingOrder=null;}
+
+function toggleAddrEdit(){
+  const form=document.getElementById('addr-edit-form');
+  if(!form)return;
+  const showing=form.style.display!=='none';
+  if(!showing&&_viewingOrder){
+    const a=_viewingOrder.shippingAddress||{};
+    document.getElementById('ae-street').value=a.street||'';
+    document.getElementById('ae-colonia').value=a.colonia||'';
+    document.getElementById('ae-city').value=a.city||'';
+    document.getElementById('ae-state').value=a.state||'';
+    document.getElementById('ae-zip').value=a.zip||'';
+    document.getElementById('ae-phone').value=a.phone||'';
+    document.getElementById('addr-save-result').innerHTML='';
+  }
+  form.style.display=showing?'none':'';
+}
+async function saveOrderAddress(){
+  if(!_viewingOrder)return;
+  const addr={
+    street:document.getElementById('ae-street').value.trim(),
+    colonia:document.getElementById('ae-colonia').value.trim(),
+    city:document.getElementById('ae-city').value.trim(),
+    state:document.getElementById('ae-state').value.trim(),
+    zip:document.getElementById('ae-zip').value.trim(),
+    phone:document.getElementById('ae-phone').value.trim(),
+    country:(_viewingOrder.shippingAddress?.country)||'MX',
+  };
+  const res=document.getElementById('addr-save-result');
+  res.innerHTML='<span style="color:var(--text-light);">Guardando...</span>';
+  _viewingOrder.shippingAddress=addr;
+  _viewingOrder.isPhysical=true;
+  _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{..._viewingOrder}:o);
+  try{
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
+    res.innerHTML='<span style="color:var(--green);">✅ Dirección guardada</span>';
+    renderOrdersTable();
+    // Reabrir para refrescar la vista
+    setTimeout(()=>viewOrder(_viewingOrder.ref||_viewingOrder.id),600);
+  }catch(e){
+    res.innerHTML='<span style="color:var(--red);">❌ Error al guardar</span>';
+  }
+}
 
 function _updatePhysToggleBtn(){
   const btn=document.getElementById('order-phys-toggle');
@@ -2416,6 +2536,39 @@ function changePwd(){
   ['pwd-current','pwd-new','pwd-confirm'].forEach(id=>document.getElementById(id).value='');
   showToast('🔑 Contraseña del panel actualizada');
 }
+async function runEnviaTest(){
+  const el=document.getElementById('envia-test-result');
+  const cp=(document.getElementById('envia-test-cp')?.value||'').trim();
+  const peso=parseFloat(document.getElementById('envia-test-peso')?.value||'0.5')||0.5;
+  if(!cp||!/^\d{5}$/.test(cp)){showToast('⚠️ Ingresa un CP válido de 5 dígitos');return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="background:#FFF9E6;padding:12px 14px;font-size:12px;color:#856404;">⏳ Consultando Envia.com para CP ${cp}…</div>`;
+  try{
+    const r=await fetch('/api/envia-quote',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cp_destino:cp,pais_destino:'MX',peso,largo:25,ancho:25,alto:15}),
+    });
+    const d=await r.json();
+    const rates=d.rates||[];
+    let html='';
+    if(rates.length){
+      html+=`<div style="background:#D4EFE3;padding:10px 14px;font-size:12.5px;font-weight:700;color:#2E7D52;">✅ ${rates.length} tarifa(s) encontrada(s) para CP ${cp} — Estado: ${d._state||'?'}</div>`;
+      html+=`<div style="padding:10px 14px;background:#F5FFF9;font-size:12px;">`;
+      rates.forEach(r=>{ html+=`<div style="margin-bottom:4px;">📦 <strong>${r.carrier}</strong> ${r.serviceDescription||r.service} — $${r.price} MXN (${r.days} días)</div>`; });
+      html+=`</div>`;
+    } else {
+      html+=`<div style="background:#FEF2F2;padding:10px 14px;font-size:12.5px;font-weight:700;color:#991B1B;">❌ Sin tarifas para CP ${cp} (Estado: ${d._state||'?'})</div>`;
+    }
+    // Respuesta cruda
+    html+=`<details style="background:#F8F8F8;"><summary style="padding:8px 14px;font-size:11px;cursor:pointer;color:var(--text-light);">Ver respuesta cruda de Envia.com</summary>
+      <pre style="padding:10px 14px;margin:0;font-size:10.5px;overflow-x:auto;">${JSON.stringify(d._debug,null,2)}</pre></details>`;
+    el.innerHTML=html;
+  }catch(e){
+    el.innerHTML=`<div style="background:#FEF2F2;padding:12px 14px;font-size:12px;color:#991B1B;">❌ Error: ${e.message}</div>`;
+  }
+}
+
 async function runT1Test(){
   const el=document.getElementById('t1-test-result');
   el.style.display='block';el.style.background='#FFF9E6';el.style.color='#856404';
@@ -2742,6 +2895,26 @@ function setAllStock(){
   saveInventory(inv);
   renderInventory();
   showToast(`Stock de todos los colores actualizado a ${n}`);
+}
+
+async function setTodoAgotado(){
+  showConfirm('¿Poner todos los estambres en AGOTADO?', 'Todos los colores quedarán con 0 unidades y se guardará en el servidor.', async ()=>{
+    const inv=getInventory();
+    YARN_COLORS.forEach(c=>{inv[c]=0;});
+    saveInventory(inv);
+    renderInventory();
+    // Guardar directamente en Redis
+    try{
+      const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(inv)});
+      if(r.ok){
+        showToast('🚫 Todos los estambres marcados como agotados y guardados');
+      } else {
+        showToast('⚠️ Error al guardar en servidor — verifica tu sesión');
+      }
+    }catch(e){
+      showToast('⚠️ Error de red: '+e.message);
+    }
+  });
 }
 
 async function publishInventory(){

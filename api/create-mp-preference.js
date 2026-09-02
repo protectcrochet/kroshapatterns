@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       accessToken: process.env.MP_ACCESS_TOKEN,
     });
 
-    const { items, customerEmail, customerName, currency, paymentType } = req.body;
+    const { items, customerEmail, customerName, currency, paymentType, shippingAddress, shippingRate, shippingPackage } = req.body;
 
     if (!items?.length || !customerEmail) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -67,6 +67,9 @@ export default async function handler(req, res) {
         customerName: customerName || 'Cliente',
         currency: currency || 'MXN',
         orderRef: ref,
+        shippingAddress: shippingAddress || null,
+        shippingRate: shippingRate || null,
+        shippingPackage: shippingPackage || null,
       }), { ex: 60 * 60 * 24 * 7 });
     } catch (kvErr) {
       console.error('Redis store error (non-fatal):', kvErr);
