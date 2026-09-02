@@ -510,12 +510,26 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <!-- INVENTARIO -->
     <div class="tab-section" id="tab-inventory">
       <div class="page-header">
-        <div class="page-title">Inventario de Estambres <em>🧶</em></div>
+        <div class="page-title">Inventario <em>🧶📦</em></div>
         <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
       </div>
+
+      <!-- Kits -->
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
+          <span style="font-size:16px;font-weight:700;color:var(--text);">📦 Stock de Kits</span>
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setKitsAgotados()">🚫 Kits agotados</button>
+          <button class="btn btn-sm" style="background:#16A34A;color:#fff;border:none;" onclick="setKitsActivos()">✅ Activar kits</button>
+          <span id="kit-stock-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+        </div>
+        <div id="kit-stock-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;"></div>
+      </div>
+
+      <!-- Estambres -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <span style="font-size:16px;font-weight:700;color:var(--text);">🧶 Stock de Estambres</span>
+          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:200px;">
           <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
           <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setTodoAgotado()">🚫 Todo agotado</button>
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
@@ -1401,21 +1415,55 @@ function saveProds(d){
   _scheduleSync();
 }
 
-async function _setBulkKitStatus(newStatus,msg,toast){
+function renderKitStock(){
+  const inv=getInventory();
+  const prods=getProds();
+  const kits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+  const grid=document.getElementById('kit-stock-grid');
+  const sumEl=document.getElementById('kit-stock-summary');
+  if(!grid)return;
+  let agotados=0;
+  grid.innerHTML=kits.map(p=>{
+    const key='kit_'+p.id;
+    const stock=inv[key]??10;
+    if(stock===0)agotados++;
+    const name=p.nameEs||p.title||'Kit';
+    const img=(p.images||[])[0]||'';
+    return `<div style="background:${stock===0?'#FEF2F2':'var(--pink-mid)'};border:1.5px solid ${stock===0?'#FCA5A5':'var(--border)'};border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+      ${img?`<img src="${img}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:'<div style="width:44px;height:44px;background:var(--pink);border-radius:8px;flex-shrink:0;"></div>'}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        <div style="font-size:11px;color:${stock===0?'#DC2626':'var(--text-light)'};">${stock===0?'🚫 Agotado':'✅ En stock'}</div>
+      </div>
+      <input type="number" min="0" max="9999" value="${stock}" onchange="updateKitStock('${key}',this.value)" style="width:62px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:700;text-align:center;font-family:'Nunito',sans-serif;">
+    </div>`;
+  }).join('')||(kits.length===0?'<div style="color:var(--text-light);font-size:13px;padding:20px;">No hay kits registrados.</div>':'');
+  if(sumEl)sumEl.textContent=`${agotados} agotados / ${kits.length} total`;
+}
+
+function updateKitStock(key,val){
+  const inv=getInventory();
+  inv[key]=Math.max(0,parseInt(val)||0);
+  saveInventory(inv);
+  renderKitStock();
+}
+
+async function _setBulkKitStatus(newStock,msg,toast){
   showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
+    const inv=getInventory();
     const prods=getProds();
-    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo'||p.type==='estambres')p.status=newStatus;});
-    saveProds(prods);
-    renderProdsTable();
+    prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres').forEach(p=>{inv['kit_'+p.id]=newStock;});
+    saveInventory(inv);
+    renderKitStock();
     try{
-      const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({products:prods})});
+      const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(inv)});
       if(r.ok){showToast(toast);}
       else{showToast('⚠️ Error al guardar en servidor');}
     }catch(e){showToast('⚠️ Error de red: '+e.message);}
   });
 }
-function setKitsAgotados(){_setBulkKitStatus('soldOut','¿Marcar todos los kits y estambres como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
-function setKitsActivos(){_setBulkKitStatus('active','¿Activar todos los kits y estambres?','✅ Todos los kits activados');}
+function setKitsAgotados(){_setBulkKitStatus(0,'¿Marcar todos los kits como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
+function setKitsActivos(){_setBulkKitStatus(10,'¿Activar todos los kits?','✅ Todos los kits activados con stock de 10');}
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
 function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
@@ -2934,7 +2982,7 @@ function goTab(name,el){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='inventory')renderInventory();
+  if(name==='inventory'){renderInventory();renderKitStock();}
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
   if(name==='settings')populateEmailTestSelector();

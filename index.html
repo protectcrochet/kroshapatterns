@@ -628,35 +628,41 @@ function isOutOfStock(color){return getStock(color)===0;}
 let _publishedProducts=null;
 
 function _mapProducts(arr){
-  return arr.filter(p=>p.status==='active'||p.status==='soldOut'||!p.status).map(p=>({
-    id:p.id,
-    title:p.nameEs||p.title||'',
-    titleEn:p.nameEn||p.titleEn||'',
-    price:p.price||0,
-    type:p.type||'patrones',
-    skill:p.skill||'',
-    images:p.images||[],
-    desc:p.descEs||p.desc||'',
-    descEn:p.descEn||'',
-    yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
-    yarnList:p.yarnList||null,
-    kitPrice:p.kitPrice||0,
-    eyesPrice:p.eyesPrice||0,
-    eyesImg:p.eyesImg||'',
-    protectUrl:p.protectUrl||'',
-    pdfUrl:p.pdfUrl||'',
-    patternSlug:p.patternSlug||'',
-    imagePosition:p.imagePosition||'50% 20%',
-    imageZoom:p.imageZoom||1,
-    featured:!!p.featured,
-    sortOrder:p.sortOrder!=null?p.sortOrder:999,
-    shipSubsidy:p.shipSubsidy||0,
-    boxTemplate:p.boxTemplate||'',
-    boxLargo:p.boxLargo||0,
-    boxAncho:p.boxAncho||0,
-    boxAlto:p.boxAlto||0,
-    boxPeso:p.boxPeso||0,
-  }));
+  return arr.filter(p=>p.status==='active'||p.status==='soldOut'||!p.status).map(p=>{
+    const isKit=p.type==='kits'||p.type==='hilo'||p.type==='estambres';
+    const kitStock=isKit?getStock('kit_'+p.id):null;
+    const status=kitStock===0?'soldOut':(p.status||'active');
+    return {
+      id:p.id,
+      title:p.nameEs||p.title||'',
+      titleEn:p.nameEn||p.titleEn||'',
+      price:p.price||0,
+      type:p.type||'patrones',
+      status,
+      skill:p.skill||'',
+      images:p.images||[],
+      desc:p.descEs||p.desc||'',
+      descEn:p.descEn||'',
+      yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
+      yarnList:p.yarnList||null,
+      kitPrice:p.kitPrice||0,
+      eyesPrice:p.eyesPrice||0,
+      eyesImg:p.eyesImg||'',
+      protectUrl:p.protectUrl||'',
+      pdfUrl:p.pdfUrl||'',
+      patternSlug:p.patternSlug||'',
+      imagePosition:p.imagePosition||'50% 20%',
+      imageZoom:p.imageZoom||1,
+      featured:!!p.featured,
+      sortOrder:p.sortOrder!=null?p.sortOrder:999,
+      shipSubsidy:p.shipSubsidy||0,
+      boxTemplate:p.boxTemplate||'',
+      boxLargo:p.boxLargo||0,
+      boxAncho:p.boxAncho||0,
+      boxAlto:p.boxAlto||0,
+      boxPeso:p.boxPeso||0,
+    };
+  });
 }
 
 function getProducts(){
@@ -687,14 +693,16 @@ function generateYarnKits(patternProds){
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
-    const anyOutOfStock=yl.some(i=>isOutOfStock(i.color));
+    const kitStock=getStock('kit_'+kitId);
+    const anyYarnOut=yl.some(i=>isOutOfStock(i.color));
+    const isSoldOut=kitStock===0||anyYarnOut;
     result.push({
       id:kitId,
       title:`Kit Estambres ${shortName}`,
       titleEn:`Yarn Kit ${shortName}`,
       price,
       type:'estambres',
-      status:anyOutOfStock?'soldOut':'active',
+      status:isSoldOut?'soldOut':'active',
       skill:'',
       images:pat.images||[],
       desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,
