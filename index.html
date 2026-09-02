@@ -687,12 +687,14 @@ function generateYarnKits(patternProds){
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    const anyOutOfStock=yl.some(i=>isOutOfStock(i.color));
     result.push({
       id:kitId,
       title:`Kit Estambres ${shortName}`,
       titleEn:`Yarn Kit ${shortName}`,
       price,
       type:'estambres',
+      status:anyOutOfStock?'soldOut':'active',
       skill:'',
       images:pat.images||[],
       desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,

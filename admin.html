@@ -1404,7 +1404,7 @@ function saveProds(d){
 async function _setBulkKitStatus(newStatus,msg,toast){
   showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
     const prods=getProds();
-    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo')p.status=newStatus;});
+    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo'||p.type==='estambres')p.status=newStatus;});
     saveProds(prods);
     renderProdsTable();
     try{
