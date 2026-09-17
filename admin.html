@@ -1987,12 +1987,16 @@ function _orderRevenue(orders){
   return{byCurrency,count:paid.length,byMethod,byCat};
 }
 
+const CURRENCY_SYMS={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
+  COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
+  BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
+
 function renderOrdersRevenue(){
   const wrap=document.getElementById('orders-revenue-summary');
   if(!wrap)return;
   const orders=getAllOrders();
   const{byCurrency,count,byMethod,byCat}=_orderRevenue(orders);
-  const fmtAmt=(n,cur)=>'$'+Math.round(n).toLocaleString('es-MX')+' '+cur;
+  const fmtAmt=(n,cur)=>(CURRENCY_SYMS[cur]||'$')+Math.round(n).toLocaleString('es-MX')+' '+cur;
   const methodLabels={stripe:'💳 Stripe',paypal:'🅿️ PayPal',mercadopago:'🟦 Mercado Pago',manual:'✍️ Manual'};
 
   // Tarjeta total por moneda
