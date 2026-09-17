@@ -356,8 +356,13 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar manual</button>
         </div>
       </div>
-      <!-- Resumen de ingresos -->
-      <div id="orders-revenue-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
+      <!-- Resumen de ingresos por moneda y método -->
+      <div id="orders-revenue-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:16px;"></div>
+      <!-- Desglose por categoría de producto -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:none;" id="orders-cat-wrap">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">📊 Ventas por categoría</div>
+        <div id="orders-cat-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;"></div>
+      </div>
 
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
@@ -1955,50 +1960,93 @@ let _serverOrders=[];
 
 function _orderRevenue(orders){
   const paid=orders.filter(o=>o.status==='paid'||o.status==='shipped');
-  const total=paid.reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  // Agrupar totales por moneda
+  const byCurrency={};
   const byMethod={};
-  paid.forEach(o=>{const m=o.method||'stripe';byMethod[m]=(byMethod[m]||0)+(parseFloat(o.total)||0);});
-  const byCat={patrones:0,kits:0,estambres:0,accesorios:0,amigurumis:0,otro:0};
+  const byCat={patrones:0,kits:0,estambres:0,ojos:0,accesorios:0,amigurumis:0};
   paid.forEach(o=>{
+    const cur=(o.currency||'MXN').toUpperCase();
+    const amt=parseFloat(o.total)||0;
+    byCurrency[cur]=(byCurrency[cur]||0)+amt;
+    const m=o.method||'stripe';
+    if(!byMethod[m])byMethod[m]={};
+    byMethod[m][cur]=(byMethod[m][cur]||0)+amt;
     const raw=Array.isArray(o.itemsRaw)?o.itemsRaw:[];
-    if(raw.length){
-      raw.forEach(it=>{
-        const price=(parseFloat(it.price)||0)*(parseInt(it.qty)||1);
-        const t=it.type||'otro';
-        if(t==='patrones'||t==='patron')byCat.patrones+=price;
-        else if(t==='kits')byCat.kits+=price;
-        else if(t==='hilo'||t==='estambres')byCat.estambres+=price;
-        else if(t==='accesorios')byCat.accesorios+=price;
-        else if(t==='amigurumis')byCat.amigurumis+=price;
-        else byCat.otro+=price;
-      });
-    } else {
-      // sin itemsRaw: asignar al total como "otro"
-      byCat.otro+=(parseFloat(o.total)||0);
-    }
+    raw.forEach(it=>{
+      const price=(parseFloat(it.price)||0)*(parseInt(it.qty)||1);
+      const name=(it.title||it.name||'').toLowerCase();
+      const t=it.type||'';
+      if(name.includes('ojo'))byCat.ojos+=price;
+      else if(t==='patrones'||t==='patron')byCat.patrones+=price;
+      else if(t==='kits')byCat.kits+=price;
+      else if(t==='hilo'||t==='estambres')byCat.estambres+=price;
+      else if(t==='accesorios')byCat.accesorios+=price;
+      else if(t==='amigurumis')byCat.amigurumis+=price;
+    });
   });
-  return {total,count:paid.length,byMethod,byCat};
+  return{byCurrency,count:paid.length,byMethod,byCat};
 }
+
+const CURRENCY_SYMS={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
+  COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
+  BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
 
 function renderOrdersRevenue(){
   const wrap=document.getElementById('orders-revenue-summary');
   if(!wrap)return;
   const orders=getAllOrders();
-  const {total,count,byMethod}=_orderRevenue(orders);
-  const fmt=n=>'$'+Math.round(n).toLocaleString('es-MX')+' MXN';
-  const methodLabels={'stripe':'💳 Stripe','paypal':'🅿️ PayPal','mercadopago':'🟦 Mercado Pago','manual':'✍️ Manual'};
-  const methodCards=Object.entries(byMethod).map(([m,v])=>`
-    <div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;">
-      <div style="font-size:11px;color:var(--text-light);font-weight:700;margin-bottom:4px;">${methodLabels[m]||m}</div>
-      <div style="font-size:19px;font-weight:800;color:var(--text);">${fmt(v)}</div>
-    </div>`).join('');
-  wrap.innerHTML=`
+  const{byCurrency,count,byMethod,byCat}=_orderRevenue(orders);
+  const fmtAmt=(n,cur)=>(CURRENCY_SYMS[cur]||'$')+Math.round(n).toLocaleString('es-MX')+' '+cur;
+  const methodLabels={stripe:'💳 Stripe',paypal:'🅿️ PayPal',mercadopago:'🟦 Mercado Pago',manual:'✍️ Manual'};
+
+  // Tarjeta total por moneda
+  const currencyCards=Object.entries(byCurrency).map(([cur,v])=>`
     <div style="background:linear-gradient(135deg,var(--pink-dark),#c0567a);border-radius:14px;padding:16px;text-align:center;color:#fff;">
-      <div style="font-size:11px;font-weight:700;opacity:.85;margin-bottom:4px;">💰 Total vendido</div>
-      <div style="font-size:26px;font-weight:800;">${fmt(total)}</div>
+      <div style="font-size:11px;font-weight:700;opacity:.85;margin-bottom:4px;">💰 Total vendido · ${cur}</div>
+      <div style="font-size:24px;font-weight:800;">${fmtAmt(v,cur)}</div>
       <div style="font-size:12px;opacity:.8;margin-top:3px;">${count} pedido${count!==1?'s':''} pagado${count!==1?'s':''}</div>
-    </div>
-    ${methodCards}`;
+    </div>`).join('')||'<div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;color:var(--text-light);">Sin pedidos pagados</div>';
+
+  // Tarjetas por método
+  const methodCards=Object.entries(byMethod).map(([m,curMap])=>
+    Object.entries(curMap).map(([cur,v])=>`
+    <div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:14px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-light);font-weight:700;margin-bottom:4px;">${methodLabels[m]||m}</div>
+      <div style="font-size:17px;font-weight:800;color:var(--text);">${fmtAmt(v,cur)}</div>
+    </div>`).join('')
+  ).join('');
+
+  wrap.innerHTML=currencyCards+methodCards;
+
+  // Desglose por categoría (abajo del resumen)
+  const catWrap=document.getElementById('orders-cat-summary');
+  if(!catWrap)return;
+  const cats=[
+    {key:'patrones',label:'🎀 Patrones',color:'#8B3565'},
+    {key:'kits',label:'📦 Kits',color:'#60A090'},
+    {key:'estambres',label:'🧶 Kit Estambres',color:'#9060C0'},
+    {key:'ojos',label:'👁️ Ojos de seguridad',color:'#D4709A'},
+    {key:'accesorios',label:'💎 Accesorios',color:'#E08050'},
+    {key:'amigurumis',label:'🪆 Muñequitas',color:'#B06090'},
+  ].filter(c=>byCat[c.key]>0);
+  const totalCat=Object.values(byCat).reduce((s,v)=>s+v,0);
+  const wrapEl=document.getElementById('orders-cat-wrap');
+  if(wrapEl)wrapEl.style.display=cats.length?'block':'none';
+  catWrap.innerHTML=cats.length?cats.map(c=>{
+    const pct=totalCat>0?Math.round((byCat[c.key]/totalCat)*100):0;
+    return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:${c.color};">${c.label}</div>
+        <div style="margin-top:6px;background:var(--pink-mid);border-radius:20px;height:7px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${c.color};border-radius:20px;transition:width .5s;"></div>
+        </div>
+      </div>
+      <div style="text-align:right;white-space:nowrap;">
+        <div style="font-size:16px;font-weight:800;color:var(--text);">$${Math.round(byCat[c.key]).toLocaleString('es-MX')}</div>
+        <div style="font-size:11px;color:var(--text-light);">${pct}%</div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="color:var(--text-light);font-size:13px;padding:8px;">Los pedidos con detalle de productos aparecerán aquí.</div>';
 }
 
 async function loadServerOrders(){
@@ -3099,31 +3147,8 @@ async function loadAnalytics(){
 
   renderAbandonedTable(Array.isArray(carts)?carts:[]);
 
-  // Desglose por categoría
-  const {total:totalRev,byCat}=_orderRevenue(getAllOrders());
-  const catGrid=document.getElementById('cat-revenue-grid');
-  if(catGrid){
-    const cats=[
-      {key:'patrones',label:'🎀 Patrones',color:'#8B3565'},
-      {key:'kits',label:'📦 Kits',color:'#60A090'},
-      {key:'estambres',label:'🧶 Estambres',color:'#9060C0'},
-      {key:'accesorios',label:'💎 Accesorios',color:'#D4709A'},
-      {key:'amigurumis',label:'🪆 Muñequitas',color:'#E08050'},
-      {key:'otro',label:'📝 Otros',color:'#888'},
-    ].filter(c=>byCat[c.key]>0);
-    const fmt=n=>'$'+Math.round(n).toLocaleString('es-MX');
-    catGrid.innerHTML=cats.length?cats.map(c=>{
-      const pct=totalRev>0?Math.round((byCat[c.key]/totalRev)*100):0;
-      return `<div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;">
-        <div style="font-size:12px;font-weight:700;color:${c.color};margin-bottom:6px;">${c.label}</div>
-        <div style="font-size:20px;font-weight:800;color:var(--text);">${fmt(byCat[c.key])} <span style="font-size:11px;color:var(--text-light);">MXN</span></div>
-        <div style="margin-top:8px;background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
-          <div style="width:${pct}%;height:100%;background:${c.color};border-radius:20px;transition:width .5s;"></div>
-        </div>
-        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">${pct}% del total</div>
-      </div>`;
-    }).join(''):'<div style="color:var(--text-light);font-size:13px;padding:10px;">Sin pedidos pagados aún.</div>';
-  }
+  // Desglose por categoría — reusar renderOrdersRevenue que ya lo calcula
+  renderOrdersRevenue();
 }
 
 function renderAbandonedTable(carts){
