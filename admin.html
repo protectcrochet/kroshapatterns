@@ -250,6 +250,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="sb-item" onclick="goTab('hero',this);closeMobileMenu()"><span class="sb-icon">🎨</span> Hero & Banners</div>
     <div class="sb-item" onclick="goTab('inventory',this);closeMobileMenu()"><span class="sb-icon">🧶</span> Inventario</div>
     <div class="sb-item" onclick="goTab('analytics',this);closeMobileMenu()"><span class="sb-icon">📈</span> Análisis</div>
+    <div class="sb-item" onclick="goTab('finance',this);closeMobileMenu()"><span class="sb-icon">💰</span> Finanzas</div>
     <div class="sb-item" onclick="goTab('settings',this);closeMobileMenu()"><span class="sb-icon">⚙️</span> Ajustes</div>
     <div class="sb-item" onclick="doLogout()"><span class="sb-icon">🚪</span> Cerrar sesión</div>
   </div>
@@ -265,6 +266,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
       <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
       <div class="sb-item" onclick="goTab('analytics',this)"><span class="sb-icon">📈</span> Análisis</div>
+      <div class="sb-item" onclick="goTab('finance',this)"><span class="sb-icon">💰</span> Finanzas</div>
       <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
     </nav>
     <div class="sb-bottom">
@@ -356,13 +358,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar manual</button>
         </div>
       </div>
-      <!-- Resumen de ingresos por moneda y método -->
-      <div id="orders-revenue-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:16px;"></div>
-      <!-- Desglose por categoría de producto -->
-      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:none;" id="orders-cat-wrap">
-        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;">📊 Ventas por categoría</div>
-        <div id="orders-cat-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;"></div>
-      </div>
+      <!-- Mini resumen de ingresos -->
+      <div id="orders-mini-summary" style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"></div>
+      <div id="orders-revenue-summary" style="display:none;"></div>
+      <div id="orders-cat-wrap" style="display:none;"><div id="orders-cat-summary"></div></div>
 
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
@@ -593,6 +592,51 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       </div>
       <div id="abandoned-table-wrap">
         <div style="text-align:center;padding:40px;color:var(--text-light);font-size:13px;">Cargando…</div>
+      </div>
+    </div>
+
+    <!-- ── FINANZAS ── -->
+    <div class="tab-section" id="tab-finance">
+      <div class="page-header">
+        <div class="page-title">Finanzas <em>💰</em></div>
+        <button class="btn btn-outline" onclick="loadFinance()">🔄 Actualizar</button>
+      </div>
+
+      <!-- Filtro de mes -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <label style="font-size:13px;font-weight:700;color:var(--text);">📅 Período:</label>
+        <select id="fin-month" onchange="loadFinance()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;min-width:180px;">
+          <option value="">Todos los meses</option>
+        </select>
+        <span id="fin-period-label" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+      </div>
+
+      <!-- Resumen por moneda -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">🌍 Ingresos por moneda</div>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="fin-currency-table">
+            <thead><tr><th>Moneda</th><th>Total</th><th>Pedidos</th><th>Promedio por pedido</th></tr></thead>
+            <tbody id="fin-currency-body"><tr><td colspan="4" style="text-align:center;color:var(--text-light);">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Ventas por categoría -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">📊 Ventas por categoría <span style="font-size:11px;color:var(--text-light);font-weight:400;">(pedidos con detalle de ítems)</span></div>
+        <div id="fin-cat-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;"></div>
+      </div>
+
+      <!-- Por mes -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;" id="fin-monthly-wrap">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;">📅 Desglose mensual (MXN)</div>
+        <div style="overflow-x:auto;">
+          <table class="data-table">
+            <thead><tr><th>Mes</th><th>Ingresos MXN</th><th>Pedidos</th><th>Otras monedas</th></tr></thead>
+            <tbody id="fin-monthly-body"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1990,54 +2034,110 @@ function _orderRevenue(orders){
 const CURRENCY_SYMS={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
   COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
   BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
+const fmtAmt=(n,cur)=>(CURRENCY_SYMS[cur]||'$')+Math.round(n).toLocaleString('es-MX')+' '+cur;
+const MONTH_NAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
 function renderOrdersRevenue(){
-  const wrap=document.getElementById('orders-revenue-summary');
-  if(!wrap)return;
+  // Solo mini-resumen en tab Pedidos
+  const mini=document.getElementById('orders-mini-summary');
+  if(!mini)return;
+  const{byCurrency,count}=_orderRevenue(getAllOrders());
+  const mxn=byCurrency['MXN'];
+  const others=Object.entries(byCurrency).filter(([c])=>c!=='MXN').map(([c,v])=>fmtAmt(v,c)).join(' · ');
+  mini.innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--pink-dark),#c0567a);border-radius:12px;padding:10px 18px;color:#fff;display:flex;align-items:center;gap:12px;">
+      <div><div style="font-size:11px;opacity:.8;">💰 Total MXN · ${count} pedido${count!==1?'s':''} pagado${count!==1?'s':''}</div>
+      <div style="font-size:20px;font-weight:800;">${mxn?fmtAmt(mxn,'MXN'):'$0 MXN'}</div></div>
+    </div>
+    ${others?`<div style="font-size:12px;color:var(--text-light);padding:6px 0;">+ otras monedas: ${others} · <a href="#" onclick="goTab('finance',document.querySelector('.sb-item:nth-child(8)'));return false;" style="color:var(--pink-dark);font-weight:700;">Ver desglose completo →</a></div>`:''}`;
+}
+
+function loadFinance(){
+  if(!_serverOrders.length){
+    loadServerOrders().then(()=>_renderFinance());
+  } else {
+    _renderFinance();
+  }
+}
+
+function _renderFinance(){
   const orders=getAllOrders();
-  const{byCurrency,count,byMethod,byCat}=_orderRevenue(orders);
-  const fmtAmt=(n,cur)=>(CURRENCY_SYMS[cur]||'$')+Math.round(n).toLocaleString('es-MX')+' '+cur;
-  const methodLabels={stripe:'💳 Stripe',paypal:'🅿️ PayPal',mercadopago:'🟦 Mercado Pago',manual:'✍️ Manual'};
+  const paid=orders.filter(o=>o.status==='paid'||o.status==='shipped');
 
-  // Tarjeta total por moneda
-  const currencyCards=Object.entries(byCurrency).map(([cur,v])=>`
-    <div style="background:linear-gradient(135deg,var(--pink-dark),#c0567a);border-radius:14px;padding:16px;text-align:center;color:#fff;">
-      <div style="font-size:11px;font-weight:700;opacity:.85;margin-bottom:4px;">💰 Total vendido · ${cur}</div>
-      <div style="font-size:24px;font-weight:800;">${fmtAmt(v,cur)}</div>
-      <div style="font-size:12px;opacity:.8;margin-top:3px;">${count} pedido${count!==1?'s':''} pagado${count!==1?'s':''}</div>
-    </div>`).join('')||'<div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;color:var(--text-light);">Sin pedidos pagados</div>';
+  // Poblar selector de meses
+  const monthSel=document.getElementById('fin-month');
+  const monthsSet=new Set();
+  paid.forEach(o=>{
+    const d=new Date(o.date||o.id);
+    if(!isNaN(d))monthsSet.add(d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0'));
+  });
+  const sortedMonths=[...monthsSet].sort().reverse();
+  const prevVal=monthSel.value;
+  monthSel.innerHTML='<option value="">Todos los meses</option>'+
+    sortedMonths.map(m=>{
+      const [y,mo]=m.split('-');
+      return`<option value="${m}">${MONTH_NAMES[parseInt(mo)-1]} ${y}</option>`;
+    }).join('');
+  if(prevVal&&monthsSet.has(prevVal))monthSel.value=prevVal;
 
-  // Tarjetas por método
-  const methodCards=Object.entries(byMethod).map(([m,curMap])=>
-    Object.entries(curMap).map(([cur,v])=>`
-    <div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:14px;text-align:center;">
-      <div style="font-size:11px;color:var(--text-light);font-weight:700;margin-bottom:4px;">${methodLabels[m]||m}</div>
-      <div style="font-size:17px;font-weight:800;color:var(--text);">${fmtAmt(v,cur)}</div>
-    </div>`).join('')
-  ).join('');
+  const selMonth=monthSel.value;
+  const filtered=selMonth?paid.filter(o=>{
+    const d=new Date(o.date||o.id);
+    return!isNaN(d)&&d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')===selMonth;
+  }):paid;
 
-  wrap.innerHTML=currencyCards+methodCards;
+  // Ingresos por moneda
+  const byCur={};
+  filtered.forEach(o=>{
+    const cur=(o.currency||'MXN').toUpperCase();
+    if(!byCur[cur]){byCur[cur]={total:0,count:0};}
+    byCur[cur].total+=parseFloat(o.total)||0;
+    byCur[cur].count++;
+  });
 
-  // Desglose por categoría (abajo del resumen)
-  const catWrap=document.getElementById('orders-cat-summary');
-  if(!catWrap)return;
+  // Tabla monedas
+  const currBody=document.getElementById('fin-currency-body');
+  const curEntries=Object.entries(byCur).sort((a,b)=>b[1].total-a[1].total);
+  currBody.innerHTML=curEntries.length?curEntries.map(([cur,d])=>`
+    <tr>
+      <td><strong>${cur}</strong></td>
+      <td style="font-size:16px;font-weight:800;color:var(--pink-dark);">${fmtAmt(d.total,cur)}</td>
+      <td>${d.count} pedido${d.count!==1?'s':''}</td>
+      <td style="color:var(--text-light);">${fmtAmt(d.count>0?d.total/d.count:0,cur)}</td>
+    </tr>`).join('')
+    :'<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Sin pedidos en este período</td></tr>';
+
+  // Categorías
+  const byCat={patrones:0,kits:0,estambres:0,ojos:0,accesorios:0,amigurumis:0};
+  filtered.forEach(o=>{
+    (Array.isArray(o.itemsRaw)?o.itemsRaw:[]).forEach(it=>{
+      const price=(parseFloat(it.price)||0)*(parseInt(it.qty)||1);
+      const name=(it.title||it.name||'').toLowerCase();
+      const t=it.type||'';
+      if(name.includes('ojo'))byCat.ojos+=price;
+      else if(t==='patrones'||t==='patron')byCat.patrones+=price;
+      else if(t==='kits')byCat.kits+=price;
+      else if(t==='hilo'||t==='estambres')byCat.estambres+=price;
+      else if(t==='accesorios')byCat.accesorios+=price;
+      else if(t==='amigurumis')byCat.amigurumis+=price;
+    });
+  });
   const cats=[
     {key:'patrones',label:'🎀 Patrones',color:'#8B3565'},
-    {key:'kits',label:'📦 Kits',color:'#60A090'},
+    {key:'kits',label:'📦 Kits crochet',color:'#60A090'},
     {key:'estambres',label:'🧶 Kit Estambres',color:'#9060C0'},
     {key:'ojos',label:'👁️ Ojos de seguridad',color:'#D4709A'},
     {key:'accesorios',label:'💎 Accesorios',color:'#E08050'},
     {key:'amigurumis',label:'🪆 Muñequitas',color:'#B06090'},
   ].filter(c=>byCat[c.key]>0);
   const totalCat=Object.values(byCat).reduce((s,v)=>s+v,0);
-  const wrapEl=document.getElementById('orders-cat-wrap');
-  if(wrapEl)wrapEl.style.display=cats.length?'block':'none';
-  catWrap.innerHTML=cats.length?cats.map(c=>{
+  const catGrid=document.getElementById('fin-cat-grid');
+  catGrid.innerHTML=cats.length?cats.map(c=>{
     const pct=totalCat>0?Math.round((byCat[c.key]/totalCat)*100):0;
-    return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+    return`<div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;color:${c.color};">${c.label}</div>
-        <div style="margin-top:6px;background:var(--pink-mid);border-radius:20px;height:7px;overflow:hidden;">
+        <div style="margin-top:6px;background:rgba(0,0,0,.08);border-radius:20px;height:7px;overflow:hidden;">
           <div style="width:${pct}%;height:100%;background:${c.color};border-radius:20px;transition:width .5s;"></div>
         </div>
       </div>
@@ -2046,7 +2146,43 @@ function renderOrdersRevenue(){
         <div style="font-size:11px;color:var(--text-light);">${pct}%</div>
       </div>
     </div>`;
-  }).join(''):'<div style="color:var(--text-light);font-size:13px;padding:8px;">Los pedidos con detalle de productos aparecerán aquí.</div>';
+  }).join(''):'<div style="color:var(--text-light);font-size:13px;padding:10px;grid-column:1/-1;">No hay pedidos con detalle de ítems en este período.</div>';
+
+  // Desglose mensual (solo si "Todos los meses")
+  const monthlyWrap=document.getElementById('fin-monthly-wrap');
+  if(monthlyWrap)monthlyWrap.style.display=selMonth?'none':'block';
+  if(!selMonth){
+    const byMonth={};
+    paid.forEach(o=>{
+      const d=new Date(o.date||o.id);
+      if(isNaN(d))return;
+      const key=d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0');
+      if(!byMonth[key])byMonth[key]={mxn:0,count:0,others:{}};
+      const cur=(o.currency||'MXN').toUpperCase();
+      const amt=parseFloat(o.total)||0;
+      if(cur==='MXN'){byMonth[key].mxn+=amt;}
+      else{byMonth[key].others[cur]=(byMonth[key].others[cur]||0)+amt;}
+      byMonth[key].count++;
+    });
+    const monthBody=document.getElementById('fin-monthly-body');
+    const mKeys=[...Object.keys(byMonth)].sort().reverse();
+    monthBody.innerHTML=mKeys.length?mKeys.map(k=>{
+      const[y,mo]=k.split('-');
+      const label=`${MONTH_NAMES[parseInt(mo)-1]} ${y}`;
+      const d=byMonth[k];
+      const othersStr=Object.entries(d.others).map(([c,v])=>fmtAmt(v,c)).join(', ')||'—';
+      return`<tr>
+        <td><strong>${label}</strong></td>
+        <td style="font-weight:700;color:var(--pink-dark);">${d.mxn>0?fmtAmt(d.mxn,'MXN'):'—'}</td>
+        <td>${d.count}</td>
+        <td style="font-size:12px;color:var(--text-light);">${othersStr}</td>
+      </tr>`;
+    }).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--text-light);">Sin pedidos</td></tr>';
+  }
+
+  // Etiqueta período
+  const lbl=document.getElementById('fin-period-label');
+  if(lbl)lbl.textContent=selMonth?`${filtered.length} pedidos en este mes`:`${paid.length} pedidos totales`;
 }
 
 async function loadServerOrders(){
@@ -3113,6 +3249,7 @@ function goTab(name,el){
   if(name==='inventory'){renderInventory();renderKitStock();}
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
+  if(name==='finance')loadFinance();
   if(name==='settings')populateEmailTestSelector();
 }
 
@@ -3147,8 +3284,6 @@ async function loadAnalytics(){
 
   renderAbandonedTable(Array.isArray(carts)?carts:[]);
 
-  // Desglose por categoría — reusar renderOrdersRevenue que ya lo calcula
-  renderOrdersRevenue();
 }
 
 function renderAbandonedTable(carts){
