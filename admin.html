@@ -356,6 +356,9 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar manual</button>
         </div>
       </div>
+      <!-- Resumen de ingresos -->
+      <div id="orders-revenue-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;"></div>
+
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
         <select class="filter-sel" onchange="filterOrders('',this.value)">
@@ -510,12 +513,26 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <!-- INVENTARIO -->
     <div class="tab-section" id="tab-inventory">
       <div class="page-header">
-        <div class="page-title">Inventario de Estambres <em>🧶</em></div>
+        <div class="page-title">Inventario <em>🧶📦</em></div>
         <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
       </div>
+
+      <!-- Kits -->
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:220px;">
+          <span style="font-size:16px;font-weight:700;color:var(--text);">📦 Stock de Kits</span>
+          <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setKitsAgotados()">🚫 Kits agotados</button>
+          <button class="btn btn-sm" style="background:#16A34A;color:#fff;border:none;" onclick="setKitsActivos()">✅ Activar kits</button>
+          <span id="kit-stock-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+        </div>
+        <div id="kit-stock-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;"></div>
+      </div>
+
+      <!-- Estambres -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <span style="font-size:16px;font-weight:700;color:var(--text);">🧶 Stock de Estambres</span>
+          <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:200px;">
           <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
           <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setTodoAgotado()">🚫 Todo agotado</button>
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
@@ -529,6 +546,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="page-header">
         <div class="page-title">Análisis <em>📈</em></div>
         <button class="btn btn-outline" onclick="loadAnalytics()">🔄 Actualizar</button>
+      </div>
+
+      <!-- Ventas por categoría -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:28px;">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px;">💰 Ventas por categoría</div>
+        <div id="cat-revenue-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;"></div>
       </div>
 
       <!-- Funnel -->
@@ -1401,21 +1424,77 @@ function saveProds(d){
   _scheduleSync();
 }
 
-async function _setBulkKitStatus(newStatus,msg,toast){
+function _getGeneratedKitEstambres(prods){
+  const storedIds=new Set(prods.map(p=>p.id));
+  const result=[];
+  prods.forEach(p=>{
+    if(p.type==='kits'||p.type==='hilo'||p.type==='estambres')return;
+    const yc=p.yarnColors||(defaultYarnColors[p.id])||null;
+    const yl=p.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
+    if(!yl||!yl.length)return;
+    const kitId=1000+p.id;
+    if(storedIds.has(kitId))return;
+    const shortName=(p.nameEs||p.title||'')
+      .replace(/^(Ramo M[aá]gico\s*|Mu[nñ]eca Ramo M[aá]gico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
+      .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    result.push({id:kitId,title:`Kit Estambres ${shortName}`,images:p.images||[],type:'estambres'});
+  });
+  return result;
+}
+
+function renderKitStock(){
+  const inv=getInventory();
+  const prods=getProds();
+  const storedKits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+  const generatedKits=_getGeneratedKitEstambres(prods);
+  const kits=[...storedKits,...generatedKits];
+  const grid=document.getElementById('kit-stock-grid');
+  const sumEl=document.getElementById('kit-stock-summary');
+  if(!grid)return;
+  let agotados=0;
+  grid.innerHTML=kits.map(p=>{
+    const key='kit_'+p.id;
+    const stock=inv[key]??10;
+    if(stock===0)agotados++;
+    const name=p.nameEs||p.title||'Kit';
+    const img=(p.images||[])[0]||'';
+    return `<div style="background:${stock===0?'#FEF2F2':'var(--pink-mid)'};border:1.5px solid ${stock===0?'#FCA5A5':'var(--border)'};border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+      ${img?`<img src="${img}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:'<div style="width:44px;height:44px;background:var(--pink);border-radius:8px;flex-shrink:0;"></div>'}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        <div style="font-size:11px;color:${stock===0?'#DC2626':'var(--text-light)'};">${stock===0?'🚫 Agotado':'✅ En stock'}</div>
+      </div>
+      <input type="number" min="0" max="9999" value="${stock}" onchange="updateKitStock('${key}',this.value)" style="width:62px;padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:700;text-align:center;font-family:'Nunito',sans-serif;">
+    </div>`;
+  }).join('')||(kits.length===0?'<div style="color:var(--text-light);font-size:13px;padding:20px;">No hay kits registrados.</div>':'');
+  if(sumEl)sumEl.textContent=`${agotados} agotados / ${kits.length} total`;
+}
+
+function updateKitStock(key,val){
+  const inv=getInventory();
+  inv[key]=Math.max(0,parseInt(val)||0);
+  saveInventory(inv);
+  renderKitStock();
+}
+
+async function _setBulkKitStatus(newStock,msg,toast){
   showConfirm(msg,'Los cambios se guardarán en el servidor.',async()=>{
+    const inv=getInventory();
     const prods=getProds();
-    prods.forEach(p=>{if(p.type==='kits'||p.type==='hilo')p.status=newStatus;});
-    saveProds(prods);
-    renderProdsTable();
+    const storedKits=prods.filter(p=>p.type==='kits'||p.type==='hilo'||p.type==='estambres');
+    const generatedKits=_getGeneratedKitEstambres(prods);
+    [...storedKits,...generatedKits].forEach(p=>{inv['kit_'+p.id]=newStock;});
+    saveInventory(inv);
+    renderKitStock();
     try{
-      const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({products:prods})});
+      const r=await fetch('/api/inventory',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(inv)});
       if(r.ok){showToast(toast);}
       else{showToast('⚠️ Error al guardar en servidor');}
     }catch(e){showToast('⚠️ Error de red: '+e.message);}
   });
 }
-function setKitsAgotados(){_setBulkKitStatus('soldOut','¿Marcar todos los kits y estambres como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
-function setKitsActivos(){_setBulkKitStatus('active','¿Activar todos los kits y estambres?','✅ Todos los kits activados');}
+function setKitsAgotados(){_setBulkKitStatus(0,'¿Marcar todos los kits como AGOTADOS?','🚫 Todos los kits marcados como agotados');}
+function setKitsActivos(){_setBulkKitStatus(10,'¿Activar todos los kits?','✅ Todos los kits activados con stock de 10');}
 function getOrders(){return JSON.parse(localStorage.getItem(ORDERS_KEY)||'[]');}
 function saveOrders(d){localStorage.setItem(ORDERS_KEY,JSON.stringify(d));}
 function getCusts(){return JSON.parse(localStorage.getItem(CUSTS_KEY)||'[]');}
@@ -1874,6 +1953,54 @@ async function clientBlobUpload(file){
 let orderFilter='',orderStatusFilter='',orderTypeFilter='';
 let _serverOrders=[];
 
+function _orderRevenue(orders){
+  const paid=orders.filter(o=>o.status==='paid'||o.status==='shipped');
+  const total=paid.reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  const byMethod={};
+  paid.forEach(o=>{const m=o.method||'stripe';byMethod[m]=(byMethod[m]||0)+(parseFloat(o.total)||0);});
+  const byCat={patrones:0,kits:0,estambres:0,accesorios:0,amigurumis:0,otro:0};
+  paid.forEach(o=>{
+    const raw=Array.isArray(o.itemsRaw)?o.itemsRaw:[];
+    if(raw.length){
+      raw.forEach(it=>{
+        const price=(parseFloat(it.price)||0)*(parseInt(it.qty)||1);
+        const t=it.type||'otro';
+        if(t==='patrones'||t==='patron')byCat.patrones+=price;
+        else if(t==='kits')byCat.kits+=price;
+        else if(t==='hilo'||t==='estambres')byCat.estambres+=price;
+        else if(t==='accesorios')byCat.accesorios+=price;
+        else if(t==='amigurumis')byCat.amigurumis+=price;
+        else byCat.otro+=price;
+      });
+    } else {
+      // sin itemsRaw: asignar al total como "otro"
+      byCat.otro+=(parseFloat(o.total)||0);
+    }
+  });
+  return {total,count:paid.length,byMethod,byCat};
+}
+
+function renderOrdersRevenue(){
+  const wrap=document.getElementById('orders-revenue-summary');
+  if(!wrap)return;
+  const orders=getAllOrders();
+  const {total,count,byMethod}=_orderRevenue(orders);
+  const fmt=n=>'$'+Math.round(n).toLocaleString('es-MX')+' MXN';
+  const methodLabels={'stripe':'💳 Stripe','paypal':'🅿️ PayPal','mercadopago':'🟦 Mercado Pago','manual':'✍️ Manual'};
+  const methodCards=Object.entries(byMethod).map(([m,v])=>`
+    <div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;">
+      <div style="font-size:11px;color:var(--text-light);font-weight:700;margin-bottom:4px;">${methodLabels[m]||m}</div>
+      <div style="font-size:19px;font-weight:800;color:var(--text);">${fmt(v)}</div>
+    </div>`).join('');
+  wrap.innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--pink-dark),#c0567a);border-radius:14px;padding:16px;text-align:center;color:#fff;">
+      <div style="font-size:11px;font-weight:700;opacity:.85;margin-bottom:4px;">💰 Total vendido</div>
+      <div style="font-size:26px;font-weight:800;">${fmt(total)}</div>
+      <div style="font-size:12px;opacity:.8;margin-top:3px;">${count} pedido${count!==1?'s':''} pagado${count!==1?'s':''}</div>
+    </div>
+    ${methodCards}`;
+}
+
 async function loadServerOrders(){
   try{
     const r=await fetch('/api/orders',{headers:{'x-admin-key':getApiKey()}});
@@ -1915,6 +2042,7 @@ function isPhysicalOrder(o){
   return false;
 }
 function renderOrdersTable(){
+  renderOrdersRevenue();
   const orders=getAllOrders();
   const filtered=orders.filter(o=>{
     const ms=!orderFilter||o.name.toLowerCase().includes(orderFilter.toLowerCase())||o.email.toLowerCase().includes(orderFilter.toLowerCase());
@@ -2934,7 +3062,7 @@ function goTab(name,el){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='inventory')renderInventory();
+  if(name==='inventory'){renderInventory();renderKitStock();}
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
   if(name==='settings')populateEmailTestSelector();
@@ -2970,6 +3098,32 @@ async function loadAnalytics(){
   document.getElementById('abandoned-count').textContent=abandonedCount+' carritos';
 
   renderAbandonedTable(Array.isArray(carts)?carts:[]);
+
+  // Desglose por categoría
+  const {total:totalRev,byCat}=_orderRevenue(getAllOrders());
+  const catGrid=document.getElementById('cat-revenue-grid');
+  if(catGrid){
+    const cats=[
+      {key:'patrones',label:'🎀 Patrones',color:'#8B3565'},
+      {key:'kits',label:'📦 Kits',color:'#60A090'},
+      {key:'estambres',label:'🧶 Estambres',color:'#9060C0'},
+      {key:'accesorios',label:'💎 Accesorios',color:'#D4709A'},
+      {key:'amigurumis',label:'🪆 Muñequitas',color:'#E08050'},
+      {key:'otro',label:'📝 Otros',color:'#888'},
+    ].filter(c=>byCat[c.key]>0);
+    const fmt=n=>'$'+Math.round(n).toLocaleString('es-MX');
+    catGrid.innerHTML=cats.length?cats.map(c=>{
+      const pct=totalRev>0?Math.round((byCat[c.key]/totalRev)*100):0;
+      return `<div style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:14px;padding:16px;">
+        <div style="font-size:12px;font-weight:700;color:${c.color};margin-bottom:6px;">${c.label}</div>
+        <div style="font-size:20px;font-weight:800;color:var(--text);">${fmt(byCat[c.key])} <span style="font-size:11px;color:var(--text-light);">MXN</span></div>
+        <div style="margin-top:8px;background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${c.color};border-radius:20px;transition:width .5s;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:4px;">${pct}% del total</div>
+      </div>`;
+    }).join(''):'<div style="color:var(--text-light);font-size:13px;padding:10px;">Sin pedidos pagados aún.</div>';
+  }
 }
 
 function renderAbandonedTable(carts){
