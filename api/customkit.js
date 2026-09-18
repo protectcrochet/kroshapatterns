@@ -35,6 +35,7 @@ function defaultConfig() {
   return {
     enabled: false,
     pricePerSkein: 150,
+    eyes: { enabled: false, price: 50 },
     sections: {
       piel:    { label: 'Color de Piel',  colors: [], defaultQty: 2 },
       cabello: { label: 'Cabello',         colors: [], defaultQty: 3 },

@@ -662,6 +662,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
       </div>
 
+      <!-- Ojos de seguridad -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;font-size:14px;">
+          <input type="checkbox" id="ck-eyes-enabled" style="width:18px;height:18px;accent-color:var(--pink-dark);">
+          👁 Ofrecer ojos de seguridad
+        </label>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <label style="font-size:13px;font-weight:700;color:var(--text);">Precio por par:</label>
+          <input type="number" id="ck-eyes-price" min="10" max="999" value="50" style="width:80px;padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;">
+          <span style="font-size:13px;color:var(--text-light);">MXN</span>
+        </div>
+      </div>
+
       <!-- Secciones -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;" id="ck-sections-grid">
         <!-- se renderizan dinámicamente -->
@@ -3349,6 +3362,21 @@ function renderAbandonedTable(carts){
 
 // ── KIT PERSONALIZADO (ADMIN) ──
 let _ckConfig=null;
+let _ckCatActive={};
+
+const CK_COLOR_CATEGORIES={
+  'Todos':null,
+  'Neutros':['White','Cream','Ecru','Linen','Aran','Arena S','Almond','Sand','Buff','Warm Beige','Wheat','Camel','Toffee','Hazel','Taupe','Nutmeg'],
+  'Amarillos':['Gold','Goldenrod','Mustard','Dijon Mustard','Yellow','Lemon','Maize','Sunshine','Sunny','Butterscotch'],
+  'Naranjas/Coral':['Orange','Bright Orange','Coral','Peach','Apricot','Salmon','Goldfish','Pumpkin','Sweet Potato','Ember'],
+  'Rojos':['Red','Cherry Red','Crimson','Garnet','Burgundy','Mahogany','Chestnut','Wine','Merlot','Rouge'],
+  'Rosas':['Blush','Crepe','Ballet','Pink','Hot Pink','Taffy','Rose','Raspberry','Fuchsia'],
+  'Morados':['Mauve','Light Mauve','Pale Orchid','Orchid','Thistle','Lila','Wisteria','Lilac','Purple','Violet','Dark Purple','Plum','Eggplant'],
+  'Azules':['Navy','Royal Blue','Blue','Bright Blue','Azure','Cadet','Sky Blue','Light Blue','Carolina Sky','Powder Blue','Slate','Steel','Storm','Denim','Twilight'],
+  'Verdes':['Teal','Peacock','Turquoise','Seaglass','Aqua','Mint','Celery','Spring Green','Lime','Sage','Fern','Leaf','Green','Olive','Artichoke','Juniper','Emerald','Forest','Forest Green','Pine','Spruce','Hunter','Thyme','Holly'],
+  'Cafés':['Tan','Brown','Pecan','Chocolate','Cocoa','Espresso'],
+  'Oscuros':['Charcoal','Grey','Gray','Silver','Light Gray','Black'],
+};
 
 const CK_SECTIONS=[
   {key:'piel',   label:'🩻 Color de Piel',  icon:'🩻', singleColor:true},
@@ -3365,6 +3393,9 @@ async function loadCustomKitAdmin(){
   }catch(e){_ckConfig=defaultCKConfig();}
   document.getElementById('ck-enabled').checked=!!_ckConfig.enabled;
   document.getElementById('ck-price').value=_ckConfig.pricePerSkein||150;
+  const eyes=_ckConfig.eyes||{};
+  document.getElementById('ck-eyes-enabled').checked=!!eyes.enabled;
+  document.getElementById('ck-eyes-price').value=eyes.price||50;
   renderCKSections();
 }
 
@@ -3385,27 +3416,34 @@ function renderCKSections(){
   grid.innerHTML=CK_SECTIONS.map(sec=>{
     const cfg=(_ckConfig.sections||{})[sec.key]||{colors:[],defaultQty:1};
     const selected=cfg.colors||[];
-    // colores disponibles con stock > 0
-    const available=YARN_COLORS.filter(c=>(inv[c]??0)>0);
-    const allChecked=selected.length===0;
+    const catChips=Object.keys(CK_COLOR_CATEGORIES).map(cat=>{
+      const isActive=(!_ckCatActive[sec.key]&&cat==='Todos')||_ckCatActive[sec.key]===cat;
+      return`<button class="ck-cat btn btn-sm" data-sec="${sec.key}" data-cat="${cat}"
+        onclick="ckSetCat('${sec.key}','${cat}',this)"
+        style="padding:3px 10px;font-size:11px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;
+          ${isActive?'background:var(--pink-dark);color:#fff;border-color:var(--pink-dark);':'background:transparent;color:var(--text-mid);'}">${cat}</button>`;
+    }).join('');
     return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:18px;">
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${sec.label}</div>
-      <div style="font-size:11px;color:var(--text-light);margin-bottom:12px;">Madeja por defecto:
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:10px;">Madeja por defecto:
         <input type="number" min="1" max="20" value="${cfg.defaultQty||1}" onchange="setCKDefaultQty('${sec.key}',this.value)"
           style="width:52px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Nunito',sans-serif;margin-left:4px;">
-        ${!sec.singleColor?`· Máx combos de color: <input type="number" min="1" max="8" value="${cfg.maxCombos||4}" onchange="setCKMaxCombos(this.value)"
+        ${!sec.singleColor?`· Máx combos: <input type="number" min="1" max="8" value="${cfg.maxCombos||4}" onchange="setCKMaxCombos(this.value)"
           style="width:44px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Nunito',sans-serif;margin-left:4px;">`:''}</div>
-      <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div style="margin-bottom:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',true)">✅ Todos</button>
         <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',false)">❌ Ninguno</button>
-        <span style="font-size:11px;color:var(--text-light);">${selected.length?selected.length+' seleccionados':'Todos disponibles'}</span>
+        <span style="font-size:11px;color:var(--text-light);margin-left:4px;">${selected.length?selected.length+' seleccionados':'Todos disponibles'}</span>
       </div>
-      <div style="max-height:220px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">
+      <input type="text" id="ck-search-${sec.key}" placeholder="🔍 Buscar color..." oninput="ckApplyFilter('${sec.key}')"
+        style="width:100%;padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:'Nunito',sans-serif;margin-bottom:6px;box-sizing:border-box;outline:none;">
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${catChips}</div>
+      <div id="ck-grid-${sec.key}" style="max-height:220px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">
         ${YARN_COLORS.map(c=>{
-          const inStock=(inv[c]??0)>0;
+          const inStock=inv[c]===undefined||inv[c]===null||inv[c]>0;
           const checked=selected.length===0||selected.includes(c);
           const img=getAdminYarnImg(c);
-          return`<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;cursor:pointer;background:${checked?'var(--pink-mid)':'transparent'};border:1.5px solid ${checked?'var(--pink-dark)':'var(--border)'};opacity:${inStock?1:.45};" title="${inStock?'En stock':'Agotado'}">
+          return`<label data-name="${c}" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;cursor:pointer;background:${checked?'var(--pink-mid)':'transparent'};border:1.5px solid ${checked?'var(--pink-dark)':'var(--border)'};opacity:${inStock?1:.45};" title="${inStock?'En stock':'Agotado'}">
             <input type="checkbox" ${checked?'checked':''} ${inStock?'':'disabled'} onchange="toggleCKColor('${sec.key}','${c}',this.checked)" style="accent-color:var(--pink-dark);">
             ${img?`<img src="${img}" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">`:''}
             <span style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c}</span>
@@ -3416,13 +3454,36 @@ function renderCKSections(){
   }).join('');
 }
 
+function ckApplyFilter(secKey){
+  const search=(document.getElementById(`ck-search-${secKey}`)?.value||'').toLowerCase().trim();
+  const cat=_ckCatActive[secKey]||'Todos';
+  const catColors=CK_COLOR_CATEGORIES[cat];
+  document.querySelectorAll(`#ck-grid-${secKey} label[data-name]`).forEach(label=>{
+    const name=label.dataset.name;
+    const matchSearch=!search||name.toLowerCase().includes(search);
+    const matchCat=!catColors||catColors.includes(name);
+    label.style.display=(matchSearch&&matchCat)?'':'none';
+  });
+}
+
+function ckSetCat(secKey,cat,btn){
+  _ckCatActive[secKey]=cat;
+  document.querySelectorAll(`.ck-cat[data-sec="${secKey}"]`).forEach(b=>{
+    const active=b.dataset.cat===cat;
+    b.style.background=active?'var(--pink-dark)':'transparent';
+    b.style.color=active?'#fff':'var(--text-mid)';
+    b.style.borderColor=active?'var(--pink-dark)':'var(--border)';
+  });
+  ckApplyFilter(secKey);
+}
+
 function toggleCKColor(section,color,checked){
   if(!_ckConfig.sections[section])_ckConfig.sections[section]={colors:[],defaultQty:1};
   const s=_ckConfig.sections[section];
   // Si estaba vacío (todos), expandir con todos los disponibles menos el que se desmarca
   const inv=getInventory();
   if(!s.colors.length&&!checked){
-    s.colors=YARN_COLORS.filter(c=>(inv[c]??0)>0&&c!==color);
+    s.colors=YARN_COLORS.filter(c=>(inv[c]===undefined||inv[c]===null||inv[c]>0)&&c!==color);
   } else if(checked&&!s.colors.includes(color)){
     s.colors.push(color);
   } else if(!checked){
@@ -3455,6 +3516,7 @@ async function saveCustomKit(){
   if(!_ckConfig)return;
   _ckConfig.enabled=document.getElementById('ck-enabled').checked;
   _ckConfig.pricePerSkein=parseFloat(document.getElementById('ck-price').value)||150;
+  _ckConfig.eyes={enabled:document.getElementById('ck-eyes-enabled').checked,price:parseFloat(document.getElementById('ck-eyes-price').value)||50};
   try{
     const r=await fetch('/api/customkit',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_ckConfig)});
     if(r.ok){showToast('✅ Kit personalizado guardado');}
