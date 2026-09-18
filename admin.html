@@ -251,6 +251,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="sb-item" onclick="goTab('inventory',this);closeMobileMenu()"><span class="sb-icon">🧶</span> Inventario</div>
     <div class="sb-item" onclick="goTab('analytics',this);closeMobileMenu()"><span class="sb-icon">📈</span> Análisis</div>
     <div class="sb-item" onclick="goTab('finance',this);closeMobileMenu()"><span class="sb-icon">💰</span> Finanzas</div>
+    <div class="sb-item" onclick="goTab('customkit',this);closeMobileMenu()"><span class="sb-icon">🎨</span> Kit Personalizado</div>
     <div class="sb-item" onclick="goTab('settings',this);closeMobileMenu()"><span class="sb-icon">⚙️</span> Ajustes</div>
     <div class="sb-item" onclick="doLogout()"><span class="sb-icon">🚪</span> Cerrar sesión</div>
   </div>
@@ -267,6 +268,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
       <div class="sb-item" onclick="goTab('analytics',this)"><span class="sb-icon">📈</span> Análisis</div>
       <div class="sb-item" onclick="goTab('finance',this)"><span class="sb-icon">💰</span> Finanzas</div>
+      <div class="sb-item" onclick="goTab('customkit',this)"><span class="sb-icon">🎨</span> Kit Personalizado</div>
       <div class="sb-item" onclick="goTab('settings',this)"><span class="sb-icon">⚙️</span> Ajustes</div>
     </nav>
     <div class="sb-bottom">
@@ -637,6 +639,32 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             <tbody id="fin-monthly-body"></tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- ── KIT PERSONALIZADO ── -->
+    <div class="tab-section" id="tab-customkit">
+      <div class="page-header">
+        <div class="page-title">Kit Personalizado <em>🎨</em></div>
+        <button class="btn btn-pink" onclick="saveCustomKit()">💾 Guardar cambios</button>
+      </div>
+
+      <!-- Activar y precio -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;font-size:14px;">
+          <input type="checkbox" id="ck-enabled" style="width:18px;height:18px;accent-color:var(--pink-dark);">
+          Activar Kit Personalizado en la tienda
+        </label>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+          <label style="font-size:13px;font-weight:700;color:var(--text);">Precio por madeja:</label>
+          <input type="number" id="ck-price" min="50" max="999" value="150" style="width:90px;padding:8px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;">
+          <span style="font-size:13px;color:var(--text-light);">MXN</span>
+        </div>
+      </div>
+
+      <!-- Secciones -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;" id="ck-sections-grid">
+        <!-- se renderizan dinámicamente -->
       </div>
     </div>
 
@@ -3250,6 +3278,7 @@ function goTab(name,el){
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
   if(name==='finance')loadFinance();
+  if(name==='customkit')loadCustomKitAdmin();
   if(name==='settings')populateEmailTestSelector();
 }
 
@@ -3316,6 +3345,121 @@ function renderAbandonedTable(carts){
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
+}
+
+// ── KIT PERSONALIZADO (ADMIN) ──
+let _ckConfig=null;
+
+const CK_SECTIONS=[
+  {key:'piel',   label:'🩻 Color de Piel',  icon:'🩻', singleColor:true},
+  {key:'cabello',label:'💇 Cabello',          icon:'💇', singleColor:true},
+  {key:'vestido',label:'👗 Vestido',          icon:'👗', singleColor:true},
+  {key:'forro',  label:'🎀 Forro',            icon:'🎀', singleColor:true},
+  {key:'rosas',  label:'🌸 Rosas',            icon:'🌸', singleColor:false},
+];
+
+async function loadCustomKitAdmin(){
+  try{
+    const r=await fetch('/api/customkit',{cache:'no-cache'});
+    _ckConfig=r.ok?await r.json():defaultCKConfig();
+  }catch(e){_ckConfig=defaultCKConfig();}
+  document.getElementById('ck-enabled').checked=!!_ckConfig.enabled;
+  document.getElementById('ck-price').value=_ckConfig.pricePerSkein||150;
+  renderCKSections();
+}
+
+function defaultCKConfig(){
+  return{enabled:false,pricePerSkein:150,sections:{
+    piel:{label:'Color de Piel',colors:[],defaultQty:2},
+    cabello:{label:'Cabello',colors:[],defaultQty:3},
+    vestido:{label:'Vestido',colors:[],defaultQty:4},
+    forro:{label:'Forro',colors:[],defaultQty:2},
+    rosas:{label:'Rosas',colors:[],defaultQty:1,maxCombos:4},
+  }};
+}
+
+function renderCKSections(){
+  const inv=getInventory();
+  const grid=document.getElementById('ck-sections-grid');
+  if(!grid)return;
+  grid.innerHTML=CK_SECTIONS.map(sec=>{
+    const cfg=(_ckConfig.sections||{})[sec.key]||{colors:[],defaultQty:1};
+    const selected=cfg.colors||[];
+    // colores disponibles con stock > 0
+    const available=YARN_COLORS.filter(c=>(inv[c]??0)>0);
+    const allChecked=selected.length===0;
+    return`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:18px;">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${sec.label}</div>
+      <div style="font-size:11px;color:var(--text-light);margin-bottom:12px;">Madeja por defecto:
+        <input type="number" min="1" max="20" value="${cfg.defaultQty||1}" onchange="setCKDefaultQty('${sec.key}',this.value)"
+          style="width:52px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Nunito',sans-serif;margin-left:4px;">
+        ${!sec.singleColor?`· Máx combos de color: <input type="number" min="1" max="8" value="${cfg.maxCombos||4}" onchange="setCKMaxCombos(this.value)"
+          style="width:44px;padding:3px 6px;border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-family:'Nunito',sans-serif;margin-left:4px;">`:''}</div>
+      <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',true)">✅ Todos</button>
+        <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',false)">❌ Ninguno</button>
+        <span style="font-size:11px;color:var(--text-light);">${selected.length?selected.length+' seleccionados':'Todos disponibles'}</span>
+      </div>
+      <div style="max-height:220px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;">
+        ${YARN_COLORS.map(c=>{
+          const inStock=(inv[c]??0)>0;
+          const checked=selected.length===0||selected.includes(c);
+          const img=getAdminYarnImg(c);
+          return`<label style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;cursor:pointer;background:${checked?'var(--pink-mid)':'transparent'};border:1.5px solid ${checked?'var(--pink-dark)':'var(--border)'};opacity:${inStock?1:.45};" title="${inStock?'En stock':'Agotado'}">
+            <input type="checkbox" ${checked?'checked':''} ${inStock?'':'disabled'} onchange="toggleCKColor('${sec.key}','${c}',this.checked)" style="accent-color:var(--pink-dark);">
+            ${img?`<img src="${img}" style="width:18px;height:18px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">`:''}
+            <span style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c}</span>
+          </label>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCKColor(section,color,checked){
+  if(!_ckConfig.sections[section])_ckConfig.sections[section]={colors:[],defaultQty:1};
+  const s=_ckConfig.sections[section];
+  // Si estaba vacío (todos), expandir con todos los disponibles menos el que se desmarca
+  const inv=getInventory();
+  if(!s.colors.length&&!checked){
+    s.colors=YARN_COLORS.filter(c=>(inv[c]??0)>0&&c!==color);
+  } else if(checked&&!s.colors.includes(color)){
+    s.colors.push(color);
+  } else if(!checked){
+    s.colors=s.colors.filter(c=>c!==color);
+  }
+  renderCKSections();
+}
+
+function ckSelectAll(section,selectAll){
+  if(!_ckConfig.sections[section])_ckConfig.sections[section]={colors:[],defaultQty:1};
+  _ckConfig.sections[section].colors=selectAll?[]:[]; // vacío = todos disponibles; se usa [] para "todos"
+  if(!selectAll){
+    // ninguno = lista vacía no funciona, marcamos todos como no disponibles usando string especial
+    _ckConfig.sections[section].colors=['__none__'];
+  }
+  renderCKSections();
+}
+
+function setCKDefaultQty(section,val){
+  if(!_ckConfig.sections[section])_ckConfig.sections[section]={colors:[],defaultQty:1};
+  _ckConfig.sections[section].defaultQty=Math.max(1,parseInt(val)||1);
+}
+
+function setCKMaxCombos(val){
+  if(!_ckConfig.sections.rosas)_ckConfig.sections.rosas={colors:[],defaultQty:1,maxCombos:4};
+  _ckConfig.sections.rosas.maxCombos=Math.max(1,parseInt(val)||4);
+}
+
+async function saveCustomKit(){
+  if(!_ckConfig)return;
+  _ckConfig.enabled=document.getElementById('ck-enabled').checked;
+  _ckConfig.pricePerSkein=parseFloat(document.getElementById('ck-price').value)||150;
+  try{
+    const r=await fetch('/api/customkit',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_ckConfig)});
+    if(r.ok){showToast('✅ Kit personalizado guardado');}
+    else{showToast('⚠️ Error al guardar');}
+  }catch(e){showToast('⚠️ Error de red');}
 }
 
 // ── TOAST ──
