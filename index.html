@@ -1587,6 +1587,8 @@ _loadSession();
 // ── CUSTOM KIT BUILDER ──
 let _customKitConfig=null;
 let _ckState={};
+let _ckEyes=false;
+let _ckPattern='';
 const _CK_SECTIONS=[
   {key:'piel',    label:'🩻 Color de Piel', single:true},
   {key:'cabello', label:'💇 Cabello',        single:true},
@@ -1600,7 +1602,7 @@ function renderCustomKitSection(){
   const sec=document.getElementById('custom-kit-section');
   if(!cfg||!cfg.enabled){if(sec)sec.style.display='none';return;}
   sec.style.display='';
-  _ckState={};
+  _ckState={};_ckEyes=false;_ckPattern='';
   _CK_SECTIONS.forEach(s=>{
     const sd=(cfg.sections||{})[s.key]||{};
     if(s.single)_ckState[s.key]={color:'',qty:sd.defaultQty||1};
@@ -1619,6 +1621,8 @@ function _renderCKBody(){
   if(!cfg)return;
   const body=document.getElementById('ckit-body');
   if(!body)return;
+  // Build pattern options from published products
+  const _ckPatterns=((_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}))).filter(p=>p.type==='patrones'&&p.status==='active').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   body.innerHTML=_CK_SECTIONS.map(s=>{
     const sd=(cfg.sections||{})[s.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>!isOutOfStock(c));
@@ -1663,7 +1667,26 @@ function _renderCKBody(){
           :''}
       </div>`;
     }
-  }).join('');
+  }).join('')
+  // Eyes row
+  +(cfg.eyes&&cfg.eyes.enabled?`<div class="ckit-row">
+    <div class="ckit-row-label">👁 Ojos de Seguridad</div>
+    <div class="ckit-controls">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text);">
+        <input type="checkbox" id="ckit-eyes-cb" ${_ckEyes?'checked':''} onchange="ckToggleEyes(this.checked)" style="width:18px;height:18px;accent-color:var(--pink-dark);">
+        Agregar un par de ojos de seguridad (+${f(cfg.eyes.price||0)})
+      </label>
+    </div>
+  </div>`:'')
+  // Pattern selector row
+  +`<div class="ckit-row">
+    <div class="ckit-row-label">📄 Patrón (opcional)</div>
+    <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;">¿Aún no tienes el patrón? Agrégalo aquí</div>
+    <select class="ckit-select" id="ckit-pattern-sel" onchange="ckSetPattern(this.value)" style="width:100%;">
+      <option value="">— Sin patrón (ya lo tengo) —</option>
+      ${_ckPatterns.map(p=>`<option value="${p.id}" ${p.id===parseInt(_ckPattern)?'selected':''}>${lang==='en'&&p.titleEn?p.titleEn:p.title} — ${f(p.price)}</option>`).join('')}
+    </select>
+  </div>`;
   _renderCKSummary();
 }
 
@@ -1692,6 +1715,16 @@ function ckChangeQty(key,combo,delta){
     const el=document.getElementById(`ckit-qty-${key}-${combo}`);
     if(el)el.textContent=_ckState[key][combo].qty;
   }
+  _renderCKSummary();
+}
+
+function ckToggleEyes(checked){
+  _ckEyes=checked;
+  _renderCKSummary();
+}
+
+function ckSetPattern(id){
+  _ckPattern=id;
   _renderCKSummary();
 }
 
@@ -1726,13 +1759,25 @@ function _renderCKSummary(){
   if(!el||!cfg)return;
   const totalSkeins=_ckTotalSkeins();
   const pps=cfg.pricePerSkein||150;
+  let total=totalSkeins*pps;
+  const extras=[];
+  if(_ckEyes&&cfg.eyes?.enabled){
+    const ep=cfg.eyes.price||0;
+    total+=ep;
+    extras.push(`Ojos: ${f(ep)}`);
+  }
+  if(_ckPattern){
+    const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
+    const pat=prods.find(p=>p.id===parseInt(_ckPattern));
+    if(pat){total+=pat.price;extras.push(`Patrón: ${f(pat.price)}`);}
+  }
   el.style.display='';
   el.innerHTML=`
     <div>
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;">Total: ${totalSkeins} ovillos</div>
-      <div class="ckit-summary-detail">× ${f(pps)} c/u · Premier Yarns Basix 200g</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:2px;">Total: ${totalSkeins} ovillos${extras.length?' + extras':''}</div>
+      <div class="ckit-summary-detail">× ${f(pps)} c/u · Premier Yarns Basix 200g${extras.length?'<br><span style="color:var(--pink-dark);">'+extras.join(' · ')+'</span>':''}</div>
     </div>
-    <div class="ckit-summary-price">${f(totalSkeins*pps)}</div>`;
+    <div class="ckit-summary-price">${f(total)}</div>`;
 }
 
 function addCustomKitToCart(){
@@ -1753,8 +1798,9 @@ function addCustomKitToCart(){
   const pps=cfg.pricePerSkein||150;
   const totalSkeins=_ckTotalSkeins();
   const cart=getCart();
+  const now=Date.now();
   cart.push({
-    id:'customkit-'+Date.now(),
+    id:'customkit-'+now,
     title:'Kit Personalizado',
     price:totalSkeins*pps,
     img:'',
@@ -1763,6 +1809,18 @@ function addCustomKitToCart(){
     customKit:JSON.parse(JSON.stringify(_ckState)),
     customKitSkeins:totalSkeins,
   });
+  if(_ckEyes&&cfg.eyes?.enabled){
+    cart.push({id:'eyes-ck-'+now,title:'Ojos de Seguridad (par)',price:cfg.eyes.price||0,img:'/images/IMG_5938.jpg',qty:1,type:'accesorios',shipSubsidy:0});
+  }
+  if(_ckPattern){
+    const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
+    const pat=prods.find(p=>p.id===parseInt(_ckPattern));
+    if(pat){
+      const existing=cart.find(i=>i.id===pat.id);
+      if(existing)existing.qty++;
+      else cart.push({id:pat.id,title:pat.title,price:pat.price,img:pat.images[0]||'',qty:1,type:pat.type,patternSlug:pat.patternSlug||'',pdfUrl:pat.pdfUrl||''});
+    }
+  }
   saveCart(cart);updateCartBadge();
   showToast('🎨 Kit personalizado agregado al carrito');
   renderCustomKitSection();
