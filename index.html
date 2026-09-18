@@ -1589,6 +1589,7 @@ let _customKitConfig=null;
 let _ckState={};
 let _ckEyes=false;
 let _ckPattern='';
+let _ckSameAsVestido={forro:false,rosas:false};
 const _CK_SECTIONS=[
   {key:'piel',    label:'🩻 Color de Piel', single:true},
   {key:'cabello', label:'💇 Cabello',        single:true},
@@ -1602,7 +1603,7 @@ function renderCustomKitSection(){
   const sec=document.getElementById('custom-kit-section');
   if(!cfg||!cfg.enabled){if(sec)sec.style.display='none';return;}
   sec.style.display='';
-  _ckState={};_ckEyes=false;_ckPattern='';
+  _ckState={};_ckEyes=false;_ckPattern='';_ckSameAsVestido={forro:false,rosas:false};
   _CK_SECTIONS.forEach(s=>{
     const sd=(cfg.sections||{})[s.key]||{};
     if(s.single)_ckState[s.key]={color:'',qty:sd.defaultQty||1};
@@ -1626,12 +1627,21 @@ function _renderCKBody(){
   body.innerHTML=_CK_SECTIONS.map(s=>{
     const sd=(cfg.sections||{})[s.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>!isOutOfStock(c));
+    const canLinkToVestido=(s.key==='forro'||s.key==='rosas');
+    const isLinked=canLinkToVestido&&_ckSameAsVestido[s.key];
+    const linkChk=canLinkToVestido
+      ?`<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;color:var(--text-mid);margin-bottom:8px;">
+          <input type="checkbox" ${isLinked?'checked':''} onchange="ckToggleSameAsVestido('${s.key}',this.checked)" style="accent-color:var(--pink-dark);">
+          🔗 Misma selección que Vestido
+        </label>`
+      :'';
     if(s.single){
       const st=_ckState[s.key]||{color:'',qty:1};
       const hex=st.color?getYarnHex(st.color):'#eee';
       return`<div class="ckit-row">
         <div class="ckit-row-label">${s.label}</div>
-        <div class="ckit-controls">
+        ${linkChk}
+        <div class="ckit-controls" ${isLinked?'style="opacity:.65;pointer-events:none;"':''}>
           <div class="ckit-swatch" id="ckit-swatch-${s.key}" style="background:${hex};"></div>
           <select class="ckit-select" onchange="ckSetColor('${s.key}',null,this.value)">${_ckOpts(avail,st.color)}</select>
           <div class="ckit-qty-row">
@@ -1649,20 +1659,21 @@ function _renderCKBody(){
         const hex=combo.color?getYarnHex(combo.color):'#eee';
         return`<div class="ckit-combo-row">
           <div class="ckit-swatch" id="ckit-swatch-${s.key}-${i}" style="background:${hex};"></div>
-          <select class="ckit-select" onchange="ckSetColor('${s.key}',${i},this.value)">${_ckOpts(avail,combo.color)}</select>
+          <select class="ckit-select" ${isLinked?'disabled':''} onchange="ckSetColor('${s.key}',${i},this.value)">${_ckOpts(avail,combo.color)}</select>
           <div class="ckit-qty-row">
             <button class="ckit-qty-btn" onclick="ckChangeQty('${s.key}',${i},-1)">−</button>
             <span class="ckit-qty-val" id="ckit-qty-${s.key}-${i}">${combo.qty}</span>
             <button class="ckit-qty-btn" onclick="ckChangeQty('${s.key}',${i},1)">+</button>
           </div>
           <span class="ckit-qty-label">ovillos</span>
-          ${combos.length>1?`<button class="ckit-combo-remove" onclick="ckRemoveRosaCombo(${i})" title="Quitar">✕</button>`:''}
+          ${combos.length>1&&!isLinked?`<button class="ckit-combo-remove" onclick="ckRemoveRosaCombo(${i})" title="Quitar">✕</button>`:''}
         </div>`;
       }).join('');
       return`<div class="ckit-row">
         <div class="ckit-row-label">${s.label}</div>
+        ${linkChk}
         ${comboRows}
-        ${combos.length<maxCombos&&avail.length
+        ${combos.length<maxCombos&&avail.length&&!isLinked
           ?`<button class="ckit-add-combo" onclick="ckAddRosaCombo()">+ Agregar combinación</button>`
           :''}
       </div>`;
@@ -1693,6 +1704,12 @@ function _renderCKBody(){
 function ckSetColor(key,combo,color){
   if(combo===null||combo===undefined){
     if(_ckState[key])_ckState[key].color=color;
+    // Propagar cambio de vestido a secciones vinculadas
+    if(key==='vestido'){
+      if(_ckSameAsVestido.forro&&_ckState.forro)_ckState.forro.color=color;
+      if(_ckSameAsVestido.rosas)(_ckState.rosas||[]).forEach(c=>{c.color=color;});
+      _renderCKBody();return;
+    }
     const sw=document.getElementById(`ckit-swatch-${key}`);
     if(sw)sw.style.background=color?getYarnHex(color):'#eee';
   } else {
@@ -1716,6 +1733,16 @@ function ckChangeQty(key,combo,delta){
     if(el)el.textContent=_ckState[key][combo].qty;
   }
   _renderCKSummary();
+}
+
+function ckToggleSameAsVestido(key,checked){
+  _ckSameAsVestido[key]=checked;
+  if(checked){
+    const vestidoColor=(_ckState.vestido||{}).color||'';
+    if(key==='forro'){if(_ckState.forro)_ckState.forro.color=vestidoColor;}
+    else if(key==='rosas'){(_ckState.rosas||[]).forEach(c=>{c.color=vestidoColor;});}
+  }
+  _renderCKBody();
 }
 
 function ckToggleEyes(checked){
