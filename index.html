@@ -1634,7 +1634,7 @@ function _renderCKBody(){
       const st=_ckState[s.key]||{color:'',qty:1};
       return`<div class="ckit-row">
         <div class="ckit-row-label">${s.label}</div>
-        ${avail.length?`<div class="ckit-color-list" id="ckit-swatches-${s.key}">${avail.map(c=>`<div class="ckit-color-item${c===st.color?' selected':''}" onclick="ckSetColor('${s.key}',null,'${c}')" data-color="${c}"><div class="ckit-color-dot" style="background:${getYarnHex(c)};"></div><span class="ckit-color-label">${c}</span><div class="ckit-color-check">✓</div></div>`).join('')}</div>`:`<div class="ckit-no-colors">Sin colores disponibles</div>`}
+        ${avail.length?`<div class="ckit-color-list" id="ckit-swatches-${s.key}">${avail.map(c=>`<div class="ckit-color-item${c===st.color?' selected':''}" onclick="ckSetColor('${s.key}',null,'${c}')" data-color="${c}"><div class="ckit-color-dot" style="background:${getYarnImg(c)?`url(${getYarnImg(c)}) center/cover no-repeat`:getYarnHex(c)};"></div><span class="ckit-color-label">${c}</span><div class="ckit-color-check">✓</div></div>`).join('')}</div>`:`<div class="ckit-no-colors">Sin colores disponibles</div>`}
         <div class="ckit-controls">
           <span class="ckit-color-name" id="ckit-colorname-${s.key}">${st.color||'Elige un color'}</span>
           <div class="ckit-qty-row">
@@ -1650,7 +1650,7 @@ function _renderCKBody(){
       const maxCombos=sd.maxCombos||4;
       const comboRows=combos.map((combo,i)=>{
         return`<div class="ckit-combo-row">
-          ${avail.length?`<div class="ckit-color-list" id="ckit-swatches-${s.key}-${i}">${avail.map(c=>`<div class="ckit-color-item${c===combo.color?' selected':''}" onclick="ckSetColor('${s.key}',${i},'${c}')" data-color="${c}"><div class="ckit-color-dot" style="background:${getYarnHex(c)};"></div><span class="ckit-color-label">${c}</span><div class="ckit-color-check">✓</div></div>`).join('')}</div>`:`<div class="ckit-no-colors">Sin colores disponibles</div>`}
+          ${avail.length?`<div class="ckit-color-list" id="ckit-swatches-${s.key}-${i}">${avail.map(c=>`<div class="ckit-color-item${c===combo.color?' selected':''}" onclick="ckSetColor('${s.key}',${i},'${c}')" data-color="${c}"><div class="ckit-color-dot" style="background:${getYarnImg(c)?`url(${getYarnImg(c)}) center/cover no-repeat`:getYarnHex(c)};"></div><span class="ckit-color-label">${c}</span><div class="ckit-color-check">✓</div></div>`).join('')}</div>`:`<div class="ckit-no-colors">Sin colores disponibles</div>`}
           <div class="ckit-controls">
             <span class="ckit-color-name" id="ckit-colorname-${s.key}-${i}">${combo.color||'Elige un color'}</span>
             <div class="ckit-qty-row">
