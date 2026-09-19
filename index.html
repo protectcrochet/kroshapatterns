@@ -224,6 +224,12 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ckit-btn{width:100%;background:var(--pink-dark);color:#fff;border:none;padding:15px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background .2s;box-shadow:0 6px 20px rgba(192,96,144,.3);}
 .ckit-btn:hover{background:var(--pink-text);}
 .ckit-no-colors{font-size:12px;color:var(--text-light);font-style:italic;padding:4px 0;}
+.ckit-start-card{text-align:center;padding:48px 24px;background:var(--white);border-radius:24px;border:1.5px solid var(--border);max-width:480px;margin:0 auto;box-shadow:0 4px 24px rgba(192,96,144,.08);}
+.ckit-start-icon{font-size:52px;margin-bottom:16px;}
+.ckit-start-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--text);margin-bottom:10px;}
+.ckit-start-desc{font-size:14px;color:var(--text-light);line-height:1.6;margin-bottom:28px;}
+.ckit-start-btn{background:var(--pink-dark);color:#fff;border:none;padding:15px 36px;border-radius:30px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;transition:background .2s,transform .15s;box-shadow:0 6px 20px rgba(192,96,144,.3);}
+.ckit-start-btn:hover{background:var(--pink-text);transform:translateY(-2px);}
 @media(max-width:720px){.ckit-sections{grid-template-columns:1fr;}.ckit-summary{flex-direction:column;}}
 
 /* TOAST */
@@ -446,9 +452,15 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     <div class="bow-tag" style="margin-bottom:14px;">🎨 <span>Kit Personalizado</span></div>
     <h2 class="ckit-section-title">Crea tu propio <em>Kit</em></h2>
     <p class="ckit-section-sub">Personaliza tu muñeca eligiendo el color de cada parte — solo mostramos colores en stock</p>
-    <div id="ckit-body" class="ckit-sections"></div>
+    <div id="ckit-start" class="ckit-start-card">
+      <div class="ckit-start-icon">🧶</div>
+      <h3 class="ckit-start-title">¡Diseña tu muñeca ideal!</h3>
+      <p class="ckit-start-desc">Elige el color de piel, cabello, vestido, forro y rosas. Solo mostramos colores disponibles en stock.</p>
+      <button class="ckit-start-btn" onclick="ckStartBuilder()">✨ Empezar a personalizar</button>
+    </div>
+    <div id="ckit-body" class="ckit-sections" style="display:none;"></div>
     <div id="ckit-summary" class="ckit-summary" style="display:none;"></div>
-    <button class="ckit-btn" onclick="addCustomKitToCart()">🛍 Agregar al carrito</button>
+    <button id="ckit-add-btn" class="ckit-btn" onclick="addCustomKitToCart()" style="display:none;">🛍 Agregar al carrito</button>
   </div>
 </section>
 
@@ -1619,7 +1631,24 @@ function renderCustomKitSection(){
     if(s.single)_ckState[s.key]={color:'',qty:sd.defaultQty||1};
     else _ckState[s.key]=[{color:'',qty:sd.defaultQty||1}];
   });
+  // Mostrar pantalla de inicio, ocultar builder
+  const startEl=document.getElementById('ckit-start');
+  const bodyEl=document.getElementById('ckit-body');
+  const addBtn=document.getElementById('ckit-add-btn');
+  if(startEl)startEl.style.display='';
+  if(bodyEl)bodyEl.style.display='none';
+  if(addBtn)addBtn.style.display='none';
+}
+
+function ckStartBuilder(){
+  const startEl=document.getElementById('ckit-start');
+  const bodyEl=document.getElementById('ckit-body');
+  const addBtn=document.getElementById('ckit-add-btn');
+  if(startEl)startEl.style.display='none';
+  if(bodyEl)bodyEl.style.display='';
+  if(addBtn)addBtn.style.display='';
   _renderCKBody();
+  bodyEl?.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 
