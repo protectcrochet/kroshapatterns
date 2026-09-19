@@ -3433,6 +3433,7 @@ function renderCKSections(){
       <div style="margin-bottom:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
         <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',true)">✅ Todos</button>
         <button class="btn btn-outline btn-sm" onclick="ckSelectAll('${sec.key}',false)">❌ Ninguno</button>
+        ${(sec.key==='forro'||sec.key==='rosas')?`<button class="btn btn-outline btn-sm" onclick="ckCopyFromVestido('${sec.key}')" style="border-color:var(--pink-dark);color:var(--pink-dark);" title="Copiar la selección de colores del Vestido">📋 Copiar Vestido</button>`:''}
         <span style="font-size:11px;color:var(--text-light);margin-left:4px;">${selected.length?selected.length+' seleccionados':'Todos disponibles'}</span>
       </div>
       <input type="text" id="ck-search-${sec.key}" placeholder="🔍 Buscar color..." oninput="ckApplyFilter('${sec.key}')"
@@ -3499,6 +3500,13 @@ function ckSelectAll(section,selectAll){
     // ninguno = lista vacía no funciona, marcamos todos como no disponibles usando string especial
     _ckConfig.sections[section].colors=['__none__'];
   }
+  renderCKSections();
+}
+
+function ckCopyFromVestido(sectionKey){
+  const vestidoColors=[...(_ckConfig.sections.vestido?.colors||[])];
+  if(!_ckConfig.sections[sectionKey])_ckConfig.sections[sectionKey]={colors:[],defaultQty:1};
+  _ckConfig.sections[sectionKey].colors=vestidoColors;
   renderCKSections();
 }
 
