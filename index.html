@@ -295,6 +295,11 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ck-pat-card-info{padding:7px 9px 9px;}
 .ck-pat-card-title{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ck-pat-card-price{font-size:11px;font-weight:700;color:var(--pink-dark);}
+.ck-hair-preview{text-align:center;margin-bottom:18px;background:var(--pink-bg);border-radius:18px;padding:14px 14px 10px;border:1.5px solid var(--border);}
+.ck-hair-preview-img{width:170px;height:170px;object-fit:cover;object-position:top center;border-radius:14px;display:block;margin:0 auto 8px;box-shadow:0 4px 14px rgba(192,96,144,.18);}
+.ck-hair-preview-label{font-size:12px;color:var(--text-light);font-weight:700;letter-spacing:.3px;}
+.ck-hair-preview-empty{color:var(--text-light);font-size:13px;padding:18px 0;opacity:.8;}
+.ck-hair-preview-placeholder{padding:10px 0;}.ck-hair-preview-circle{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;border:2px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.1);}
 
 /* TOAST */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:13px 20px;border-radius:30px;font-size:13.5px;z-index:500;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:600;}
@@ -1686,6 +1691,22 @@ const _CK_SECTIONS=[
   {key:'forro',   label:'🪡 Forro',          single:true},
   {key:'rosas',   label:'🌸 Rosas',          single:false},
 ];
+const DOLL_HAIR_PREVIEWS={
+  'Toffee':'images/cabello/cabello-toffee.webp',
+  'Brown':'images/cabello/cabello-toffee.webp',
+  'Camel':'images/cabello/cabello-toffee.webp',
+  'Cream':'images/cabello/cabello-cream.webp',
+  'White':'images/cabello/cabello-cream.webp',
+  'Cherry Red':'images/cabello/cabello-cherry-red.webp',
+  'Red':'images/cabello/cabello-cherry-red.webp',
+  'Crimson':'images/cabello/cabello-cherry-red.webp',
+  'Blue':'images/cabello/cabello-blue.webp',
+  'Bright Blue':'images/cabello/cabello-blue.webp',
+  'Sky Blue':'images/cabello/cabello-blue.webp',
+  'Yellow':'images/cabello/cabello-yellow.webp',
+  'Gold':'images/cabello/cabello-yellow.webp',
+  'Goldenrod':'images/cabello/cabello-yellow.webp',
+};
 const _CK_WIZ_STEPS=[
   {key:'piel',    label:'🩻 Piel',    title:'Elige el color de piel',           single:true,  icon:'🩻', topColor:'#F4C4A0'},
   {key:'cabello', label:'💇 Cabello', title:'Elige el color de cabello',         single:true,  icon:'💇', topColor:'#C49A72'},
@@ -1789,7 +1810,19 @@ function _renderCKWizard(){
     const sd=(cfg.sections||{})[step.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
     const st=_ckState[step.key]||{color:'',qty:1};
-    content=_ckSwatchesHTML(step.key,avail,st.color,null)
+    let hairPrev='';
+    if(step.key==='cabello'){
+      const prevImg=st.color?DOLL_HAIR_PREVIEWS[st.color]:null;
+      const prevHex=st.color?getYarnHex(st.color):null;
+      hairPrev=`<div class="ck-hair-preview" id="ck-hair-preview">${prevImg
+        ?`<img src="${prevImg}" alt="Cabello ${st.color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${st.color}</div>`
+        :st.color
+          ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${st.color}</div></div>`
+          :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>'
+      }</div>`;
+    }
+    content=hairPrev
+      +_ckSwatchesHTML(step.key,avail,st.color,null)
       +_ckSelDisplayHTML(st.color,`ck-wiz-sel-${step.key}`)
       +`<div class="ckit-controls"><div class="ckit-qty-row"><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',null,-1)">−</button><span class="ckit-qty-val" id="ckit-qty-${step.key}">${st.qty}</span><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',null,1)">+</button></div><span class="ckit-qty-label">ovillos</span></div>`;
   } else {
@@ -1874,6 +1907,18 @@ function _ckUpdateWizSelDisplay(key,combo,color){
     ?`<div class="ck-wiz-sel-circle">${img?`<img src="${img}" alt="${color}">`:`<div class="ck-wiz-sel-circle-bg" style="background:${hex};"></div>`}</div><div class="ck-wiz-sel-name">${color}</div>`
     :`<span class="ck-wiz-sel-hint">Toca un color para seleccionarlo</span>`;
   if(color){const nextBtn=document.querySelector('.ck-wiz-next');if(nextBtn)nextBtn.disabled=false;}
+  if(key==='cabello'&&combo==null){
+    const prev=document.getElementById('ck-hair-preview');
+    if(prev){
+      const prevImg=color?DOLL_HAIR_PREVIEWS[color]:null;
+      const prevHex=color?getYarnHex(color):null;
+      prev.innerHTML=prevImg
+        ?`<img src="${prevImg}" alt="Cabello ${color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${color}</div>`
+        :color
+          ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${color}</div></div>`
+          :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>';
+    }
+  }
 }
 
 function ckSetColor(key,combo,color){
