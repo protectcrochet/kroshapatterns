@@ -261,6 +261,31 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ck-wiz-hist-dot img{width:100%;height:100%;object-fit:cover;display:block;}
 .ck-wiz-hist-label{font-size:10px;font-weight:700;color:var(--text-light);line-height:1.2;}
 .ck-wiz-hist-val{font-size:11px;font-weight:700;color:var(--pink-dark);line-height:1.3;}
+.ck-wiz-step-icon{font-size:40px;margin-bottom:4px;display:block;line-height:1;}
+.ck-combo-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-start;}
+.ck-combo-chip{display:flex;flex-direction:column;align-items:center;background:var(--pink-bg);border-radius:14px;padding:10px 10px 8px;border:1.5px solid var(--border);cursor:pointer;transition:all .18s;min-width:62px;position:relative;font-family:'Nunito',sans-serif;}
+.ck-combo-chip.active{border-color:var(--pink-dark);box-shadow:0 0 0 2px var(--pink-dark);background:var(--white);}
+.ck-combo-chip-dot{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--pink-mid);margin-bottom:5px;display:flex;align-items:center;justify-content:center;background:var(--border);}
+.ck-combo-chip-dot img{width:100%;height:100%;object-fit:cover;display:block;}
+.ck-combo-chip-label{font-size:10px;font-weight:700;color:var(--text);max-width:66px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:center;}
+.ck-combo-chip-x{position:absolute;top:4px;right:4px;background:none;border:none;font-size:10px;cursor:pointer;color:var(--text-light);padding:2px;line-height:1;}
+.ck-combo-chip-x:hover{color:#DC2626;}
+.ck-combo-chip-add{display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:2px dashed var(--pink-deep);border-radius:14px;padding:10px 12px;cursor:pointer;color:var(--pink-dark);font-size:20px;font-weight:700;font-family:'Nunito',sans-serif;min-width:62px;transition:all .2s;}
+.ck-combo-chip-add:hover{background:var(--pink-mid);}
+.ck-combo-chip-add-txt{font-size:9.5px;font-weight:700;margin-top:2px;}
+.ck-done-card{background:var(--white);border:1.5px solid var(--border);border-radius:24px;padding:36px 28px 28px;text-align:center;box-shadow:0 6px 28px rgba(192,96,144,.10);}
+.ck-done-emoji{font-size:52px;margin-bottom:12px;}
+.ck-done-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.ck-done-sub{font-size:14px;color:var(--text-light);margin-bottom:24px;}
+.ck-done-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:24px;}
+.ck-done-chip{display:flex;align-items:center;gap:8px;background:var(--pink-bg);border-radius:30px;padding:6px 12px 6px 6px;border:1.5px solid var(--border);}
+.ck-done-dot{width:30px;height:30px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--pink-mid);}
+.ck-done-dot img{width:100%;height:100%;object-fit:cover;display:block;}
+.ck-done-chip-label{font-size:10px;color:var(--text-light);font-weight:700;line-height:1.2;}
+.ck-done-chip-val{font-size:11px;font-weight:700;color:var(--pink-dark);}
+.ck-done-btns{display:flex;gap:12px;margin-bottom:14px;}
+.ck-done-reset{background:none;border:none;font-size:13px;color:var(--text-light);cursor:pointer;font-family:'Nunito',sans-serif;text-decoration:underline;text-underline-offset:3px;}
+.ck-done-reset:hover{color:var(--pink-dark);}
 .ck-pat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin-top:10px;}
 .ck-pat-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;text-align:left;padding:0;transition:all .18s;font-family:'Nunito',sans-serif;outline:none;}
 .ck-pat-card:hover{border-color:var(--pink-dark);transform:translateY(-2px);box-shadow:0 4px 14px rgba(192,96,144,.15);}
@@ -1652,6 +1677,7 @@ let _ckState={};
 let _ckEyes=false;
 let _ckPattern='';
 let _ckWizStep=0;
+let _ckActiveCombo=0;
 
 const _CK_SECTIONS=[
   {key:'piel',    label:'🩻 Color de Piel', single:true},
@@ -1661,12 +1687,12 @@ const _CK_SECTIONS=[
   {key:'rosas',   label:'🌸 Rosas',          single:false},
 ];
 const _CK_WIZ_STEPS=[
-  {key:'piel',    label:'🩻 Piel',    title:'Elige el color de piel',           single:true},
-  {key:'cabello', label:'💇 Cabello', title:'Elige el color de cabello',         single:true},
-  {key:'vestido', label:'👗 Vestido', title:'Elige el color del vestido',        single:true},
-  {key:'forro',   label:'🪡 Forro',   title:'Elige el color del forro',          single:true},
-  {key:'rosas',   label:'🌸 Rosas',   title:'Elige los colores para las rosas',  single:false},
-  {key:'extras',  label:'✨ Extras',  title:'¡Últimos detalles!',                extras:true},
+  {key:'piel',    label:'🩻 Piel',    title:'Elige el color de piel',           single:true,  icon:'🩻', topColor:'#F4C4A0'},
+  {key:'cabello', label:'💇 Cabello', title:'Elige el color de cabello',         single:true,  icon:'💇', topColor:'#C49A72'},
+  {key:'vestido', label:'👗 Vestido', title:'Elige el color del vestido',        single:true,  icon:'👗', topColor:'#C8A8E8'},
+  {key:'forro',   label:'🪡 Forro',   title:'Elige el color del forro',          single:true,  icon:'🪡', topColor:'#A8C8E8'},
+  {key:'rosas',   label:'🌸 Rosas',   title:'Elige los colores para las rosas',  single:false, icon:'🌸', topColor:'#C06090'},
+  {key:'extras',  label:'✨ Extras',  title:'¡Últimos detalles!',                extras:true,  icon:'✨', topColor:'#B8A8E8'},
 ];
 
 function renderCustomKitSection(){
@@ -1674,7 +1700,7 @@ function renderCustomKitSection(){
   const sec=document.getElementById('custom-kit-section');
   if(!cfg||!cfg.enabled){if(sec)sec.style.display='none';return;}
   sec.style.display='';
-  _ckState={};_ckEyes=false;_ckPattern='';_ckWizStep=0;
+  _ckState={};_ckEyes=false;_ckPattern='';_ckWizStep=0;_ckActiveCombo=0;
   _CK_SECTIONS.forEach(s=>{
     const sd=(cfg.sections||{})[s.key]||{};
     if(s.single)_ckState[s.key]={color:'',qty:sd.defaultQty||1};
@@ -1695,7 +1721,7 @@ function ckStartBuilder(){
   const bodyEl=document.getElementById('ckit-body');
   if(startEl)startEl.style.display='none';
   if(bodyEl)bodyEl.style.display='';
-  _ckWizStep=0;
+  _ckWizStep=0;_ckActiveCombo=0;
   _renderCKWizard();
   bodyEl?.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1771,8 +1797,20 @@ function _renderCKWizard(){
     const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
     const combos=_ckState[step.key]||[];
     const maxCombos=sd.maxCombos||4;
-    content=combos.map((combo,i)=>`<div class="ckit-combo-row"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span class="ckit-combo-label">Combinación ${i+1}</span>${combos.length>1?`<button class="ckit-combo-remove" onclick="ckRemoveRosaCombo(${i})" title="Quitar">✕</button>`:''}</div>${_ckSwatchesHTML(step.key,avail,combo.color,i)}${_ckSelDisplayHTML(combo.color,`ck-wiz-sel-${step.key}-${i}`)}<div class="ckit-controls"><div class="ckit-qty-row"><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',${i},-1)">−</button><span class="ckit-qty-val" id="ckit-qty-${step.key}-${i}">${combo.qty}</span><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',${i},1)">+</button></div><span class="ckit-qty-label">ovillos</span></div></div>`).join('')
-      +(combos.length<maxCombos&&avail.length?`<button class="ckit-add-combo" onclick="ckAddRosaCombo()">+ Agregar combinación</button>`:'');
+    const activeIdx=Math.min(_ckActiveCombo,combos.length-1);
+    // Combo strip
+    const stripHTML=`<div class="ck-combo-strip">${combos.map((combo,i)=>{
+      const img=combo.color?getYarnImg(combo.color):null;
+      const hex=combo.color?getYarnHex(combo.color):null;
+      return`<div class="ck-combo-chip${i===activeIdx?' active':''}" onclick="ckSetActiveCombo(${i})"><div class="ck-combo-chip-dot" style="${combo.color&&!img?'background:'+hex:''}">${combo.color&&img?`<img src="${img}" alt="${combo.color}">`:combo.color?'':'<span style="font-size:14px;">🌸</span>'}</div><div class="ck-combo-chip-label">${combo.color||'Elegir'}</div>${combos.length>1?`<button class="ck-combo-chip-x" onclick="event.stopPropagation();ckRemoveRosaCombo(${i})">✕</button>`:''}</div>`;
+    }).join('')}${combos.length<maxCombos&&avail.length?`<button class="ck-combo-chip-add" onclick="ckAddRosaCombo()">＋<span class="ck-combo-chip-add-txt">Agregar</span></button>`:''}</div>`;
+    // Active combo editor
+    const combo=combos[activeIdx]||{color:'',qty:1};
+    const editorHTML=`<div class="ckit-combo-label" style="margin-bottom:10px;">Combinación ${activeIdx+1}</div>
+      ${_ckSwatchesHTML(step.key,avail,combo.color,activeIdx)}
+      ${_ckSelDisplayHTML(combo.color,`ck-wiz-sel-${step.key}-${activeIdx}`)}
+      <div class="ckit-controls"><div class="ckit-qty-row"><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',${activeIdx},-1)">−</button><span class="ckit-qty-val" id="ckit-qty-${step.key}-${activeIdx}">${combo.qty}</span><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',${activeIdx},1)">+</button></div><span class="ckit-qty-label">ovillos</span></div>`;
+    content=stripHTML+editorHTML;
   }
 
   // Require color before continuing (if colors are available)
@@ -1791,7 +1829,8 @@ function _renderCKWizard(){
   body.innerHTML=`<div class="ck-wiz">
     <div class="ck-wiz-prog">${pillsHTML}</div>
     ${histHTML?`<div class="ck-wiz-history">${histHTML}</div>`:''}
-    <div class="ck-wiz-card">
+    <div class="ck-wiz-card" style="border-top:3px solid ${step.topColor||'var(--border)'};padding-top:24px;">
+      <span class="ck-wiz-step-icon">${step.icon}</span>
       <div class="ck-wiz-step-label">Paso ${_ckWizStep+1} de ${N} · ${step.label}</div>
       <div class="ck-wiz-title">${step.title}</div>
       ${content}
@@ -1880,12 +1919,18 @@ function ckSetPattern(id){
   _renderCKSummary();
 }
 
+function ckSetActiveCombo(idx){
+  _ckActiveCombo=idx;
+  _renderCKWizard();
+}
+
 function ckAddRosaCombo(){
   const cfg=_customKitConfig;
   const sd=(cfg&&cfg.sections&&cfg.sections.rosas)||{defaultQty:1,maxCombos:4};
   if(!_ckState.rosas)_ckState.rosas=[];
   if(_ckState.rosas.length<(sd.maxCombos||4)){
     _ckState.rosas.push({color:'',qty:sd.defaultQty||1});
+    _ckActiveCombo=_ckState.rosas.length-1;
     _renderCKWizard();
   }
 }
@@ -1893,6 +1938,7 @@ function ckAddRosaCombo(){
 function ckRemoveRosaCombo(idx){
   if(!_ckState.rosas||_ckState.rosas.length<=1)return;
   _ckState.rosas.splice(idx,1);
+  _ckActiveCombo=Math.min(_ckActiveCombo,_ckState.rosas.length-1);
   _renderCKWizard();
 }
 
@@ -1974,8 +2020,38 @@ function addCustomKitToCart(){
     }
   }
   saveCart(cart);updateCartBadge();
-  showToast('🎨 Kit personalizado agregado al carrito');
-  renderCustomKitSection();
+  _renderCKDone();
+}
+
+function _renderCKDone(){
+  const bodyEl=document.getElementById('ckit-body');
+  const sumEl=document.getElementById('ckit-summary');
+  if(sumEl)sumEl.style.display='none';
+  if(!bodyEl)return;
+  // Build selection chips
+  const chips=_CK_SECTIONS.map(s=>{
+    if(s.single){
+      const color=(_ckState[s.key]||{}).color;
+      if(!color)return'';
+      const img=getYarnImg(color),hex=getYarnHex(color);
+      return`<div class="ck-done-chip"><div class="ck-done-dot" style="${img?'':'background:'+hex}">${img?`<img src="${img}" alt="${color}">`:''}</div><div><div class="ck-done-chip-label">${s.label.replace(/^\S+\s*/,'')}</div><div class="ck-done-chip-val">${color}</div></div></div>`;
+    }
+    return(_ckState[s.key]||[]).filter(c=>c.color).map((c,i)=>{
+      const img=getYarnImg(c.color),hex=getYarnHex(c.color);
+      return`<div class="ck-done-chip"><div class="ck-done-dot" style="${img?'':'background:'+hex}">${img?`<img src="${img}" alt="${c.color}">`:''}</div><div><div class="ck-done-chip-label">🌸 ${i+1}</div><div class="ck-done-chip-val">${c.color}</div></div></div>`;
+    }).join('');
+  }).join('');
+  bodyEl.innerHTML=`<div class="ck-wiz"><div class="ck-done-card">
+    <div class="ck-done-emoji">🎉</div>
+    <div class="ck-done-title">¡Hiciste una hermosa combinación!</div>
+    <div class="ck-done-sub">Tu kit personalizado ya está listo en tu carrito</div>
+    <div class="ck-done-chips">${chips}</div>
+    <div class="ck-done-btns">
+      <button class="ck-wiz-back" style="flex:1;" onclick="window.location.href='krosha-checkout.html'">🛒 Ver carrito</button>
+      <button class="ck-wiz-next" style="flex:1;" onclick="window.location.href='krosha-checkout.html'">Finalizar compra →</button>
+    </div>
+    <button class="ck-done-reset" onclick="renderCustomKitSection()">Diseñar otro kit ✨</button>
+  </div></div>`;
 }
 </script>
 
