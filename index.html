@@ -261,6 +261,15 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ck-wiz-hist-dot img{width:100%;height:100%;object-fit:cover;display:block;}
 .ck-wiz-hist-label{font-size:10px;font-weight:700;color:var(--text-light);line-height:1.2;}
 .ck-wiz-hist-val{font-size:11px;font-weight:700;color:var(--pink-dark);line-height:1.3;}
+.ck-pat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;margin-top:10px;}
+.ck-pat-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;text-align:left;padding:0;transition:all .18s;font-family:'Nunito',sans-serif;outline:none;}
+.ck-pat-card:hover{border-color:var(--pink-dark);transform:translateY(-2px);box-shadow:0 4px 14px rgba(192,96,144,.15);}
+.ck-pat-card.selected{border-color:var(--pink-dark);box-shadow:0 0 0 2.5px var(--pink-dark);}
+.ck-pat-card-img{width:100%;aspect-ratio:1/1;overflow:hidden;background:var(--pink-bg);display:flex;align-items:center;justify-content:center;font-size:32px;}
+.ck-pat-card-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.ck-pat-card-info{padding:7px 9px 9px;}
+.ck-pat-card-title{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ck-pat-card-price{font-size:11px;font-weight:700;color:var(--pink-dark);}
 
 /* TOAST */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--text);color:#fff;padding:13px 20px;border-radius:30px;font-size:13.5px;z-index:500;transform:translateY(60px);opacity:0;transition:all .3s;font-weight:600;}
@@ -1749,7 +1758,7 @@ function _renderCKWizard(){
     const _ckPatterns=((_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}))).filter(p=>p.type==='patrones'&&p.status==='active').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
     content=(cfg.eyes&&cfg.eyes.enabled
       ?`<div style="margin-bottom:20px;"><div class="ck-wiz-step-label">👁 Ojos de Seguridad</div><label style="display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--pink-bg);border-radius:14px;padding:14px 16px;border:1.5px solid var(--border);"><input type="checkbox" id="ckit-eyes-cb" ${_ckEyes?'checked':''} onchange="ckToggleEyes(this.checked)" style="width:20px;height:20px;accent-color:var(--pink-dark);flex-shrink:0;"><div><div style="font-size:14px;font-weight:700;color:var(--text);">Agregar ojos de seguridad</div><div style="font-size:12px;color:var(--text-light);">Un par — ${f(cfg.eyes.price||0)}</div></div></label></div>`:'')
-      +`<div><div class="ck-wiz-step-label">📄 Patrón (opcional)</div><div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">¿Aún no tienes el patrón? Agrégalo aquí</div><select class="ckit-select" id="ckit-pattern-sel" onchange="ckSetPattern(this.value)" style="width:100%;"><option value="">— Sin patrón (ya lo tengo) —</option>${_ckPatterns.map(p=>`<option value="${p.id}" ${p.id===parseInt(_ckPattern)?'selected':''}>${lang==='en'&&p.titleEn?p.titleEn:p.title} — ${f(p.price)}</option>`).join('')}</select></div>`;
+      +`<div><div class="ck-wiz-step-label">📄 Patrón (opcional)</div><div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">¿Aún no tienes el patrón? Agrégalo aquí</div><div class="ck-pat-grid"><button class="ck-pat-card${!_ckPattern?' selected':''}" data-patid="" onclick="ckSetPattern('')"><div class="ck-pat-card-img">🧶</div><div class="ck-pat-card-info"><div class="ck-pat-card-title">Sin patrón</div><div class="ck-pat-card-price">Ya lo tengo</div></div></button>${_ckPatterns.map(p=>`<button class="ck-pat-card${p.id===parseInt(_ckPattern)?' selected':''}" data-patid="${p.id}" onclick="ckSetPattern('${p.id}')"><div class="ck-pat-card-img">${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${lang==='en'&&p.titleEn?p.titleEn:p.title}" loading="lazy">`:'📄'}</div><div class="ck-pat-card-info"><div class="ck-pat-card-title">${lang==='en'&&p.titleEn?p.titleEn:p.title}</div><div class="ck-pat-card-price">${f(p.price)}</div></div></button>`).join('')}</div></div>`;
   } else if(step.single){
     const sd=(cfg.sections||{})[step.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
@@ -1865,6 +1874,9 @@ function ckToggleEyes(checked){
 
 function ckSetPattern(id){
   _ckPattern=id;
+  document.querySelectorAll('.ck-pat-card').forEach(el=>{
+    el.classList.toggle('selected',el.dataset.patid===(id||'').toString());
+  });
   _renderCKSummary();
 }
 
