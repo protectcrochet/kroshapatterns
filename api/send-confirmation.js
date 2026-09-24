@@ -320,8 +320,9 @@ export default async function handler(req, res) {
 
           // Individual yarn with a color name — decrement that color by qty purchased
           const yarnColorName = item.yarnColorName || prod?.yarnColorName || '';
-          if (yarnColorName && typeof inv[yarnColorName] === 'number') {
-            inv[yarnColorName] = Math.max(0, inv[yarnColorName] - (item.qty || 1));
+          if (yarnColorName && inv[yarnColorName] !== undefined) {
+            const cur = typeof inv[yarnColorName] === 'number' ? inv[yarnColorName] : parseInt(inv[yarnColorName]) || 0;
+            inv[yarnColorName] = Math.max(0, cur - (item.qty || 1));
             invChanged = true;
             console.log(`[send-confirmation] Inventory -${item.qty||1} "${yarnColorName}" → ${inv[yarnColorName]}`);
             continue;
@@ -330,8 +331,9 @@ export default async function handler(req, res) {
           // Kit with yarnList — decrement each component color
           const yarnList = item.yarnList || prod?.yarnList || [];
           for (const y of yarnList) {
-            if (y.color && typeof inv[y.color] === 'number' && inv[y.color] > 0) {
-              inv[y.color] = Math.max(0, inv[y.color] - (y.qty || 1));
+            if (y.color && inv[y.color] !== undefined) {
+              const curStock = typeof inv[y.color] === 'number' ? inv[y.color] : parseInt(inv[y.color]) || 0;
+              inv[y.color] = Math.max(0, curStock - (y.qty || 1));
               invChanged = true;
               console.log(`[send-confirmation] Inventory -${y.qty||1} "${y.color}" (kit ${item.title}) → ${inv[y.color]}`);
             }
