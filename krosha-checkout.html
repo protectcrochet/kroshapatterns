@@ -594,6 +594,7 @@ const countryToCurrency={
 };
 let cur='MXN', lang='es', hasDiscount=false, selPayMethod=null;
 let stripeInst=null, stripeCard=null;
+let _coInv={};  // inventario cargado al iniciar checkout
 
 function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
@@ -614,6 +615,18 @@ function itemCat(item){
   return 'Patrón · KroshaPatterns';
 }
 
+function _coStock(item){
+  // Retorna el stock disponible del item en el inventario del checkout.
+  // -1 = sin límite (patrones digitales o sin registro en inventario)
+  if(!item.type||item.type==='patrones')return -1;
+  if(item.yarnColorName){
+    const s=_coInv[item.yarnColorName];
+    return s===undefined?-1:typeof s==='number'?s:parseInt(s)||0;
+  }
+  return -1;
+}
+function _hasOutOfStock(){return getCartItems().some(i=>_coStock(i)===0);}
+
 function renderCart(){
   const cart=getCartItems();
   const container=document.getElementById('cart-items');
@@ -626,14 +639,18 @@ function renderCart(){
       </div>`;
     updateSummary(0);return;
   }
-  container.innerHTML=cart.map((item,i)=>`
-    <div class="cart-item" data-id="${item.id}">
+  container.innerHTML=cart.map((item,i)=>{
+    const stock=_coStock(item);
+    const outOfStock=stock===0;
+    return`
+    <div class="cart-item" data-id="${item.id}" style="${outOfStock?'opacity:.65;':''}">
       <div class="ci-img p${(i%3)+1}" style="background:var(--pink-mid);overflow:hidden;border-radius:14px;">
         ${imgHtml(item.img)}
       </div>
       <div class="ci-body">
         <div class="ci-cat">${itemCat(item)}</div>
         <div class="ci-name">${item.title}</div>
+        ${outOfStock?`<div style="color:#C00;font-size:12px;font-weight:700;margin:2px 0 4px;">⚠️ ${lang==='es'?'Agotado — por favor elimínalo del carrito':'Out of stock — please remove it'}</div>`:''}
         <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
         <div class="ci-actions">
           <div class="qty-box">
@@ -645,7 +662,27 @@ function renderCart(){
         </div>
       </div>
       <div class="ci-price">${f(item.price*item.qty)}</div>
-    </div>`).join('');
+    </div>`}).join('');
+  // Banner global si hay agotados
+  const bannerEl=document.getElementById('cart-outofstock-banner');
+  if(_hasOutOfStock()){
+    if(!bannerEl){
+      const b=document.createElement('div');
+      b.id='cart-outofstock-banner';
+      b.style.cssText='background:#FFF0F0;border:1.5px solid #C00;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#C00;font-weight:700;';
+      b.textContent=lang==='es'?'⚠️ Algunos artículos están agotados. Elimínalos del carrito para continuar.':'⚠️ Some items are out of stock. Remove them to continue.';
+      container.parentElement.insertBefore(b,container);
+    }
+  } else {
+    if(bannerEl)bannerEl.remove();
+  }
+  // Bloquear o liberar el botón de checkout
+  const chkBtn=document.querySelector('button.btn-checkout[onclick="goToCheckout()"]');
+  if(chkBtn){
+    chkBtn.disabled=_hasOutOfStock();
+    chkBtn.style.opacity=_hasOutOfStock()?'.45':'';
+    chkBtn.title=_hasOutOfStock()?(lang==='es'?'Elimina los artículos agotados para continuar':'Remove out-of-stock items to continue'):'';
+  }
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   updateSummary(sub);
   renderMiniSummary(cart,sub);
@@ -760,6 +797,7 @@ function applyCoupon(){
 }
 
 function goToCheckout(){
+  if(_hasOutOfStock()){showToast(lang==='es'?'⚠️ Elimina los artículos agotados antes de continuar':'⚠️ Remove out-of-stock items before continuing');return;}
   setStep(2);
   document.getElementById('page-cart').classList.remove('active');
   document.getElementById('page-checkout').classList.add('active');
@@ -1824,6 +1862,7 @@ renderCart();
 updateNavCart();
 checkReturnStatus();
 detectCurrencyFromIP();
+fetch('/api/inventory',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object'){_coInv=d;renderCart();}}).catch(()=>{});
 </script>
 </body>
 </html>
