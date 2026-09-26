@@ -338,6 +338,23 @@ export default async function handler(req, res) {
               console.log(`[send-confirmation] Inventory -${y.qty||1} "${y.color}" (kit ${item.title}) → ${inv[y.color]}`);
             }
           }
+
+          // Custom kit — colors stored in item.customKit (nested _ckState structure)
+          if (item.type === 'customkit' && item.customKit) {
+            for (const [sectionKey, sectionVal] of Object.entries(item.customKit)) {
+              const entries = Array.isArray(sectionVal) ? sectionVal : [sectionVal];
+              for (const entry of entries) {
+                const color = entry?.color;
+                const qty = entry?.qty || 1;
+                if (color && inv[color] !== undefined) {
+                  const curStock = typeof inv[color] === 'number' ? inv[color] : parseInt(inv[color]) || 0;
+                  inv[color] = Math.max(0, curStock - qty);
+                  invChanged = true;
+                  console.log(`[send-confirmation] Inventory -${qty} "${color}" (customKit:${sectionKey}) → ${inv[color]}`);
+                }
+              }
+            }
+          }
         }
         if (invChanged) {
           await redis.set('krosha:inventory', JSON.stringify(inv));
