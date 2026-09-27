@@ -520,7 +520,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-inventory">
       <div class="page-header">
         <div class="page-title">Inventario <em>🧶📦</em></div>
-        <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" onclick="refreshInventoryFromServer(this)" id="btn-inv-refresh">🔄 Actualizar stock</button>
+          <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
+        </div>
       </div>
 
       <!-- Kits -->
@@ -3204,6 +3207,21 @@ function _scheduleSync(){
   _syncTimer=setTimeout(()=>saveAll(),600);
 }
 
+async function refreshInventoryFromServer(btn){
+  const label=btn?btn.textContent:'';
+  if(btn){btn.textContent='⏳ Actualizando...';btn.disabled=true;}
+  try{
+    const r=await fetch('/api/inventory',{cache:'no-cache'});
+    if(r.ok){
+      const d=await r.json();
+      if(d&&typeof d==='object') localStorage.setItem(INV_KEY,JSON.stringify(d));
+    }
+  }catch(e){console.warn('refreshInventory error',e);}
+  renderInventory();
+  renderKitStock();
+  if(btn){btn.textContent=label;btn.disabled=false;}
+}
+
 function renderInventory(){
   const inv=getInventory();
   const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
@@ -3287,7 +3305,7 @@ function goTab(name,el){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   el.classList.add('active');
-  if(name==='inventory'){renderInventory();renderKitStock();}
+  if(name==='inventory'){refreshInventoryFromServer();}
   if(name==='orders')loadServerOrders();
   if(name==='analytics')loadAnalytics();
   if(name==='finance')loadFinance();
