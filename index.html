@@ -1365,7 +1365,7 @@ function addToCart(){
     const yp=yarnProducts.find(p=>p.yarnColorName===color);
     if(!yp)return;
     const ey=cart.find(i=>i.id===yp.id);
-    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} ${yarnGrams(color)}g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty,shipSubsidy:yp.shipSubsidy||10});
+    if(ey)ey.qty+=qty;else cart.push({id:yp.id,title:`Estambre ${color} ${yarnGrams(color)}g`,price:yp.price,img:getYarnImg(color)||`yarn:${getYarnHex(color)}`,qty,type:'hilo',yarnColorName:color,shipSubsidy:yp.shipSubsidy||10});
   });
   saveCart(cart);updateCartBadge();closeM();
   showToast(`🎀 ${lang==='es'?curProd.title:curProd.titleEn||curProd.title} ${lang==='es'?'agregado':'added'}`);
