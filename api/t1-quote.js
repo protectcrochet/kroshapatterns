@@ -48,21 +48,29 @@ export default async function handler(req, res) {
   try {
     const token = await getT1Token();
 
-    const params = new URLSearchParams({
+    const quoteBody = {
       cp_origen:  cpOrigen,
       cp_destino: cp_destino,
-      peso:       String(Number(peso)  || 1),
-      largo:      String(Number(largo) || 25),
-      ancho:      String(Number(ancho) || 25),
-      alto:       String(Number(alto)  || 37),
-    });
-    if (storeId) params.set('tienda_id', storeId);
+      peso:       Number(peso)  || 1,
+      largo:      Number(largo) || 25,
+      ancho:      Number(ancho) || 25,
+      alto:       Number(alto)  || 37,
+    };
+    if (storeId) quoteBody.tienda_id = storeId;
 
-    const quotePaths = ['/api/v1/cotizacion', '/shipping/v1/cotizacion', '/api/v1/rates', '/v1/cotizacion'];
+    const quotePaths = [
+      '/api/v1/cotizacion', '/api/v2/cotizacion',
+      '/cotizacion', '/api/cotizacion',
+      '/v1/cotizacion', '/v2/cotizacion',
+      '/api/v1/rates', '/api/v1/quote',
+      '/shipping/v1/cotizacion',
+    ];
     let quoteRes, quoteData;
     for (const qpath of quotePaths) {
-      quoteRes = await fetch(`${T1_BASE}${qpath}?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      quoteRes = await fetch(`${T1_BASE}${qpath}`, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(quoteBody),
       });
       quoteData = await quoteRes.json().catch(() => null);
       if (quoteRes.ok) break;
