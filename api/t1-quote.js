@@ -42,14 +42,13 @@ export default async function handler(req, res) {
 
   const storeId = process.env.T1_STORE_ID || '';
 
-  const T1_BASE   = process.env.T1_BASE_URL  || 'https://shipping.devt1.com';
+  const T1_BASE   = process.env.T1_BASE_URL  || 'https://api.t1envios.com';
   const cpOrigen  = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
 
   try {
     const token = await getT1Token();
 
     const params = new URLSearchParams({
-      tienda_id:  storeId,
       cp_origen:  cpOrigen,
       cp_destino: cp_destino,
       peso:       String(Number(peso)  || 1),
@@ -57,11 +56,17 @@ export default async function handler(req, res) {
       ancho:      String(Number(ancho) || 25),
       alto:       String(Number(alto)  || 37),
     });
+    if (storeId) params.set('tienda_id', storeId);
 
-    const quoteRes = await fetch(`${T1_BASE}/shipping/v1/cotizacion?${params}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    const quoteData = await quoteRes.json();
+    const quotePaths = ['/api/v1/cotizacion', '/shipping/v1/cotizacion', '/api/v1/rates', '/v1/cotizacion'];
+    let quoteRes, quoteData;
+    for (const qpath of quotePaths) {
+      quoteRes = await fetch(`${T1_BASE}${qpath}?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      quoteData = await quoteRes.json().catch(() => null);
+      if (quoteRes.ok) break;
+    }
 
     if (!quoteRes.ok) {
       return res.status(quoteRes.status).json({ error: quoteData.message || 'Error al cotizar', raw: quoteData });
