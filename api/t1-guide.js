@@ -80,28 +80,31 @@ export default async function handler(req, res) {
     };
     if (storeId) quoteBody.tienda_id = storeId;
 
-    // Probar múltiples bases y rutas hasta encontrar la correcta
+    // Probar múltiples bases, rutas y métodos de auth
     const T1_BASES = [
       T1_BASE,
+      'https://shipping.t1.com',
       'https://api.t1envios.com',
+      'https://t1envios.com',
       'https://gateway.t1envios.com',
       'https://services.t1envios.com',
-      'https://api.t1.com',
-    ].filter((v, i, a) => a.indexOf(v) === i); // deduplicar
+    ].filter((v, i, a) => a.indexOf(v) === i);
 
     const quotePaths = [
       '/api/v1/cotizacion',
       '/api/v2/cotizacion',
       '/cotizacion',
-      '/api/cotizacion',
       '/v1/cotizacion',
       '/v2/cotizacion',
       '/api/v1/rates',
       '/api/v1/quote',
-      '/api/v1/shipment/rate',
-      '/api/v1/envio/cotizar',
-      '/api/v1/guias/cotizar',
       '/shipping/v1/cotizacion',
+    ];
+
+    // Dos variantes de auth: Bearer y x-api-key
+    const authHeaders = [
+      { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      { 'x-api-key': token,                  'Content-Type': 'application/json' },
     ];
 
     let quoteRes, quoteData;
@@ -109,34 +112,39 @@ export default async function handler(req, res) {
     outer:
     for (const base of T1_BASES) {
       for (const qpath of quotePaths) {
-        const url = `${base}${qpath}`;
-        try {
-          quoteRes = await fetch(url, {
-            method:  'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body:    JSON.stringify(quoteBody),
-          });
-          quoteData = await quoteRes.json().catch(() => null);
-          attempts[url] = { status: quoteRes.status, ok: quoteRes.ok };
-          console.log(`T1 [${url}] → ${quoteRes.status}`);
-          if (quoteRes.ok) break outer;
-          // Detenerse si obtenemos 401/403 (auth fallida — no tiene sentido seguir con otras rutas)
-          if (quoteRes.status === 401 || quoteRes.status === 403) break outer;
-        } catch (e) {
-          attempts[url] = { error: e.message };
+        for (const headers of authHeaders) {
+          const url = `${base}${qpath}`;
+          const authType = headers['Authorization'] ? 'Bearer' : 'x-api-key';
+          const key = `${url} [${authType}]`;
+          try {
+            quoteRes = await fetch(url, {
+              method: 'POST',
+              headers,
+              body:   JSON.stringify(quoteBody),
+            });
+            quoteData = await quoteRes.json().catch(() => null);
+            attempts[key] = { status: quoteRes.status };
+            console.log(`T1 [${key}] → ${quoteRes.status}`);
+            if (quoteRes.ok) break outer;
+          } catch (e) {
+            attempts[key] = { error: e.message };
+          }
         }
       }
     }
 
     if (!quoteRes?.ok) {
-      // Filtrar respuestas no-404 para ayudar a diagnosticar
       const interesting = Object.fromEntries(
-        Object.entries(attempts).filter(([, v]) => v.status && v.status !== 404)
+        Object.entries(attempts).filter(([, v]) => !v.error && v.status !== 404)
+      );
+      const networkErrors = Object.fromEntries(
+        Object.entries(attempts).filter(([, v]) => !!v.error)
       );
       return res.status(400).json({
         error: 'No se encontró el endpoint correcto de T1',
         lastResponse: quoteData,
         interesting,
+        networkErrors: Object.keys(networkErrors).length,
         totalTried: Object.keys(attempts).length,
       });
     }
