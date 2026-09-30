@@ -1,76 +1,80 @@
-// T1 Envíos — cotización de envío
-// Credenciales guardadas como variables de entorno en Vercel (nunca en el código)
-
-const T1_AUTH_URL = 'https://keycloak.dev.plataformat1.com/auth/realms/claroshop-sapi-sa-cv/protocol/openid-connect/token';
-const T1_CLIENT_ID = 't1envios';
-const T1_CLIENT_SECRET = 'f64cd365-346d-461d-95b4-91938594b84a';
+// api/t1-quote.js — Cotización de envío con T1 Envíos
+// Credenciales vía variables de entorno en Vercel (nunca en el código)
 
 async function getT1Token() {
-  const body = new URLSearchParams({
-    grant_type: 'password',
-    client_id: T1_CLIENT_ID,
-    client_secret: T1_CLIENT_SECRET,
-    username: process.env.T1_USERNAME,
-    password: process.env.T1_PASSWORD,
-  });
+  // Opción 1: API key directa (t1-xxxx) — sin paso OAuth
+  if (process.env.T1_API_KEY) return process.env.T1_API_KEY;
 
-  const res = await fetch(T1_AUTH_URL, {
+  // Opción 2: flujo Keycloak username/password
+  const authUrl = process.env.T1_AUTH_URL || 'https://id.t1.com/realms/T1/protocol/openid-connect/token';
+  const body = new URLSearchParams({
+    grant_type:    'password',
+    client_id:     process.env.T1_CLIENT_ID     || 't1envios',
+    client_secret: process.env.T1_CLIENT_SECRET || '',
+    username:      process.env.T1_USERNAME       || '',
+    password:      process.env.T1_PASSWORD       || '',
+  });
+  const r = await fetch(authUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error('T1 auth failed: ' + err);
+  if (!r.ok) {
+    const err = await r.text();
+    throw new Error('T1 auth error: ' + err);
   }
-
-  const data = await res.json();
+  const data = await r.json();
   return data.access_token;
 }
 
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { cp_destino, peso = 1, largo = 20, ancho = 15, alto = 10 } = req.body || {};
+  const { cp_destino, peso = 1, largo = 25, ancho = 25, alto = 37 } = req.body || {};
 
   if (!cp_destino || !/^\d{5}$/.test(cp_destino)) {
     return res.status(400).json({ error: 'Código postal inválido (5 dígitos)' });
   }
 
+  const storeId = process.env.T1_STORE_ID || '';
+
+  const T1_BASE   = process.env.T1_BASE_URL  || 'https://shipping.devt1.com';
+  const cpOrigen  = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
+
   try {
     const token = await getT1Token();
 
-    // Intentar endpoint de cotización
-    const quoteRes = await fetch('https://api.t1envios.com/api/v1/rates', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        cp_origen: '06600', // CDMX — ajusta con tu CP de origen
-        cp_destino,
-        peso,
-        largo,
-        ancho,
-        alto,
-      }),
+    const params = new URLSearchParams({
+      tienda_id:  storeId,
+      cp_origen:  cpOrigen,
+      cp_destino: cp_destino,
+      peso:       String(Number(peso)  || 1),
+      largo:      String(Number(largo) || 25),
+      ancho:      String(Number(ancho) || 25),
+      alto:       String(Number(alto)  || 37),
     });
 
+    const quoteRes = await fetch(`${T1_BASE}/shipping/v1/cotizacion?${params}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
     const quoteData = await quoteRes.json();
 
     if (!quoteRes.ok) {
       return res.status(quoteRes.status).json({ error: quoteData.message || 'Error al cotizar', raw: quoteData });
     }
 
-    return res.status(200).json({ ok: true, rates: quoteData });
+    // Normalizar lista de servicios
+    const services = Array.isArray(quoteData) ? quoteData
+      : Array.isArray(quoteData.data)      ? quoteData.data
+      : Array.isArray(quoteData.servicios) ? quoteData.servicios
+      : Array.isArray(quoteData.services)  ? quoteData.services
+      : [];
 
+    return res.status(200).json({ ok: true, rates: services, raw: quoteData });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
