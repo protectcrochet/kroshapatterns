@@ -122,10 +122,10 @@ export default async function handler(req, res) {
     const lastName = lastParts.join(' ') || '.';
 
     const guideBody = {
-      contenido:               order.products || 'Kit crochet KroshaPatterns',
+      contenido:               (order.products || 'Kit crochet KroshaPatterns').slice(0, 50),
       pedido_comercio:         String(order.ref || order.id || ''),
       nombre_origen:           process.env.ENVIA_ORIGIN_NAME   || 'KroshaPatterns',
-      apellidos_origen:        '',
+      apellidos_origen:        process.env.ENVIA_ORIGIN_LASTNAME || 'N/A',
       email_origen:            process.env.ENVIA_ORIGIN_EMAIL  || 'kroshapatterns@gmail.com',
       calle_origen:            process.env.ENVIA_ORIGIN_STREET || 'Calle Origen 1',
       numero_origen:           process.env.ENVIA_ORIGIN_NUMBER || '1',
@@ -133,7 +133,7 @@ export default async function handler(req, res) {
       telefono_origen:         process.env.ENVIA_ORIGIN_PHONE  || '4421000000',
       estado_origen:           process.env.ENVIA_ORIGIN_STATE  || 'QRO',
       municipio_origen:        process.env.ENVIA_ORIGIN_CITY   || 'Querétaro',
-      referencias_origen:      '',
+      referencias_origen:      process.env.ENVIA_ORIGIN_REF    || 'N/A',
       codigo_postal_origen:    cpOrigen,
       nombre_destino:          firstName,
       apellidos_destino:       lastName,
@@ -144,7 +144,7 @@ export default async function handler(req, res) {
       telefono_destino:        addr.phone   || '5550000000',
       estado_destino:          addr.state   || '',
       municipio_destino:       addr.city    || '',
-      referencias_destino:     addr.references || '',
+      referencias_destino:     addr.references || 'N/A',
       codigo_postal_destino:   addr.zip,
       generar_recoleccion:     false,
       tiene_notificacion:      false,
