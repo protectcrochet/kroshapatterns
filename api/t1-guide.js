@@ -70,30 +70,37 @@ export default async function handler(req, res) {
 
     // Paso 1 — cotización para obtener servicios disponibles
     const cpOrigen = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
-    const params = new URLSearchParams({
+    const quoteBody = {
       cp_origen:  cpOrigen,
       cp_destino: addr.zip,
-      peso:       '1',
-      largo:      '25',
-      ancho:      '25',
-      alto:       '37',
-    });
-    if (storeId) params.set('tienda_id', storeId);
+      peso:       1,
+      largo:      25,
+      ancho:      25,
+      alto:       37,
+    };
+    if (storeId) quoteBody.tienda_id = storeId;
 
-    // Intentar rutas conocidas de T1
+    // Intentar rutas conocidas de T1 (POST)
     const quotePaths = [
       '/api/v1/cotizacion',
-      '/shipping/v1/cotizacion',
-      '/api/v1/rates',
+      '/api/v2/cotizacion',
+      '/cotizacion',
+      '/api/cotizacion',
       '/v1/cotizacion',
+      '/v2/cotizacion',
+      '/api/v1/rates',
+      '/api/v1/quote',
+      '/shipping/v1/cotizacion',
     ];
     let quoteRes, quoteData;
     for (const qpath of quotePaths) {
-      quoteRes = await fetch(`${T1_BASE}${qpath}?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
+      quoteRes = await fetch(`${T1_BASE}${qpath}`, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(quoteBody),
       });
       quoteData = await quoteRes.json().catch(() => null);
-      console.log(`T1 cotización [${qpath}] → ${quoteRes.status}:`, JSON.stringify(quoteData));
+      console.log(`T1 cotización [POST ${qpath}] → ${quoteRes.status}:`, JSON.stringify(quoteData));
       if (quoteRes.ok) break;
     }
 
