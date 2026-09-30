@@ -1105,20 +1105,8 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
         <!-- Envia.com: selector de paquetería -->
         <div id="ship-envia-section" style="display:none;">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
-            <div style="flex:1;min-width:130px;">
-              <label style="font-size:11px;font-weight:700;color:var(--text-light);display:block;margin-bottom:4px;">PAQUETERÍA</label>
-              <select id="ship-carrier-sel" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
-                <option value="fedex">FedEx</option>
-                <option value="dhl">DHL</option>
-                <option value="estafeta">Estafeta</option>
-                <option value="redpack">Redpack</option>
-                <option value="paquetexpress">Paquetexpress</option>
-                <option value="ups">UPS</option>
-              </select>
-            </div>
-            <button class="btn btn-pink" id="gen-guia-envia-btn" onclick="generateShippingLabelEnvia()" style="height:36px;">📦 Generar con Envia.com</button>
-          </div>
+          <button class="btn btn-pink" id="cotizar-envia-btn" onclick="cotizarEnvia()" style="width:100%;">💰 Ver opciones de envío Envia.com</button>
+          <div id="envia-quotes-list" style="margin-top:10px;"></div>
         </div>
         <div id="gen-guia-result" style="margin-top:10px;font-size:12px;"></div>
       </div>
@@ -2662,30 +2650,76 @@ async function generateShippingLabel(){
   cotizarT1();
 }
 
-async function generateShippingLabelEnvia(){
+async function cotizarEnvia(){
   if(!_viewingOrder)return;
-  const carrier=document.getElementById('ship-carrier-sel').value;
-  const btn=document.getElementById('gen-guia-envia-btn');
+  const btn=document.getElementById('cotizar-envia-btn');
+  const list=document.getElementById('envia-quotes-list');
   const result=document.getElementById('gen-guia-result');
-  btn.textContent='⏳ Generando...';btn.disabled=true;
+  btn.textContent='⏳ Cotizando...';btn.disabled=true;
+  list.innerHTML='';result.innerHTML='';
+  const addr=_viewingOrder.shippingAddress||{};
+  if(!addr.zip){
+    result.innerHTML='<span style="color:var(--red);">❌ El pedido no tiene CP de destino</span>';
+    btn.textContent='💰 Ver opciones de envío Envia.com';btn.disabled=false;
+    return;
+  }
+  try{
+    const r=await fetch('/api/envia-quote',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cp_destino:addr.zip}),
+    });
+    const d=await r.json();
+    if(!r.ok||!d.ok){
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al cotizar Envia.com'}</span>`;
+      return;
+    }
+    if(!d.rates||!d.rates.length){result.innerHTML='<span style="color:var(--red);">❌ Sin servicios disponibles para ese CP</span>';return;}
+    list.innerHTML=d.rates.map(q=>`
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;background:var(--white);"
+           onclick="generarGuiaEnvia('${q.carrier}','${(q.service||'').replace(/'/g,'\\x27')}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;font-size:13px;">${q.carrier} — ${q.serviceDescription||q.service}</span>
+          <span style="font-weight:800;color:#8B3565;font-size:14px;">$${(q.price||0).toFixed(2)} ${q.currency||'MXN'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:2px;">Entrega estimada: ${q.days||'?'} día(s)</div>
+        <div style="margin-top:6px;text-align:right;"><span style="font-size:11px;color:#8B3565;font-weight:700;">✓ Seleccionar</span></div>
+      </div>`).join('');
+  }catch(e){
+    result.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
+  }finally{
+    btn.textContent='💰 Ver opciones de envío Envia.com';btn.disabled=false;
+  }
+}
+
+async function generarGuiaEnvia(carrier,service){
+  if(!_viewingOrder)return;
+  const list=document.getElementById('envia-quotes-list');
+  const result=document.getElementById('gen-guia-result');
+  list.innerHTML=`<div style="font-size:12px;color:var(--text-light);">⏳ Generando guía con ${carrier}...</div>`;
   result.innerHTML='';
   try{
     const r=await fetch('/api/shipping',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
-      body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),carrier}),
+      body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),carrier,service}),
     });
     const d=await r.json();
     if(!r.ok||!d.ok){
+      list.innerHTML='';
       result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía'}</span>`;
       return;
     }
-    _showShipmentSuccess(d.shipment, carrier.toUpperCase());
+    list.innerHTML='';
+    _showShipmentSuccess(d.shipment, carrier.toUpperCase()+' (Envia.com)');
   }catch(e){
-    result.innerHTML=`<span style="color:var(--red);">❌ Error de conexión</span>`;
-  }finally{
-    btn.textContent='📦 Generar con Envia.com';btn.disabled=false;
+    list.innerHTML='';
+    result.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
   }
+}
+
+async function generateShippingLabelEnvia(){
+  cotizarEnvia();
 }
 
 async function sendShippingEmail(){
