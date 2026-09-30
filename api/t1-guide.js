@@ -102,7 +102,7 @@ export default async function handler(req, res) {
       : [];
 
     if (!services.length) {
-      return res.status(400).json({ error: 'No hay servicios T1 disponibles para ese CP', raw: quoteData });
+      return res.status(400).json({ error: 'No hay servicios T1 disponibles para ese CP', details: quoteData });
     }
 
     const chosen      = services[0];
