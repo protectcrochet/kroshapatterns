@@ -80,7 +80,15 @@ export default async function handler(req, res) {
     };
     if (storeId) quoteBody.tienda_id = storeId;
 
-    // Intentar rutas conocidas de T1 (POST)
+    // Probar múltiples bases y rutas hasta encontrar la correcta
+    const T1_BASES = [
+      T1_BASE,
+      'https://api.t1envios.com',
+      'https://gateway.t1envios.com',
+      'https://services.t1envios.com',
+      'https://api.t1.com',
+    ].filter((v, i, a) => a.indexOf(v) === i); // deduplicar
+
     const quotePaths = [
       '/api/v1/cotizacion',
       '/api/v2/cotizacion',
@@ -90,22 +98,47 @@ export default async function handler(req, res) {
       '/v2/cotizacion',
       '/api/v1/rates',
       '/api/v1/quote',
+      '/api/v1/shipment/rate',
+      '/api/v1/envio/cotizar',
+      '/api/v1/guias/cotizar',
       '/shipping/v1/cotizacion',
     ];
+
     let quoteRes, quoteData;
-    for (const qpath of quotePaths) {
-      quoteRes = await fetch(`${T1_BASE}${qpath}`, {
-        method:  'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(quoteBody),
-      });
-      quoteData = await quoteRes.json().catch(() => null);
-      console.log(`T1 cotización [POST ${qpath}] → ${quoteRes.status}:`, JSON.stringify(quoteData));
-      if (quoteRes.ok) break;
+    const attempts = {};
+    outer:
+    for (const base of T1_BASES) {
+      for (const qpath of quotePaths) {
+        const url = `${base}${qpath}`;
+        try {
+          quoteRes = await fetch(url, {
+            method:  'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body:    JSON.stringify(quoteBody),
+          });
+          quoteData = await quoteRes.json().catch(() => null);
+          attempts[url] = { status: quoteRes.status, ok: quoteRes.ok };
+          console.log(`T1 [${url}] → ${quoteRes.status}`);
+          if (quoteRes.ok) break outer;
+          // Detenerse si obtenemos 401/403 (auth fallida — no tiene sentido seguir con otras rutas)
+          if (quoteRes.status === 401 || quoteRes.status === 403) break outer;
+        } catch (e) {
+          attempts[url] = { error: e.message };
+        }
+      }
     }
 
-    if (!quoteRes.ok) {
-      return res.status(quoteRes.status).json({ error: 'Error en cotización T1', details: quoteData });
+    if (!quoteRes?.ok) {
+      // Filtrar respuestas no-404 para ayudar a diagnosticar
+      const interesting = Object.fromEntries(
+        Object.entries(attempts).filter(([, v]) => v.status && v.status !== 404)
+      );
+      return res.status(400).json({
+        error: 'No se encontró el endpoint correcto de T1',
+        lastResponse: quoteData,
+        interesting,
+        totalTried: Object.keys(attempts).length,
+      });
     }
 
     // Normalizar lista de servicios (T1 puede responder en data[], servicios[], o array directo)
