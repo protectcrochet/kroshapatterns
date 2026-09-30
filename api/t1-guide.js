@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   const expected = process.env.ADMIN_KEY || 'Answin1+';
   if (req.headers['x-admin-key'] !== expected) return res.status(401).json({ error: 'No autorizado' });
 
-  const { orderRef } = req.body || {};
+  const { orderRef, tokenQuote: selectedToken, carrier: selectedCarrier, service: selectedService } = req.body || {};
   if (!orderRef) return res.status(400).json({ error: 'orderRef requerido' });
 
   if (!process.env.T1_USERNAME || !process.env.T1_PASSWORD) {
@@ -109,13 +109,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No hay servicios T1 disponibles para ese CP', details: quoteData });
     }
 
-    const chosen        = allServices[0];
-    const tokenQuote    = chosen.token || chosen.token_quote || chosen.tokenQuote || '';
-    const chosenCarrier = chosen.mensajeria || 'T1';
-
-    if (!tokenQuote) {
-      return res.status(400).json({ error: 'T1 no devolvió token_quote en la cotización', raw: chosen });
+    // Si no se eligió servicio aún, devolver lista para que el admin elija
+    if (!selectedToken) {
+      const quotes = allServices.map(s => ({
+        carrier:   s.mensajeria,
+        service:   s.servicio,
+        tipo:      s.tipo_servicio || '',
+        precio:    s.costo_total,
+        dias:      s.dias_entrega,
+        entrega:   s.fecha_claro_entrega || s.fecha_mensajeria_entrega || '',
+        token:     s.token || s.token_quote || s.tokenQuote || '',
+      }));
+      return res.status(200).json({ ok: true, quotes });
     }
+
+    const tokenQuote    = selectedToken;
+    const chosenCarrier = selectedCarrier || 'T1';
+    const chosenService = selectedService || '';
 
     // Paso 2 — generar guía con cotización
     const [firstName, ...lastParts] = (order.name || 'Cliente').split(' ');
@@ -176,8 +186,8 @@ export default async function handler(req, res) {
       labelUrl,
       trackUrl,
       carrier:   chosenCarrier,
-      service:   chosen.tipo_servicio || chosen.servicio || String(chosen.id || ''),
-      price:     chosen.precio || chosen.price || chosen.total,
+      service:   chosenService,
+      price:     null,
       createdAt: new Date().toISOString(),
       provider:  't1',
       _raw:      g,
