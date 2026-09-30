@@ -2608,7 +2608,8 @@ async function generateShippingLabel(){
     });
     const d=await r.json();
     if(!r.ok||!d.ok){
-      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía T1'}</span>${d.details?`<pre style="font-size:10px;white-space:pre-wrap;background:#fff0f0;padding:6px;border-radius:4px;margin-top:6px;">${JSON.stringify(d.details,null,2)}</pre>`:''}`;
+      const extra = d.interesting||d.details||d.lastResponse;
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía T1'}</span>${d.totalTried?` <span style="color:var(--text-light);font-size:11px;">(${d.totalTried} endpoints probados)</span>`:''}${extra?`<pre style="font-size:10px;white-space:pre-wrap;background:#fff0f0;padding:6px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto;">${JSON.stringify(extra,null,2)}</pre>`:''}`;
       return;
     }
     _showShipmentSuccess(d.shipment, (d.shipment.carrier||'T1').toUpperCase());
