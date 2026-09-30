@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   }
   const storeId = process.env.T1_STORE_ID || '';
 
-  const T1_BASE = process.env.T1_BASE_URL || 'https://shipping.devt1.com';
+  const T1_BASE = process.env.T1_BASE_URL || 'https://api.t1envios.com';
 
   const { Redis } = await import('@upstash/redis');
   const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
@@ -71,7 +71,6 @@ export default async function handler(req, res) {
     // Paso 1 — cotización para obtener servicios disponibles
     const cpOrigen = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
     const params = new URLSearchParams({
-      tienda_id:  storeId,
       cp_origen:  cpOrigen,
       cp_destino: addr.zip,
       peso:       '1',
@@ -79,12 +78,24 @@ export default async function handler(req, res) {
       ancho:      '25',
       alto:       '37',
     });
+    if (storeId) params.set('tienda_id', storeId);
 
-    const quoteRes = await fetch(`${T1_BASE}/shipping/v1/cotizacion?${params}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    const quoteData = await quoteRes.json();
-    console.log('T1 cotización response:', JSON.stringify(quoteData));
+    // Intentar rutas conocidas de T1
+    const quotePaths = [
+      '/api/v1/cotizacion',
+      '/shipping/v1/cotizacion',
+      '/api/v1/rates',
+      '/v1/cotizacion',
+    ];
+    let quoteRes, quoteData;
+    for (const qpath of quotePaths) {
+      quoteRes = await fetch(`${T1_BASE}${qpath}?${params}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      quoteData = await quoteRes.json().catch(() => null);
+      console.log(`T1 cotización [${qpath}] → ${quoteRes.status}:`, JSON.stringify(quoteData));
+      if (quoteRes.ok) break;
+    }
 
     if (!quoteRes.ok) {
       return res.status(quoteRes.status).json({ error: 'Error en cotización T1', details: quoteData });
@@ -149,13 +160,18 @@ export default async function handler(req, res) {
       },
     };
 
-    const guiaRes = await fetch(`${T1_BASE}/shipping/v1/guia`, {
-      method:  'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body:    JSON.stringify(guiaBody),
-    });
-    const guiaData = await guiaRes.json();
-    console.log('T1 guía raw:', JSON.stringify(guiaData));
+    const guiaPaths = ['/api/v1/guia', '/shipping/v1/guia', '/v1/guia'];
+    let guiaRes, guiaData;
+    for (const gpath of guiaPaths) {
+      guiaRes = await fetch(`${T1_BASE}${gpath}`, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(guiaBody),
+      });
+      guiaData = await guiaRes.json().catch(() => null);
+      console.log(`T1 guía [${gpath}] → ${guiaRes.status}:`, JSON.stringify(guiaData));
+      if (guiaRes.ok) break;
+    }
 
     if (!guiaRes.ok) {
       return res.status(guiaRes.status).json({ error: 'Error al generar guía T1', details: guiaData });
