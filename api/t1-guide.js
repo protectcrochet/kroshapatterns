@@ -1,30 +1,26 @@
-// api/t1-guide.js — Genera guía con T1 Envíos
-// Credenciales vía variables de entorno en Vercel (nunca en el código)
+// api/t1-guide.js — Genera guía con T1 Envíos (DEV)
+// API: https://apiv2.dev.t1envios.com
+// Auth: Keycloak username/password → Bearer token
+
+const T1_AUTH_URL = 'https://keycloak.dev.plataformat1.com/auth/realms/claroshop-sapi-sa-cv/protocol/openid-connect/token';
+const T1_BASE     = process.env.T1_BASE_URL || 'https://apiv2.dev.t1envios.com';
 
 async function getT1Token() {
-  // Opción 1: API key directa (t1-xxxx) — sin paso OAuth
-  if (process.env.T1_API_KEY) return process.env.T1_API_KEY;
-
-  // Opción 2: flujo Keycloak username/password
-  const authUrl = process.env.T1_AUTH_URL || 'https://id.t1.com/realms/T1/protocol/openid-connect/token';
   const body = new URLSearchParams({
     grant_type:    'password',
-    client_id:     process.env.T1_CLIENT_ID     || 't1envios',
-    client_secret: process.env.T1_CLIENT_SECRET || '',
-    username:      process.env.T1_USERNAME       || '',
-    password:      process.env.T1_PASSWORD       || '',
+    client_id:     't1envios',
+    client_secret: 'f64cd365-346d-461d-95b4-91938594b84a',
+    username:      process.env.T1_USERNAME || '',
+    password:      process.env.T1_PASSWORD || '',
   });
-  const r = await fetch(authUrl, {
+  const r = await fetch(T1_AUTH_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: body.toString(),
   });
-  if (!r.ok) {
-    const err = await r.text();
-    throw new Error('T1 auth error: ' + err);
-  }
-  const data = await r.json();
-  return data.access_token;
+  if (!r.ok) throw new Error('T1 auth error: ' + await r.text());
+  const d = await r.json();
+  return d.access_token;
 }
 
 export default async function handler(req, res) {
@@ -37,15 +33,14 @@ export default async function handler(req, res) {
   const expected = process.env.ADMIN_KEY || 'Answin1+';
   if (req.headers['x-admin-key'] !== expected) return res.status(401).json({ error: 'No autorizado' });
 
-  const { orderRef, serviceId } = req.body || {};
+  const { orderRef } = req.body || {};
   if (!orderRef) return res.status(400).json({ error: 'orderRef requerido' });
 
-  if (!process.env.T1_API_KEY && (!process.env.T1_USERNAME || !process.env.T1_PASSWORD)) {
-    return res.status(500).json({ error: 'T1_API_KEY (o T1_USERNAME+T1_PASSWORD) no configurados en Vercel' });
+  if (!process.env.T1_USERNAME || !process.env.T1_PASSWORD) {
+    return res.status(500).json({ error: 'T1_USERNAME y T1_PASSWORD no configuradas en Vercel' });
   }
-  const storeId = process.env.T1_STORE_ID || '';
-
-  const T1_BASE = process.env.T1_BASE_URL || 'https://api.t1envios.com';
+  const storeId = process.env.T1_STORE_ID;
+  if (!storeId) return res.status(500).json({ error: 'T1_STORE_ID no configurada en Vercel' });
 
   const { Redis } = await import('@upstash/redis');
   const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
@@ -59,188 +54,125 @@ export default async function handler(req, res) {
   if (!order.shippingAddress) {
     return res.status(400).json({ error: 'El pedido no tiene dirección de envío guardada' });
   }
-
   const addr = order.shippingAddress;
   if (!addr.zip || !/^\d{5}$/.test(addr.zip)) {
-    return res.status(400).json({ error: 'El CP destino no es válido (se requieren 5 dígitos)' });
+    return res.status(400).json({ error: 'CP destino inválido (requiere 5 dígitos)' });
   }
+
+  const cpOrigen = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
 
   try {
     const token = await getT1Token();
 
-    // Paso 1 — cotización para obtener servicios disponibles
-    const cpOrigen = process.env.T1_CP_ORIGEN || process.env.ENVIA_ORIGIN_POSTAL || '76030';
-    const quoteBody = {
-      cp_origen:  cpOrigen,
-      cp_destino: addr.zip,
-      peso:       1,
-      largo:      25,
-      ancho:      25,
-      alto:       37,
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type':  'application/json',
+      'Accept':        'application/json',
+      'shop_id':       storeId,
     };
-    if (storeId) quoteBody.tienda_id = storeId;
 
-    // Probar múltiples bases, rutas y métodos de auth
-    const T1_BASES = [
-      T1_BASE,
-      'https://shipping.t1.com',
-      'https://api.t1envios.com',
-      'https://t1envios.com',
-      'https://gateway.t1envios.com',
-      'https://services.t1envios.com',
-    ].filter((v, i, a) => a.indexOf(v) === i);
+    // Paso 1 — cotización
+    const quoteBody = {
+      codigo_postal_origen:  cpOrigen,
+      codigo_postal_destino: addr.zip,
+      peso:           1,
+      largo:          25,
+      ancho:          25,
+      alto:           37,
+      dias_embarque:  1,
+      seguro:         false,
+      valor_paquete:  0,
+      tipo_paquete:   0,
+      comercio_id:    storeId,
+    };
 
-    const quotePaths = [
-      '/api/v1/cotizacion',
-      '/api/v2/cotizacion',
-      '/cotizacion',
-      '/v1/cotizacion',
-      '/v2/cotizacion',
-      '/api/v1/rates',
-      '/api/v1/quote',
-      '/shipping/v1/cotizacion',
-    ];
+    const quoteRes  = await fetch(`${T1_BASE}/quote/create`, { method: 'POST', headers, body: JSON.stringify(quoteBody) });
+    const quoteData = await quoteRes.json();
+    console.log('T1 cotización:', JSON.stringify(quoteData));
 
-    // Dos variantes de auth: Bearer y x-api-key
-    const authHeaders = [
-      { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      { 'x-api-key': token,                  'Content-Type': 'application/json' },
-    ];
-
-    let quoteRes, quoteData;
-    const attempts = {};
-    outer:
-    for (const base of T1_BASES) {
-      for (const qpath of quotePaths) {
-        for (const headers of authHeaders) {
-          const url = `${base}${qpath}`;
-          const authType = headers['Authorization'] ? 'Bearer' : 'x-api-key';
-          const key = `${url} [${authType}]`;
-          try {
-            quoteRes = await fetch(url, {
-              method: 'POST',
-              headers,
-              body:   JSON.stringify(quoteBody),
-            });
-            quoteData = await quoteRes.json().catch(() => null);
-            attempts[key] = { status: quoteRes.status };
-            console.log(`T1 [${key}] → ${quoteRes.status}`);
-            if (quoteRes.ok) break outer;
-          } catch (e) {
-            attempts[key] = { error: e.message };
-          }
-        }
-      }
+    if (!quoteRes.ok) {
+      return res.status(quoteRes.status).json({ error: 'Error en cotización T1', details: quoteData });
     }
 
-    if (!quoteRes?.ok) {
-      const interesting = Object.fromEntries(
-        Object.entries(attempts).filter(([, v]) => !v.error && v.status !== 404)
-      );
-      const networkErrors = Object.fromEntries(
-        Object.entries(attempts).filter(([, v]) => !!v.error)
-      );
-      return res.status(400).json({
-        error: 'No se encontró el endpoint correcto de T1',
-        lastResponse: quoteData,
-        interesting,
-        networkErrors: Object.keys(networkErrors).length,
-        totalTried: Object.keys(attempts).length,
-      });
-    }
-
-    // Normalizar lista de servicios (T1 puede responder en data[], servicios[], o array directo)
-    const services = Array.isArray(quoteData) ? quoteData
-      : Array.isArray(quoteData.data)      ? quoteData.data
-      : Array.isArray(quoteData.servicios) ? quoteData.servicios
-      : Array.isArray(quoteData.services)  ? quoteData.services
+    // Normalizar lista de servicios y extraer token_quote del más económico
+    const services = Array.isArray(quoteData)             ? quoteData
+      : Array.isArray(quoteData.servicios)                ? quoteData.servicios
+      : Array.isArray(quoteData.data)                     ? quoteData.data
+      : Array.isArray(quoteData.services)                 ? quoteData.services
       : [];
 
     if (!services.length) {
       return res.status(400).json({ error: 'No hay servicios T1 disponibles para ese CP', raw: quoteData });
     }
 
-    // Usar el serviceId solicitado o el primero disponible (normalmente el más económico)
-    let chosen = services[0];
-    if (serviceId) {
-      const found = services.find(s =>
-        String(s.id || s.servicio_id || s.service_id) === String(serviceId)
-      );
-      if (found) chosen = found;
+    const chosen      = services[0];
+    const tokenQuote  = chosen.token_quote || chosen.tokenQuote || chosen.token || '';
+    const chosenCarrier = chosen.mensajeria || chosen.carrier || chosen.paqueteria || 'T1';
+
+    if (!tokenQuote) {
+      return res.status(400).json({ error: 'T1 no devolvió token_quote en la cotización', raw: chosen });
     }
 
-    const chosenServiceId = chosen.id || chosen.servicio_id || chosen.service_id;
-    const chosenCarrier   = chosen.paqueteria || chosen.carrier || chosen.proveedor || chosen.name || 'T1';
+    // Paso 2 — generar guía con cotización
+    const [firstName, ...lastParts] = (order.name || 'Cliente').split(' ');
+    const lastName = lastParts.join(' ') || '.';
 
-    // Paso 2 — generar guía
-    const guiaBody = {
-      tienda_id:   storeId,
-      servicio_id: chosenServiceId,
-      remitente: {
-        nombre:     process.env.ENVIA_ORIGIN_NAME   || 'KroshaPatterns',
-        telefono:   process.env.ENVIA_ORIGIN_PHONE  || '4421000000',
-        calle:      process.env.ENVIA_ORIGIN_STREET || 'Calle Origen 1',
-        numero:     process.env.ENVIA_ORIGIN_NUMBER || '1',
-        colonia:    process.env.ENVIA_ORIGIN_COLONIA || 'Centro',
-        municipio:  process.env.ENVIA_ORIGIN_CITY   || 'Querétaro',
-        estado:     process.env.ENVIA_ORIGIN_STATE  || 'QRO',
-        cp:         cpOrigen,
-        pais:       'MX',
-      },
-      destinatario: {
-        nombre:      order.name || 'Cliente',
-        telefono:    addr.phone || '5550000000',
-        calle:       addr.street || '',
-        numero:      addr.number || 'S/N',
-        colonia:     addr.colonia || '',
-        municipio:   addr.city || '',
-        estado:      addr.state || '',
-        cp:          addr.zip,
-        pais:        addr.country || 'MX',
-        referencias: addr.references || '',
-      },
-      paquete: {
-        peso:      1,
-        largo:     25,
-        ancho:     25,
-        alto:      37,
-        contenido: order.products || 'Kit crochet KroshaPatterns',
-      },
+    const guideBody = {
+      contenido:               order.products || 'Kit crochet KroshaPatterns',
+      pedido_comercio:         String(order.ref || order.id || ''),
+      nombre_origen:           process.env.ENVIA_ORIGIN_NAME   || 'KroshaPatterns',
+      apellidos_origen:        '',
+      email_origen:            process.env.ENVIA_ORIGIN_EMAIL  || 'kroshapatterns@gmail.com',
+      calle_origen:            process.env.ENVIA_ORIGIN_STREET || 'Calle Origen 1',
+      numero_origen:           process.env.ENVIA_ORIGIN_NUMBER || '1',
+      colonia_origen:          process.env.ENVIA_ORIGIN_COLONIA|| 'Centro',
+      telefono_origen:         process.env.ENVIA_ORIGIN_PHONE  || '4421000000',
+      estado_origen:           process.env.ENVIA_ORIGIN_STATE  || 'QRO',
+      municipio_origen:        process.env.ENVIA_ORIGIN_CITY   || 'Querétaro',
+      referencias_origen:      '',
+      codigo_postal_origen:    cpOrigen,
+      nombre_destino:          firstName,
+      apellidos_destino:       lastName,
+      email_destino:           order.email || '',
+      calle_destino:           addr.street  || '',
+      numero_destino:          addr.number  || 'S/N',
+      colonia_destino:         addr.colonia || '',
+      telefono_destino:        addr.phone   || '5550000000',
+      estado_destino:          addr.state   || '',
+      municipio_destino:       addr.city    || '',
+      referencias_destino:     addr.references || '',
+      codigo_postal_destino:   addr.zip,
+      generar_recoleccion:     false,
+      tiene_notificacion:      false,
+      origen_guia:             '2001',
+      comercio_id:             storeId,
+      nombre_comercio_origen:  '',
+      nombre_comercio_destino: '',
+      token_quote:             tokenQuote,
     };
 
-    const guiaPaths = ['/api/v1/guia', '/shipping/v1/guia', '/v1/guia'];
-    let guiaRes, guiaData;
-    for (const gpath of guiaPaths) {
-      guiaRes = await fetch(`${T1_BASE}${gpath}`, {
-        method:  'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(guiaBody),
-      });
-      guiaData = await guiaRes.json().catch(() => null);
-      console.log(`T1 guía [${gpath}] → ${guiaRes.status}:`, JSON.stringify(guiaData));
-      if (guiaRes.ok) break;
-    }
+    const guideRes  = await fetch(`${T1_BASE}/guide/create`, { method: 'POST', headers, body: JSON.stringify(guideBody) });
+    const guideData = await guideRes.json();
+    console.log('T1 guía:', JSON.stringify(guideData));
 
-    if (!guiaRes.ok) {
-      return res.status(guiaRes.status).json({ error: 'Error al generar guía T1', details: guiaData });
+    if (!guideRes.ok) {
+      return res.status(guideRes.status).json({ error: 'Error al generar guía T1', details: guideData });
     }
 
     // Normalizar respuesta
-    const g = guiaData.data || guiaData;
+    const g = guideData.data || guideData;
     const trackingNumber =
-      g.tracking || g.numero_guia || g.guia || g.trackingNumber || g.tracking_number || '';
+      g.numero_guia || g.tracking || g.guia || g.trackingNumber || g.tracking_number || g.numeroGuia || '';
     const labelUrl =
-      g.etiqueta || g.label || g.pdf || g.labelUrl || g.label_url || g.url || '';
-    const trackUrl = trackingNumber
-      ? `https://t1envios.com/rastreo?guia=${trackingNumber}`
-      : '';
+      g.etiqueta || g.label || g.pdf || g.labelUrl || g.label_url || g.url_etiqueta || g.urlEtiqueta || '';
+    const trackUrl = trackingNumber ? `https://t1envios.com/rastreo?guia=${trackingNumber}` : '';
 
     const shipment = {
       trackingNumber,
       labelUrl,
       trackUrl,
       carrier:   chosenCarrier,
-      service:   String(chosenServiceId),
+      service:   chosen.tipo_servicio || chosen.servicio || String(chosen.id || ''),
       price:     chosen.precio || chosen.price || chosen.total,
       createdAt: new Date().toISOString(),
       provider:  't1',
@@ -250,7 +182,7 @@ export default async function handler(req, res) {
     orders[idx] = { ...order, shipment, status: 'shipped' };
     await redis.set('krosha:orders', JSON.stringify(orders));
 
-    return res.status(200).json({ ok: true, shipment, availableServices: services });
+    return res.status(200).json({ ok: true, shipment });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
