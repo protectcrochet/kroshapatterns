@@ -1098,10 +1098,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             Envia.com
           </button>
         </div>
-        <!-- T1 Envíos: sin selector de paquetería (auto-selecciona el mejor servicio) -->
+        <!-- T1 Envíos: paso 1 cotizar, paso 2 elegir y generar -->
         <div id="ship-t1-section">
-          <div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">T1 Envíos seleccionará automáticamente el servicio disponible para el CP del cliente.</div>
-          <button class="btn btn-pink" id="gen-guia-btn" onclick="generateShippingLabel()" style="width:100%;">📦 Generar guía con T1 Envíos</button>
+          <button class="btn btn-pink" id="cotizar-t1-btn" onclick="cotizarT1()" style="width:100%;">💰 Ver opciones de envío T1</button>
+          <div id="t1-quotes-list" style="margin-top:10px;"></div>
         </div>
         <!-- Envia.com: selector de paquetería -->
         <div id="ship-envia-section" style="display:none;">
@@ -2594,12 +2594,13 @@ function _showShipmentSuccess(s, providerLabel){
   renderOrdersTable();
 }
 
-async function generateShippingLabel(){
+async function cotizarT1(){
   if(!_viewingOrder)return;
-  const btn=document.getElementById('gen-guia-btn');
+  const btn=document.getElementById('cotizar-t1-btn');
+  const list=document.getElementById('t1-quotes-list');
   const result=document.getElementById('gen-guia-result');
-  btn.textContent='⏳ Generando...';btn.disabled=true;
-  result.innerHTML='';
+  btn.textContent='⏳ Cotizando...';btn.disabled=true;
+  list.innerHTML='';result.innerHTML='';
   try{
     const r=await fetch('/api/t1-guide',{
       method:'POST',
@@ -2608,16 +2609,57 @@ async function generateShippingLabel(){
     });
     const d=await r.json();
     if(!r.ok||!d.ok){
-      const extra = d.interesting||d.details||d.lastResponse;
-      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía T1'}</span>${d.totalTried?` <span style="color:var(--text-light);font-size:11px;">(${d.totalTried} endpoints probados)</span>`:''}${extra?`<pre style="font-size:10px;white-space:pre-wrap;background:#fff0f0;padding:6px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto;">${JSON.stringify(extra,null,2)}</pre>`:''}`;
+      const extra=d.details||d.interesting;
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al cotizar T1'}</span>${extra?`<pre style="font-size:10px;white-space:pre-wrap;background:#fff0f0;padding:6px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto;">${JSON.stringify(extra,null,2)}</pre>`:''}`;
       return;
     }
-    _showShipmentSuccess(d.shipment, (d.shipment.carrier||'T1').toUpperCase());
+    if(!d.quotes||!d.quotes.length){result.innerHTML='<span style="color:var(--red);">❌ Sin servicios disponibles</span>';return;}
+    list.innerHTML=d.quotes.map((q,i)=>`
+      <div style="border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:6px;cursor:pointer;background:var(--white);"
+           onclick="generarGuiaT1('${q.token}','${q.carrier}','${q.service}',${q.precio})">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-weight:700;font-size:13px;">${q.carrier} — ${q.service}</span>
+          <span style="font-weight:800;color:#8B3565;font-size:14px;">$${(q.precio||0).toFixed(2)} MXN</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-light);margin-top:2px;">${q.tipo||''} · ${q.dias||'?'} día(s) · Entrega: ${q.entrega||'—'}</div>
+        <div style="margin-top:6px;text-align:right;"><span style="font-size:11px;color:#8B3565;font-weight:700;">✓ Seleccionar</span></div>
+      </div>`).join('');
   }catch(e){
-    result.innerHTML=`<span style="color:var(--red);">❌ Error de conexión: ${e.message}</span>`;
+    result.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
   }finally{
-    btn.textContent='📦 Generar guía con T1 Envíos';btn.disabled=false;
+    btn.textContent='💰 Ver opciones de envío T1';btn.disabled=false;
   }
+}
+
+async function generarGuiaT1(tokenQuote,carrier,service,precio){
+  if(!_viewingOrder)return;
+  const list=document.getElementById('t1-quotes-list');
+  const result=document.getElementById('gen-guia-result');
+  list.innerHTML='<div style="font-size:12px;color:var(--text-light);">⏳ Generando guía con '+carrier+' '+service+'...</div>';
+  result.innerHTML='';
+  try{
+    const r=await fetch('/api/t1-guide',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
+      body:JSON.stringify({orderRef:_viewingOrder.ref||String(_viewingOrder.id),tokenQuote,carrier,service}),
+    });
+    const d=await r.json();
+    if(!r.ok||!d.ok){
+      const extra=d.details||d.interesting;
+      list.innerHTML='';
+      result.innerHTML=`<span style="color:var(--red);">❌ ${d.error||'Error al generar guía T1'}</span>${extra?`<pre style="font-size:10px;white-space:pre-wrap;background:#fff0f0;padding:6px;border-radius:4px;margin-top:6px;max-height:200px;overflow:auto;">${JSON.stringify(extra,null,2)}</pre>`:''}`;
+      return;
+    }
+    list.innerHTML='';
+    _showShipmentSuccess(d.shipment, carrier.toUpperCase()+' (T1)');
+  }catch(e){
+    list.innerHTML='';
+    result.innerHTML=`<span style="color:var(--red);">❌ Error: ${e.message}</span>`;
+  }
+}
+
+async function generateShippingLabel(){
+  cotizarT1();
 }
 
 async function generateShippingLabelEnvia(){
