@@ -9,7 +9,7 @@ async function getT1Token() {
   const body = new URLSearchParams({
     grant_type:    'password',
     client_id:     't1envios',
-    client_secret: 'f64cd365-346d-461d-95b4-91938594b84a',
+    client_secret: process.env.T1_CLIENT_SECRET || '',
     username:      process.env.T1_USERNAME || '',
     password:      process.env.T1_PASSWORD || '',
   });
@@ -94,20 +94,24 @@ export default async function handler(req, res) {
       return res.status(quoteRes.status).json({ error: 'Error en cotización T1', details: quoteData });
     }
 
-    // Normalizar lista de servicios y extraer token_quote del más económico
-    const services = Array.isArray(quoteData)             ? quoteData
-      : Array.isArray(quoteData.servicios)                ? quoteData.servicios
-      : Array.isArray(quoteData.data)                     ? quoteData.data
-      : Array.isArray(quoteData.services)                 ? quoteData.services
-      : [];
+    // Aplanar servicios de result[].cotizacion.servicios (objeto) → array plano
+    const allServices = [];
+    for (const carrier of (quoteData.result || [])) {
+      const servicios = carrier.cotizacion?.servicios || {};
+      for (const [key, svc] of Object.entries(servicios)) {
+        allServices.push({ ...svc, mensajeria: carrier.clave, servicio: key });
+      }
+    }
+    // Ordenar por precio (más barato primero)
+    allServices.sort((a, b) => (a.costo_total || 0) - (b.costo_total || 0));
 
-    if (!services.length) {
+    if (!allServices.length) {
       return res.status(400).json({ error: 'No hay servicios T1 disponibles para ese CP', details: quoteData });
     }
 
-    const chosen      = services[0];
-    const tokenQuote  = chosen.token_quote || chosen.tokenQuote || chosen.token || '';
-    const chosenCarrier = chosen.mensajeria || chosen.carrier || chosen.paqueteria || 'T1';
+    const chosen        = allServices[0];
+    const tokenQuote    = chosen.token || chosen.token_quote || chosen.tokenQuote || '';
+    const chosenCarrier = chosen.mensajeria || 'T1';
 
     if (!tokenQuote) {
       return res.status(400).json({ error: 'T1 no devolvió token_quote en la cotización', raw: chosen });
