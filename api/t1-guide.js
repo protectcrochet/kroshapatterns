@@ -1,7 +1,11 @@
 // api/t1-guide.js — Genera guía con T1 Envíos
-// Credenciales vía variables de entorno en Vercel
+// Credenciales vía variables de entorno en Vercel (nunca en el código)
 
 async function getT1Token() {
+  // Opción 1: API key directa (t1-xxxx) — sin paso OAuth
+  if (process.env.T1_API_KEY) return process.env.T1_API_KEY;
+
+  // Opción 2: flujo Keycloak username/password
   const authUrl = process.env.T1_AUTH_URL || 'https://id.t1.com/realms/T1/protocol/openid-connect/token';
   const body = new URLSearchParams({
     grant_type:    'password',
@@ -36,11 +40,10 @@ export default async function handler(req, res) {
   const { orderRef, serviceId } = req.body || {};
   if (!orderRef) return res.status(400).json({ error: 'orderRef requerido' });
 
-  const storeId = process.env.T1_STORE_ID;
-  if (!storeId) return res.status(500).json({ error: 'T1_STORE_ID no configurada en Vercel' });
-  if (!process.env.T1_USERNAME || !process.env.T1_PASSWORD) {
-    return res.status(500).json({ error: 'T1_USERNAME / T1_PASSWORD no configuradas en Vercel' });
+  if (!process.env.T1_API_KEY && (!process.env.T1_USERNAME || !process.env.T1_PASSWORD)) {
+    return res.status(500).json({ error: 'T1_API_KEY (o T1_USERNAME+T1_PASSWORD) no configurados en Vercel' });
   }
+  const storeId = process.env.T1_STORE_ID || '';
 
   const T1_BASE = process.env.T1_BASE_URL || 'https://shipping.devt1.com';
 
