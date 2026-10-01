@@ -1,11 +1,14 @@
-// api/t1-guide.js — Genera guía con T1 Envíos (DEV)
-// API: https://apiv2.dev.t1envios.com
-// Auth: Keycloak username/password → Bearer token
+// api/t1-guide.js — Genera guía con T1 Envíos
+// Auth: API key directa (T1_API_KEY) o Keycloak username/password como fallback
 
 const T1_AUTH_URL = 'https://keycloak.dev.plataformat1.com/auth/realms/claroshop-sapi-sa-cv/protocol/openid-connect/token';
 const T1_BASE     = process.env.T1_BASE_URL || 'https://apiv2.dev.t1envios.com';
 
 async function getT1Token() {
+  // API key directa — sin paso OAuth
+  if (process.env.T1_API_KEY) return process.env.T1_API_KEY;
+
+  // Fallback: flujo Keycloak username/password
   const body = new URLSearchParams({
     grant_type:    'password',
     client_id:     't1envios',
