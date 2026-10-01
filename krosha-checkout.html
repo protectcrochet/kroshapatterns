@@ -1471,7 +1471,7 @@ async function confirmOrder(){
       document.getElementById('checkout-phone')?.scrollIntoView({behavior:'smooth',block:'center'});
       return;
     }
-    if(shipCost<=0){
+    if(shipCost<=0&&!_manualShip){
       showToast(lang==='es'?'⚠️ Selecciona una opción de envío primero':'⚠️ Select a shipping option first');
       return;
     }
@@ -1522,7 +1522,15 @@ function showToast(msg){
 }
 
 // ── SHIPPING ──
-let shipCost=0, _shipRates=[], _selRateIdx=0, _lastShipPackage=null;
+let shipCost=0, _shipRates=[], _selRateIdx=0, _lastShipPackage=null, _manualShip=false;
+
+function activarEnvioManual(cp){
+  _manualShip=true;
+  shipCost=0;
+  const el=document.getElementById('envia-results');
+  if(el)el.innerHTML=`<div style="background:#f0fdf4;border-radius:10px;padding:12px;border:1.5px solid #86efac;font-size:12.5px;color:#166534;">✅ De acuerdo — procesaremos tu pedido y te contactaremos para acordar el envío a CP <strong>${cp}</strong>.</div>`;
+  _updateShipTotals();
+}
 
 function _autoRecotizar(){
   // Solo re-cotiza si ya hay tarifas cargadas (el usuario ya cotizó antes) y hay CP válido
@@ -1710,7 +1718,15 @@ async function cotizarEnvio(){
     if(!r.ok||!data.ok)throw new Error(data.error||'Error al cotizar');
     if(!data.rates||!data.rates.length){
       if(isMX){
-        el.innerHTML=`<div style="background:#fef2f2;border-radius:10px;padding:12px;color:#991b1b;font-size:12.5px;">⚠️ No encontramos tarifas para <strong>${cp}</strong>. Verifica el código postal o intenta de nuevo.</div>`;
+        el.innerHTML=`<div style="background:#fff8ec;border-radius:10px;padding:14px;border:1.5px solid #ffe0a0;">
+          <div style="font-size:13px;font-weight:700;color:#7a5200;margin-bottom:6px;">📦 Sin cobertura automática para CP <strong>${cp}</strong></div>
+          <div style="font-size:12px;color:#7a5200;margin-bottom:10px;">No encontramos paquetería disponible para tu código postal. Puedes escribirnos y te cotizamos personalmente.</div>
+          <a href="https://www.instagram.com/kro_shaa/" target="_blank" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-right:6px;margin-bottom:6px;">◎ @kro_shaa</a>
+          <a href="mailto:kroshapatterns@gmail.com" style="display:inline-block;background:#3A1E2E;color:#fff;text-decoration:none;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:6px;">✉ Email</a>
+          <div style="margin-top:8px;border-top:1px solid #ffe0a0;padding-top:8px;">
+            <button onclick="activarEnvioManual('${cp}')" style="background:none;border:1px dashed #c08040;border-radius:8px;padding:6px 12px;font-size:11.5px;color:#7a5200;cursor:pointer;font-family:'Nunito',sans-serif;">Continuar — envío se cotizará por separado</button>
+          </div>
+        </div>`;
       } else {
         el.innerHTML='';
       }
