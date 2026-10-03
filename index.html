@@ -848,6 +848,7 @@ function generateYarnKits(patternProds){
       eyesPrice:0,
       isYarnKit:true,
       patternId:id,
+      sortOrder:pat.sortOrder!=null?pat.sortOrder:999,
     });
   });
   return result;

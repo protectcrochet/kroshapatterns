@@ -328,6 +328,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setKitsAgotados()">🚫 Kits agotados</button>
           <button class="btn btn-sm" style="background:#16A34A;color:#fff;border:none;" onclick="setKitsActivos()">✅ Activar kits</button>
+          <button class="btn btn-sm" style="background:#7C3AED;color:#fff;border:none;" onclick="openSortModal()">🔀 Reordenar</button>
           <button class="btn btn-pink" onclick="openProdModal()">+ Agregar producto</button>
         </div>
       </div>
@@ -840,6 +841,31 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- SORT ORDER MODAL -->
+<div class="modal-overlay" id="sort-modal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div class="modal-title">🔀 Reordenar productos</div>
+      <button class="modal-close" onclick="closeSortModal()">✕</button>
+    </div>
+    <div style="padding:0 24px 24px;">
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;">Arrastra las filas o usa ▲▼ para cambiar el orden en la tienda. Los Kits Estambres siguen el orden de sus patrones.</p>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--text-light);margin-bottom:8px;">📋 Patrones</div>
+        <div id="sort-list-patrones" style="display:flex;flex-direction:column;gap:4px;min-height:40px;"></div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--text-light);margin-bottom:8px;">🎁 Kits físicos / Amigurumis</div>
+        <div id="sort-list-kits" style="display:flex;flex-direction:column;gap:4px;min-height:40px;"></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-outline" onclick="closeSortModal()">Cancelar</button>
+        <button class="btn btn-pink" onclick="saveSortOrder()">💾 Guardar orden</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- PRODUCT MODAL -->
 <div class="modal-overlay" id="prod-modal">
@@ -1938,6 +1964,99 @@ function filterProdsTable(search,type){
   renderProdsTable();
 }
 function typeLabel(t){return t==='patrones'?'Patrón':t==='kits'?'Kit':t==='hilo'?'Hilo':'Amigurumi';}
+
+// ── SORT ORDER ──
+let _sortDragSrc=null;
+
+function openSortModal(){
+  const prods=getProds();
+  const patrones=prods.filter(p=>p.type==='patrones'||p.type==='amigurumis').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  const kits=prods.filter(p=>p.type==='kits').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  _renderSortList('sort-list-patrones',patrones);
+  _renderSortList('sort-list-kits',kits);
+  document.getElementById('sort-modal').classList.add('open');
+}
+
+function closeSortModal(){
+  document.getElementById('sort-modal').classList.remove('open');
+}
+
+function _renderSortList(containerId,items){
+  const container=document.getElementById(containerId);
+  if(!items.length){
+    container.innerHTML='<div style="font-size:13px;color:var(--text-light);padding:10px;text-align:center;">Sin productos</div>';
+    return;
+  }
+  container.innerHTML='';
+  items.forEach(item=>{
+    const row=document.createElement('div');
+    row.setAttribute('data-sort-id',item.id);
+    row.draggable=true;
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid var(--border);border-radius:10px;cursor:grab;user-select:none;touch-action:none;';
+    const img=item.images&&item.images[0]?`<img src="${item.images[0]}" style="width:34px;height:34px;border-radius:8px;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:'<div style="width:34px;height:34px;border-radius:8px;background:var(--pink-mid);flex-shrink:0;"></div>';
+    row.innerHTML=`
+      <span style="font-size:20px;color:var(--text-light);flex-shrink:0;line-height:1;">⠿</span>
+      ${img}
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${item.nameEs}</div>
+        <div style="font-size:11px;color:var(--text-light);">${typeLabel(item.type)} · $${item.price}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
+        <button onclick="_moveSortItem(this.closest('[data-sort-id]'),-1)" style="background:var(--pink-mid);border:none;border-radius:5px;width:24px;height:22px;cursor:pointer;font-size:11px;line-height:1;">▲</button>
+        <button onclick="_moveSortItem(this.closest('[data-sort-id]'),1)" style="background:var(--pink-mid);border:none;border-radius:5px;width:24px;height:22px;cursor:pointer;font-size:11px;line-height:1;">▼</button>
+      </div>`;
+    // Drag events
+    row.addEventListener('dragstart',e=>{
+      _sortDragSrc=row;
+      e.dataTransfer.effectAllowed='move';
+      setTimeout(()=>row.style.opacity='0.4',0);
+    });
+    row.addEventListener('dragend',()=>{
+      row.style.opacity='';
+      document.querySelectorAll('[data-sort-id]').forEach(r=>r.style.borderColor='var(--border)');
+    });
+    row.addEventListener('dragover',e=>{
+      e.preventDefault();e.dataTransfer.dropEffect='move';
+      if(row!==_sortDragSrc)row.style.borderColor='var(--pink-dark)';
+    });
+    row.addEventListener('dragleave',()=>row.style.borderColor='var(--border)');
+    row.addEventListener('drop',e=>{
+      e.preventDefault();
+      if(!_sortDragSrc||_sortDragSrc===row)return;
+      row.style.borderColor='var(--border)';
+      const parent=row.parentNode;
+      const rows=[...parent.children];
+      const si=rows.indexOf(_sortDragSrc),di=rows.indexOf(row);
+      if(si<di)parent.insertBefore(_sortDragSrc,row.nextSibling);
+      else parent.insertBefore(_sortDragSrc,row);
+    });
+    container.appendChild(row);
+  });
+}
+
+function _moveSortItem(row,dir){
+  const parent=row.parentNode;
+  const rows=[...parent.children];
+  const idx=rows.indexOf(row);
+  if(dir===-1&&idx>0)parent.insertBefore(row,rows[idx-1]);
+  else if(dir===1&&idx<rows.length-1)parent.insertBefore(row,rows[idx+1].nextSibling);
+}
+
+async function saveSortOrder(){
+  const prods=getProds();
+  [...document.querySelectorAll('#sort-list-patrones [data-sort-id]')].forEach((row,i)=>{
+    const p=prods.find(x=>x.id===parseInt(row.getAttribute('data-sort-id')));
+    if(p)p.sortOrder=i+1;
+  });
+  [...document.querySelectorAll('#sort-list-kits [data-sort-id]')].forEach((row,i)=>{
+    const p=prods.find(x=>x.id===parseInt(row.getAttribute('data-sort-id')));
+    if(p)p.sortOrder=i+1;
+  });
+  saveProds(prods);
+  closeSortModal();
+  renderProdsTable();
+  showToast('✅ Orden guardado');
+}
 
 function openProdModal(id){
   fillYarnSelects();
