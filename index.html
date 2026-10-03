@@ -746,7 +746,7 @@ function yarnColorsToList(yc){
   return order.map(color=>({color,qty:counts[color]}));
 }
 let cur='MXN', lang='es', curProd=null;
-let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false;
+let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false, addPatternToKit=false;
 
 // ── CART (persists across pages) ──
 function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
@@ -825,7 +825,7 @@ function generateYarnKits(patternProds){
     const kitId=1000+id;
     if(existingIds.has(kitId))return;
     const totalQty=yl.reduce((s,i)=>s+i.qty,0);
-    const price=totalQty*150;
+    const price=yl.reduce((s,i)=>s+(i.price||150)*i.qty,0);
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
@@ -841,8 +841,8 @@ function generateYarnKits(patternProds){
       status:isSoldOut?'soldOut':'active',
       skill:'',
       images:pat.images||[],
-      desc:`${totalQty} ovillos Premier Yarns Basix 200g. Todos los colores incluidos para el patrón ${pat.title}.`,
-      descEn:`${totalQty} Premier Yarns Basix 200g skeins. All colors for the ${pat.titleEn||pat.title} pattern.`,
+      desc:(()=>{const hasPremier=yl.some(i=>(i.price||150)>=150);const hasSinfonia=yl.some(i=>i.price===65);const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g y Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ovillos ${brandStr}. Todos los colores incluidos para el patrón ${pat.title}.`;})(),
+      descEn:(()=>{const hasPremier=yl.some(i=>(i.price||150)>=150);const hasSinfonia=yl.some(i=>i.price===65);const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g and Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ${brandStr} skeins. All colors for the ${pat.titleEn||pat.title} pattern.`;})(),
       yarnList:yl,
       kitPrice:0,
       eyesPrice:0,
@@ -1082,7 +1082,7 @@ function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
-  addonKit=false; addonEyes=false; addonYarns={}; skipPattern=false;
+  addonKit=false; addonEyes=false; addonYarns={}; skipPattern=false; addPatternToKit=false;
 
   const gallery=document.querySelector('.modal-gallery');
   if(curProd.yarnColorName){
@@ -1111,15 +1111,29 @@ function openM(id){
   if(yarnSec&&curProd.isYarnKit&&yl&&yl.length){
     const infoRows=yl.map(item=>{
       const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
+      const itemPrice=item.price||150;
+      const brandLabel=itemPrice>=150?'Premier 200g':'Sinfonía 100g';
       return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
         ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
-        <span style="font-size:11px;color:var(--text-light);">×${item.qty} ovillo${item.qty>1?'s':''} · ${yarnGrams(item.color)}g</span>
+        <span style="font-size:11px;color:var(--text-light);">×${item.qty} · ${brandLabel} · ${f(itemPrice*item.qty)}</span>
       </div>`;
     }).join('');
+    // Pattern add-on toggle
+    const patProd=products.find(p=>p.id===curProd.patternId);
+    const patPrice=patProd?patProd.price:0;
+    const patToggleHtml=patProd?`<div onclick="toggleAddPatternToKit()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--blush);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;margin-top:10px;">
+      <div id="cb-add-pattern" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--pink-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--pink-dark);flex-shrink:0;background:#fff;"></div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">📄 ${lang==='es'?'Agregar patrón digital':'Add digital pattern'}</div>
+        <div style="font-size:11px;color:var(--text-light);">${patProd.title}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--pink-dark);">+${f(patPrice)}</span>
+    </div>`:'';
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
       <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
       ${infoRows}
+      ${patToggleHtml}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec&&!curProd.yarnColorName&&yl&&yl.length){
@@ -1265,15 +1279,31 @@ function toggleSkipPattern(){
   updateModalPrice();
 }
 
+function toggleAddPatternToKit(){
+  addPatternToKit=!addPatternToKit;
+  const cb=document.getElementById('cb-add-pattern');
+  if(cb)cb.textContent=addPatternToKit?'✓':'';
+  updateModalPrice();
+}
+
 function updateModalPrice(){
   if(!curProd)return;
   let total=skipPattern?0:curProd.price;
-  if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
-  if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
-  Object.entries(addonYarns).forEach(([color,qty])=>{
-    const yp=yarnProducts.find(p=>p.yarnColorName===color);
-    total+=(yp?yp.price:150)*qty;
-  });
+  // Para kit de estambres, el precio base ya es solo estambres; opcionalmente agregar patrón
+  if(curProd.isYarnKit){
+    total=curProd.price;
+    if(addPatternToKit){
+      const patProd=products.find(p=>p.id===curProd.patternId);
+      if(patProd)total+=patProd.price;
+    }
+  } else {
+    if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
+    if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
+    Object.entries(addonYarns).forEach(([color,qty])=>{
+      const yp=yarnProducts.find(p=>p.yarnColorName===color);
+      total+=(yp?yp.price:150)*qty;
+    });
+  }
   document.getElementById('mbuy-price').textContent=f(total);
   document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(total)}`;
 }
@@ -1344,6 +1374,21 @@ function addYarnQtyToCart(colorName,qty){
 function addToCart(){
   if(!curProd)return;
   const cart=getCart();
+  // Kit de estambres: agregar el kit, y opcionalmente el patrón digital
+  if(curProd.isYarnKit){
+    const existing=cart.find(i=>i.id===curProd.id);
+    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:'estambres',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
+    if(addPatternToKit&&curProd.patternId){
+      const patProd=products.find(p=>p.id===curProd.patternId);
+      if(patProd){
+        const epat=cart.find(i=>i.id===patProd.id);
+        if(epat)epat.qty++;else cart.push({id:patProd.id,title:patProd.title,price:patProd.price,img:patProd.images[0]||'',qty:1,type:patProd.type||'',patternSlug:patProd.patternSlug||'',pdfUrl:patProd.pdfUrl||'',shipSubsidy:0});
+      }
+    }
+    saveCart(cart);updateCartBadge();closeM();
+    showToast(`🎀 ${curProd.title} ${lang==='es'?'agregado':'added'}`);
+    return;
+  }
   // Si "ya tienes el patrón", no agregar el PDF — solo los materiales
   if(!skipPattern){
     const existing=cart.find(i=>i.id===curProd.id);
