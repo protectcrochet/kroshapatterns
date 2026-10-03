@@ -266,6 +266,7 @@ export default async function handler(req, res) {
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: customerEmail,
+      bcc: ['kroshapatterns@gmail.com'],
       subject: `🎀 ¡Pedido confirmado! #${ref} — KroshaPatterns`,
       html: emailHtml,
       ...(attachments.length ? { attachments } : {}),
