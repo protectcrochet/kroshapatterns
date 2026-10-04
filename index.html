@@ -2298,7 +2298,7 @@ function addCustomKitToCart(){
   _CK_SECTIONS.forEach(s=>{
     if(s.optional)return;
     const sd=(cfg.sections||{})[s.key]||{};
-    const avail=(sd.colors||[]).filter(c=>!isOutOfStock(c));
+    const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
     if(!avail.length)return;
     if(s.single){
       if(!_ckState[s.key]||!_ckState[s.key].color)missing.push(s.label.replace(/^\S+\s*/,''));
