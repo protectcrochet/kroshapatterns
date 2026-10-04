@@ -13,26 +13,22 @@ export default async function handler(req, res) {
     const Stripe = (await import('stripe')).default;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-    const { amount, currency, items, customerEmail, customerName } = req.body;
+    const { amount, items, customerEmail, customerName } = req.body;
 
-    if (!amount || !currency || !customerEmail) {
+    if (!amount || !customerEmail) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    // Currencies supported by Stripe (zero-decimal currencies need no *100)
-    const stripeSupported = ['mxn','usd','eur','dop','cad','gbp','ars','brl','cop','clp','pen','uyu','gtq','hnl','nio','crc'];
-    const zeroDecimal = ['clp','jpy','krw','pyg'];
-    let cur = currency.toLowerCase();
-    // Fall back to USD for unsupported currencies
-    if (!stripeSupported.includes(cur)) cur = 'usd';
+    // Always charge in MXN so Stripe never does the currency conversion.
+    // The customer's bank converts from their local currency to MXN, ensuring
+    // you always receive exactly the listed MXN price (no Stripe FX spread).
+    const cur = 'mxn';
 
-    // Amount in smallest unit (cents), zero-decimal currencies stay as-is
-    const amountInCents = zeroDecimal.includes(cur) ? Math.round(amount) : Math.round(amount * 100);
+    // Amount in smallest unit (centavos)
+    const amountInCents = Math.round(amount * 100);
 
-    // Stripe minimum amounts per currency (in smallest unit)
-    const minimums = { mxn:1000, usd:50, eur:50, gbp:30, cad:50, brl:50, ars:3700, cop:200000, clp:500, dop:50, pen:200 };
-    const minAmount = minimums[cur] || 50;
-    const finalAmount = Math.max(amountInCents, minAmount);
+    // Stripe minimum for MXN is $10.00 MXN = 1000 centavos
+    const finalAmount = Math.max(amountInCents, 1000);
 
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
