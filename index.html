@@ -1517,6 +1517,9 @@ let _publishedHero=null;
   ]);
   applyHero();
   renderCustomKitSection();
+  // Si viene de carrito a editar kit
+  const _editParam=new URLSearchParams(window.location.search).get('editkit');
+  if(_editParam){setTimeout(()=>{const sec=document.getElementById('custom-kit-section');if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});ckLoadEditKit(_editParam);},400);}
   // If applyHero didn't populate the hero cards, fill with first 2 published products
   const heroWrap=document.getElementById('hero-imgs-wrap');
   if(heroWrap&&heroWrap.querySelector('img')==null&&_publishedProducts&&_publishedProducts.length){
@@ -1728,10 +1731,11 @@ _loadSession();
 // ── CUSTOM KIT BUILDER ──
 let _customKitConfig=null;
 let _ckState={};
-let _ckEyes=false;
+let _ckEyes=0;
 let _ckPattern='';
 let _ckWizStep=0;
 let _ckActiveCombo=0;
+let _ckEditId=null;
 
 const _CK_SECTIONS=[
   {key:'piel',    label:'🩻 Color de Piel', single:true},
@@ -1781,7 +1785,7 @@ function renderCustomKitSection(){
   const sec=document.getElementById('custom-kit-section');
   if(!cfg||!cfg.enabled){if(sec)sec.style.display='none';return;}
   sec.style.display='';
-  _ckState={};_ckEyes=false;_ckPattern='';_ckWizStep=0;_ckActiveCombo=0;
+  _ckState={};_ckEyes=0;_ckPattern='';_ckWizStep=0;_ckActiveCombo=0;
   _CK_SECTIONS.forEach(s=>{
     const sd=(cfg.sections||{})[s.key]||{};
     if(s.single)_ckState[s.key]={color:'',qty:sd.defaultQty||1};
@@ -1805,6 +1809,21 @@ function ckStartBuilder(){
   _ckWizStep=0;_ckActiveCombo=0;
   _renderCKWizard();
   bodyEl?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function ckLoadEditKit(itemId){
+  const cart=getCart();
+  const item=cart.find(i=>i.id===itemId);
+  if(!item||!item.customKit)return;
+  _ckEditId=itemId;
+  _ckState=JSON.parse(JSON.stringify(item.customKit));
+  _ckEyes=0;
+  _ckPattern='';
+  const eyesItem=cart.find(i=>typeof i.id==='string'&&i.id.startsWith('eyes-ck-')&&Math.abs(parseInt(i.id.replace('eyes-ck-',''))-parseInt(itemId.replace('customkit-','')))< 5000);
+  if(eyesItem)_ckEyes=eyesItem.qty||1;
+  _ckWizStep=0;_ckActiveCombo=0;
+  const sec=document.getElementById('custom-kit-section');
+  if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>ckStartBuilder(),200);
 }
 
 function _ckSwatchesHTML(key,avail,selectedColor,comboIdx){
@@ -1864,7 +1883,7 @@ function _renderCKWizard(){
   if(step.extras){
     const _ckPatterns=((_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}))).filter(p=>p.type==='patrones'&&p.status==='active').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
     content=(cfg.eyes&&cfg.eyes.enabled
-      ?`<div style="margin-bottom:20px;"><div class="ck-wiz-step-label">👁 Ojos de Seguridad</div><label style="display:flex;align-items:center;gap:12px;cursor:pointer;background:var(--pink-bg);border-radius:14px;padding:14px 16px;border:1.5px solid var(--border);"><input type="checkbox" id="ckit-eyes-cb" ${_ckEyes?'checked':''} onchange="ckToggleEyes(this.checked)" style="width:20px;height:20px;accent-color:var(--pink-dark);flex-shrink:0;"><div><div style="font-size:14px;font-weight:700;color:var(--text);">Agregar ojos de seguridad</div><div style="font-size:12px;color:var(--text-light);">Un par — ${f(cfg.eyes.price||0)}</div></div></label></div>`:'')
+      ?`<div style="margin-bottom:20px;"><div class="ck-wiz-step-label">👁 Ojos de Seguridad</div><div style="background:var(--pink-bg);border-radius:14px;padding:14px 16px;border:1.5px solid var(--border);"><label style="display:flex;align-items:center;gap:12px;cursor:pointer;"><input type="checkbox" id="ckit-eyes-cb" ${_ckEyes>0?'checked':''} onchange="ckToggleEyes(this.checked)" style="width:20px;height:20px;accent-color:var(--pink-dark);flex-shrink:0;"><div><div style="font-size:14px;font-weight:700;color:var(--text);">Agregar ojos de seguridad</div><div style="font-size:12px;color:var(--text-light);">${f(cfg.eyes.price||0)} por par</div></div></label><div id="ck-eyes-qty" style="display:${_ckEyes>0?'flex':'none'};align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);"><span style="font-size:13px;font-weight:700;color:var(--text-light);flex:1;">Pares:</span><button class="ckit-qty-btn" onclick="ckChangeEyesQty(-1)">−</button><span id="ck-eyes-qty-val" class="ckit-qty-val">${_ckEyes}</span><button class="ckit-qty-btn" onclick="ckChangeEyesQty(1)">+</button><span class="ckit-qty-label">/ 10</span></div></div></div>`:'')
       +`<div><div class="ck-wiz-step-label">📄 Patrón (opcional)</div><div style="font-size:12px;color:var(--text-light);margin-bottom:10px;">¿Aún no tienes el patrón? Agrégalo aquí</div><div class="ck-pat-grid"><button class="ck-pat-card${!_ckPattern?' selected':''}" data-patid="" onclick="ckSetPattern('')"><div class="ck-pat-card-img">🧶</div><div class="ck-pat-card-info"><div class="ck-pat-card-title">Sin patrón</div><div class="ck-pat-card-price">Ya lo tengo</div></div></button>${_ckPatterns.map(p=>`<button class="ck-pat-card${p.id===parseInt(_ckPattern)?' selected':''}" data-patid="${p.id}" onclick="ckSetPattern('${p.id}')"><div class="ck-pat-card-img">${p.images&&p.images[0]?`<img src="${p.images[0]}" alt="${lang==='en'&&p.titleEn?p.titleEn:p.title}" loading="lazy">`:'📄'}</div><div class="ck-pat-card-info"><div class="ck-pat-card-title">${lang==='en'&&p.titleEn?p.titleEn:p.title}</div><div class="ck-pat-card-price">${f(p.price)}</div></div></button>`).join('')}</div></div>`;
   } else if(step.single){
     const sd=(cfg.sections||{})[step.key]||{colors:[],defaultQty:1};
@@ -2071,7 +2090,21 @@ function ckChangeQty(key,combo,delta){
 }
 
 function ckToggleEyes(checked){
-  _ckEyes=checked;
+  _ckEyes=checked?1:0;
+  const qEl=document.getElementById('ck-eyes-qty');
+  if(qEl)qEl.style.display=_ckEyes?'flex':'none';
+  const valEl=document.getElementById('ck-eyes-qty-val');
+  if(valEl)valEl.textContent=_ckEyes;
+  _renderCKSummary();
+}
+function ckChangeEyesQty(delta){
+  _ckEyes=Math.max(0,Math.min(10,_ckEyes+delta));
+  const cb=document.getElementById('ckit-eyes-cb');
+  if(cb)cb.checked=_ckEyes>0;
+  const qEl=document.getElementById('ck-eyes-qty');
+  if(qEl)qEl.style.display=_ckEyes>0?'flex':'none';
+  const valEl=document.getElementById('ck-eyes-qty-val');
+  if(valEl)valEl.textContent=_ckEyes;
   _renderCKSummary();
 }
 
@@ -2109,8 +2142,8 @@ function ckRemoveRosaCombo(idx){
 function _ckTotalSkeins(){
   let t=0;
   _CK_SECTIONS.forEach(s=>{
-    if(s.single)t+=(_ckState[s.key]||{}).qty||0;
-    else(_ckState[s.key]||[]).forEach(c=>{t+=c.qty||0;});
+    if(s.single){const st=_ckState[s.key]||{};if(st.color)t+=st.qty||0;}
+    else(_ckState[s.key]||[]).forEach(c=>{if(c.color)t+=c.qty||0;});
   });
   return t;
 }
@@ -2123,10 +2156,10 @@ function _renderCKSummary(){
   const pps=cfg.pricePerSkein||150;
   let total=totalSkeins*pps;
   const extras=[];
-  if(_ckEyes&&cfg.eyes?.enabled){
-    const ep=cfg.eyes.price||0;
+  if(_ckEyes>0&&cfg.eyes?.enabled){
+    const ep=(cfg.eyes.price||0)*_ckEyes;
     total+=ep;
-    extras.push(`Ojos: ${f(ep)}`);
+    extras.push(`${_ckEyes} par${_ckEyes>1?'es':''} ojos: ${f(ep)}`);
   }
   if(_ckPattern){
     const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
@@ -2161,18 +2194,29 @@ function addCustomKitToCart(){
   const totalSkeins=_ckTotalSkeins();
   const cart=getCart();
   const now=Date.now();
-  cart.push({
-    id:'customkit-'+now,
-    title:'Kit Personalizado',
-    price:totalSkeins*pps,
-    img:'',
-    qty:1,
-    type:'customkit',
-    customKit:JSON.parse(JSON.stringify(_ckState)),
-    customKitSkeins:totalSkeins,
-  });
-  if(_ckEyes&&cfg.eyes?.enabled){
-    cart.push({id:'eyes-ck-'+now,title:'Ojos de Seguridad (par)',price:cfg.eyes.price||0,img:'/images/IMG_5938.jpg',qty:1,type:'accesorios',shipSubsidy:0});
+  const kitId=_ckEditId||('customkit-'+now);
+  if(_ckEditId){
+    // Update existing kit
+    const idx=cart.findIndex(i=>i.id===_ckEditId);
+    if(idx>=0){cart[idx].price=totalSkeins*pps;cart[idx].customKit=JSON.parse(JSON.stringify(_ckState));cart[idx].customKitSkeins=totalSkeins;}
+    // Remove old eyes for this kit
+    const ts=parseInt(_ckEditId.replace('customkit-',''));
+    for(let i=cart.length-1;i>=0;i--){if(typeof cart[i].id==='string'&&cart[i].id.startsWith('eyes-ck-')&&Math.abs(parseInt(cart[i].id.replace('eyes-ck-',''))-ts)<5000)cart.splice(i,1);}
+    _ckEditId=null;
+  } else {
+    cart.push({
+      id:kitId,
+      title:'Kit Personalizado',
+      price:totalSkeins*pps,
+      img:'',
+      qty:1,
+      type:'customkit',
+      customKit:JSON.parse(JSON.stringify(_ckState)),
+      customKitSkeins:totalSkeins,
+    });
+  }
+  if(_ckEyes>0&&cfg.eyes?.enabled){
+    cart.push({id:'eyes-ck-'+now,title:'Ojos de Seguridad (par)',price:cfg.eyes.price||0,img:'/images/IMG_5938.jpg',qty:_ckEyes,type:'accesorios',shipSubsidy:0});
   }
   if(_ckPattern){
     const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
@@ -2220,7 +2264,7 @@ function _renderCKDone(){
   bodyEl.innerHTML=`<div class="ck-wiz"><div class="ck-done-card">
     <div class="ck-done-emoji">🎉</div>
     <div class="ck-done-title">¡Hiciste una hermosa combinación!</div>
-    <div class="ck-done-sub">Tu kit personalizado ya está listo en tu carrito</div>
+    <div class="ck-done-sub" id="ck-done-sub-msg">Tu kit personalizado ya está listo en tu carrito</div>
     <div class="ck-done-chips">${chips}${patChip}</div>
     <div class="ck-done-btns">
       <button class="ck-wiz-back" style="flex:1;" onclick="window.location.href='krosha-checkout.html'">🛒 Ver carrito</button>
