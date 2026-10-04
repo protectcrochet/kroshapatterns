@@ -262,17 +262,17 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ck-wiz-hist-label{font-size:10px;font-weight:700;color:var(--text-light);line-height:1.2;}
 .ck-wiz-hist-val{font-size:11px;font-weight:700;color:var(--pink-dark);line-height:1.3;}
 .ck-wiz-step-icon{font-size:40px;margin-bottom:4px;display:block;line-height:1;}
-.ck-combo-strip{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-start;}
-.ck-combo-chip{display:flex;flex-direction:column;align-items:center;background:var(--pink-bg);border-radius:14px;padding:10px 10px 8px;border:1.5px solid var(--border);cursor:pointer;transition:all .18s;min-width:62px;position:relative;font-family:'Nunito',sans-serif;}
-.ck-combo-chip.active{border-color:var(--pink-dark);box-shadow:0 0 0 2px var(--pink-dark);background:var(--white);}
-.ck-combo-chip-dot{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid var(--pink-mid);margin-bottom:5px;display:flex;align-items:center;justify-content:center;background:var(--border);}
+.ck-combo-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-start;}
+.ck-combo-chip{display:flex;flex-direction:column;align-items:center;background:var(--pink-bg);border-radius:16px;padding:14px 12px 10px;border:1.5px solid var(--border);cursor:pointer;transition:all .18s;min-width:84px;position:relative;font-family:'Nunito',sans-serif;}
+.ck-combo-chip.active{border-color:var(--pink-dark);box-shadow:0 0 0 2.5px var(--pink-dark);background:var(--white);}
+.ck-combo-chip-dot{width:56px;height:56px;border-radius:12px;overflow:hidden;border:2px solid var(--pink-mid);margin-bottom:7px;display:flex;align-items:center;justify-content:center;background:var(--border);}
 .ck-combo-chip-dot img{width:100%;height:100%;object-fit:cover;display:block;}
-.ck-combo-chip-label{font-size:10px;font-weight:700;color:var(--text);max-width:66px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:center;}
-.ck-combo-chip-x{position:absolute;top:4px;right:4px;background:none;border:none;font-size:10px;cursor:pointer;color:var(--text-light);padding:2px;line-height:1;}
+.ck-combo-chip-label{font-size:11px;font-weight:700;color:var(--text);max-width:80px;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;text-align:center;}
+.ck-combo-chip-x{position:absolute;top:5px;right:5px;background:none;border:none;font-size:11px;cursor:pointer;color:var(--text-light);padding:2px;line-height:1;}
 .ck-combo-chip-x:hover{color:#DC2626;}
-.ck-combo-chip-add{display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:2px dashed var(--pink-deep);border-radius:14px;padding:10px 12px;cursor:pointer;color:var(--pink-dark);font-size:20px;font-weight:700;font-family:'Nunito',sans-serif;min-width:62px;transition:all .2s;}
+.ck-combo-chip-add{display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:2px dashed var(--pink-deep);border-radius:16px;padding:14px 12px;cursor:pointer;color:var(--pink-dark);font-size:26px;font-weight:700;font-family:'Nunito',sans-serif;min-width:84px;transition:all .2s;}
 .ck-combo-chip-add:hover{background:var(--pink-mid);}
-.ck-combo-chip-add-txt{font-size:9.5px;font-weight:700;margin-top:2px;}
+.ck-combo-chip-add-txt{font-size:11px;font-weight:700;margin-top:4px;}
 .ck-done-card{background:var(--white);border:1.5px solid var(--border);border-radius:24px;padding:36px 28px 28px;text-align:center;box-shadow:0 6px 28px rgba(192,96,144,.10);}
 .ck-done-emoji{font-size:52px;margin-bottom:12px;}
 .ck-done-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;color:var(--text);margin-bottom:6px;}
@@ -1906,13 +1906,13 @@ function _renderCKWizard(){
     const sd=(cfg.sections||{})[step.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
     const combos=_ckState[step.key]||[];
-    const maxCombos=sd.maxCombos||4;
+    const maxCombos=sd.maxCombos||6;
     const activeIdx=Math.min(_ckActiveCombo,combos.length-1);
     // Combo strip
     const stripHTML=`<div class="ck-combo-strip">${combos.map((combo,i)=>{
       const img=combo.color?getYarnImg(combo.color):null;
       const hex=combo.color?getYarnHex(combo.color):null;
-      return`<div class="ck-combo-chip${i===activeIdx?' active':''}" onclick="ckSetActiveCombo(${i})"><div class="ck-combo-chip-dot" style="${combo.color&&!img?'background:'+hex:''}">${combo.color&&img?`<img src="${img}" alt="${combo.color}">`:combo.color?'':'<span style="font-size:14px;">🌸</span>'}</div><div class="ck-combo-chip-label">${combo.color||'Elegir'}</div>${combos.length>1?`<button class="ck-combo-chip-x" onclick="event.stopPropagation();ckRemoveRosaCombo(${i})">✕</button>`:''}</div>`;
+      return`<div class="ck-combo-chip${i===activeIdx?' active':''}" onclick="ckSetActiveCombo(${i})"><div class="ck-combo-chip-dot" style="${combo.color&&!img?'background:'+hex:''}">${combo.color&&img?`<img src="${img}" alt="${combo.color}">`:combo.color?`<div style="width:100%;height:100%;background:${hex};"></div>`:'<span style="font-size:22px;">🌸</span>'}</div><div class="ck-combo-chip-label">${combo.color||'Elegir'}</div>${combos.length>1?`<button class="ck-combo-chip-x" onclick="event.stopPropagation();ckRemoveRosaCombo(${i})">✕</button>`:''}</div>`;
     }).join('')}${combos.length<maxCombos&&avail.length?`<button class="ck-combo-chip-add" onclick="ckAddRosaCombo()">＋<span class="ck-combo-chip-add-txt">Agregar</span></button>`:''}</div>`;
     // Active combo editor
     const combo=combos[activeIdx]||{color:'',qty:1};
