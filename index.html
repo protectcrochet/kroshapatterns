@@ -813,7 +813,7 @@ const YARN_COLORS=[
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
 function yarnGrams(n){return n==='Arena S'?100:200;}
-function yarnPrice(n){return n==='Arena S'?65:150;}
+function yarnPrice(n){return n==='Arena S'?130:150;}
 function yarnColorsToList(yc){
   const counts={},order=[];
   Object.values(yc).forEach(color=>{
@@ -2145,21 +2145,16 @@ function _ckUpdateWizSelDisplay(key,combo,color){
 }
 
 function ckSetColor(key,combo,color){
-  const minQty=color==='Arena S'?2:1;
   if(combo===null||combo===undefined){
-    if(_ckState[key]){_ckState[key].color=color;if(_ckState[key].qty<minQty)_ckState[key].qty=minQty;}
+    if(_ckState[key])_ckState[key].color=color;
     const cont=document.getElementById(`ckit-swatches-${key}`);
     if(cont)cont.querySelectorAll('.ckit-cc').forEach(el=>{el.classList.toggle('selected',el.dataset.color===color);});
     _ckUpdateWizSelDisplay(key,null,color);
-    const qEl=document.getElementById(`ckit-qty-${key}`);
-    if(qEl&&_ckState[key])qEl.textContent=_ckState[key].qty;
   } else {
-    if(_ckState[key]&&_ckState[key][combo]){_ckState[key][combo].color=color;if(_ckState[key][combo].qty<minQty)_ckState[key][combo].qty=minQty;}
+    if(_ckState[key]&&_ckState[key][combo])_ckState[key][combo].color=color;
     const cont=document.getElementById(`ckit-swatches-${key}-${combo}`);
     if(cont)cont.querySelectorAll('.ckit-cc').forEach(el=>{el.classList.toggle('selected',el.dataset.color===color);});
     _ckUpdateWizSelDisplay(key,combo,color);
-    const qEl=document.getElementById(`ckit-qty-${key}-${combo}`);
-    if(qEl&&_ckState[key]&&_ckState[key][combo])qEl.textContent=_ckState[key][combo].qty;
   }
   _renderCKSummary();
 }
@@ -2167,14 +2162,12 @@ function ckSetColor(key,combo,color){
 function ckChangeQty(key,combo,delta){
   if(combo===null||combo===undefined){
     if(!_ckState[key])return;
-    const minQ=_ckState[key].color==='Arena S'?2:1;
-    _ckState[key].qty=Math.max(minQ,(_ckState[key].qty||1)+delta);
+    _ckState[key].qty=Math.max(1,(_ckState[key].qty||1)+delta);
     const el=document.getElementById(`ckit-qty-${key}`);
     if(el)el.textContent=_ckState[key].qty;
   } else {
     if(!_ckState[key]||!_ckState[key][combo])return;
-    const minQ=(_ckState[key][combo].color||'')==='Arena S'?2:1;
-    _ckState[key][combo].qty=Math.max(minQ,(_ckState[key][combo].qty||1)+delta);
+    _ckState[key][combo].qty=Math.max(1,(_ckState[key][combo].qty||1)+delta);
     const el=document.getElementById(`ckit-qty-${key}-${combo}`);
     if(el)el.textContent=_ckState[key][combo].qty;
   }
