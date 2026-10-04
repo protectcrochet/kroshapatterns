@@ -357,7 +357,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="tab-section" id="tab-orders">
       <div class="page-header">
         <div class="page-title">Pedidos <em>📦</em></div>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <select id="csv-month-sel" class="filter-sel" style="min-width:150px;" onchange="updateCsvBtn()">
+            <option value="">📅 Todos los meses</option>
+          </select>
+          <button class="btn btn-outline" onclick="exportOrdersCsv()">⬇️ Exportar CSV</button>
           <button class="btn btn-outline" onclick="loadServerOrders().then(()=>showToast('Pedidos actualizados'))">🔄 Recargar</button>
           <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar manual</button>
         </div>
@@ -2579,6 +2583,7 @@ async function loadServerOrders(){
     }
   }catch(e){console.error('[Orders] Error de red:',e);}
   renderOrdersTable();
+  populateCsvMonthSelect();
 }
 
 function getAllOrders(){
@@ -2625,7 +2630,7 @@ function renderOrdersTable(){
       <td><strong>#${String(o.ref||o.id).slice(-6)}</strong></td>
       <td><strong>${o.name||'—'}</strong><div style="font-size:12px;color:var(--text-light);">${o.email}</div></td>
       <td style="font-size:12px;max-width:150px;color:var(--text-mid);">${(o.products||'').substring(0,60)}${(o.products||'').length>60?'…':''}</td>
-      <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div><div style="margin-top:3px;">${paymentStatusBadge(o.paymentStatus)}</div></td>
+      <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div><div style="margin-top:3px;">${paymentStatusBadge(isPhys?(o.paymentStatus||'pending_payment'):'received')}</div></td>
       <td><span class="order-status ${o.status}">${statusLabel(o.status)}</span></td>
       <td>${typeBadge}</td>
       <td style="font-size:12px;color:var(--text-light);">${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</td>
@@ -2635,6 +2640,58 @@ function renderOrdersTable(){
 }
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
+
+function populateCsvMonthSelect(){
+  const sel=document.getElementById('csv-month-sel');
+  if(!sel)return;
+  const orders=getAllOrders();
+  const months=new Set();
+  orders.forEach(o=>{if(o.date){const d=new Date(o.date);if(!isNaN(d))months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}});
+  const sorted=[...months].sort().reverse();
+  sel.innerHTML='<option value="">📅 Todos los meses</option>'+sorted.map(m=>{
+    const [y,mo]=m.split('-');
+    const label=new Date(+y,+mo-1,1).toLocaleDateString('es-MX',{month:'long',year:'numeric'});
+    return`<option value="${m}">${label.charAt(0).toUpperCase()+label.slice(1)}</option>`;
+  }).join('');
+}
+function updateCsvBtn(){/* re-renders nothing, button always works */}
+function exportOrdersCsv(){
+  const monthVal=document.getElementById('csv-month-sel')?.value||'';
+  let orders=getAllOrders();
+  if(monthVal){
+    orders=orders.filter(o=>{
+      if(!o.date)return false;
+      const d=new Date(o.date);
+      return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`===monthVal;
+    });
+  }
+  if(!orders.length){showToast('No hay pedidos para ese período');return;}
+  const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const header=['Ref','Nombre','Email','Total','Moneda','Plataforma','Estado','Tipo','Estado pago','Fecha','Productos'];
+  const rows=orders.map(o=>[
+    o.ref||o.id,
+    o.name||'',
+    o.email||'',
+    o.total||0,
+    o.currency||'MXN',
+    o.method||'stripe',
+    statusLabel(o.status),
+    isPhysicalOrder(o)?'Físico':'Digital',
+    isPhysicalOrder(o)?paymentStatusLabel(o.paymentStatus||'pending_payment'):'Pago recibido',
+    o.date?new Date(o.date).toLocaleDateString('es-MX'):'',
+    o.products||'',
+  ].map(esc).join(','));
+  const csv='﻿'+[header.map(esc).join(','),...rows].join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const suffix=monthVal?`_${monthVal}`:'_todos';
+  a.download=`pedidos_krosha${suffix}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✅ CSV exportado (${orders.length} pedidos)`);
+}
 function paymentStatusLabel(s){return{pending_payment:'💳 Pago pendiente',received:'💰 Pago recibido'}[s]||(s?s:'💳 Pago pendiente');}
 function paymentStatusBadge(s){const isPending=!s||s==='pending_payment';return`<span style="display:inline-flex;align-items:center;gap:3px;background:${isPending?'#FFF7E6':'#ECFDF5'};color:${isPending?'#92400E':'#065F46'};border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;">${isPending?'💳 Pago pendiente':'💰 Pago recibido'}</span>`;}
 
@@ -2798,7 +2855,19 @@ function viewOrder(refOrId){
   }
   document.getElementById('gen-guia-result').innerHTML='';
   document.getElementById('order-detail-status').value=o.status||'paid';
-  document.getElementById('order-detail-payment-status').value=o.paymentStatus||'pending_payment';
+  const _isPhys=isPhysicalOrder(o);
+  const _paySelEl=document.getElementById('order-detail-payment-status');
+  if(_isPhys){
+    _paySelEl.style.display='';
+    _paySelEl.value=o.paymentStatus||'pending_payment';
+  } else {
+    _paySelEl.style.display='none';
+    if(!o.paymentStatus||o.paymentStatus==='pending_payment'){
+      o.paymentStatus='received';
+      _viewingOrder.paymentStatus='received';
+    }
+    _paySelEl.value='received';
+  }
   _updatePhysToggleBtn();
   document.getElementById('order-detail-modal').classList.add('open');
 }
