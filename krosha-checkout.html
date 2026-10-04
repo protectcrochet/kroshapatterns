@@ -658,6 +658,7 @@ function renderCart(){
             <input class="qty-n" value="${item.qty}" readonly>
             <button class="qty-btn" onclick="chQty(this,1,'${item.id}')">+</button>
           </div>
+          ${item.type==='customkit'?`<a href="index.html?editkit=${item.id}#kit-personalizado" class="remove-btn" style="text-decoration:none;">✏️ Editar</a>`:''}
           <button class="remove-btn" onclick="removeItem('${item.id}')">${lang==='es'?'Eliminar':'Remove'}</button>
         </div>
       </div>
