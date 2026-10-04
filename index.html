@@ -529,6 +529,8 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
       <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Krosha.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha.</p>
       <div class="hero-btns">
         <a href="#productos" onclick="navFilter('patrones')" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
+        <a href="#productos" onclick="navFilter('estambres')" class="btn-sec" data-es="Kit Estambres 🧶" data-en="Yarn Kits 🧶">Kit Estambres 🧶</a>
+        <button onclick="openKitModal()" class="btn-sec" data-es="Crea tu Kit ✨" data-en="Build Your Kit ✨">Crea tu Kit ✨</button>
       </div>
     </div>
     <div class="hero-imgs" id="hero-imgs-wrap">
@@ -1845,7 +1847,7 @@ const _CK_SECTIONS=[
   {key:'cabello', label:'Cabello',        single:true},
   {key:'vestido', label:'Vestido',         single:true},
   {key:'forro',   label:'Forro',          single:true},
-  {key:'rosas',   label:'🌸 Rosas',          single:false},
+  {key:'rosas',   label:'🌸 Rosas',         single:false, optional:true},
 ];
 const DOLL_HAIR_PREVIEWS={
   'Black':'images/cabello/cabello-black.webp',
@@ -2277,7 +2279,8 @@ function _renderCKSummary(){
   }
   if(_ckPattern){
     const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
-    const pat=prods.find(p=>p.id===parseInt(_ckPattern));
+    const _ckPatId=parseInt(_ckPattern);
+    const pat=prods.find(p=>parseInt(p.id)===_ckPatId);
     if(pat){total+=pat.price;extras.push(`Patrón: ${f(pat.price)}`);}
   }
   el.style.display='';
@@ -2290,10 +2293,10 @@ function _renderCKSummary(){
 }
 
 function addCustomKitToCart(){
-  const cfg=_customKitConfig;
-  if(!cfg)return;
+  const cfg=_customKitConfig||{pricePerSkein:150,eyes:{enabled:true,price:0},sections:{}};
   const missing=[];
   _CK_SECTIONS.forEach(s=>{
+    if(s.optional)return;
     const sd=(cfg.sections||{})[s.key]||{};
     const avail=(sd.colors||[]).filter(c=>!isOutOfStock(c));
     if(!avail.length)return;
@@ -2338,9 +2341,10 @@ function addCustomKitToCart(){
   }
   if(_ckPattern){
     const prods=(_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'}));
-    const pat=prods.find(p=>p.id===parseInt(_ckPattern));
+    const _ckPatIdCart=parseInt(_ckPattern);
+    const pat=prods.find(p=>parseInt(p.id)===_ckPatIdCart);
     if(pat){
-      const existing=cart.find(i=>i.id===pat.id);
+      const existing=cart.find(i=>parseInt(i.id)===parseInt(pat.id));
       if(existing)existing.qty++;
       else cart.push({id:pat.id,title:pat.title,price:pat.price,img:pat.images[0]||'',qty:1,type:pat.type,patternSlug:pat.patternSlug||'',pdfUrl:pat.pdfUrl||''});
     }
@@ -2374,7 +2378,7 @@ function _renderCKDone(){
   let patChip='';
   if(_ckPattern){
     const prods=((_publishedProducts&&_publishedProducts.length)?_mapProducts(_publishedProducts):defaultProducts.map(p=>({...p,status:p.status||'active'})));
-    const pat=prods.find(p=>p.id===parseInt(_ckPattern));
+    const pat=prods.find(p=>parseInt(p.id)===parseInt(_ckPattern));
     patChip=`<div class="ck-done-chip"><div class="ck-done-dot" style="background:var(--pink-mid);font-size:14px;display:flex;align-items:center;justify-content:center;">📄</div><div><div class="ck-done-chip-label">Patrón</div><div class="ck-done-chip-val">${pat?pat.title:'Patrón seleccionado'}</div></div></div>`;
   } else {
     patChip=`<div class="ck-done-chip" style="opacity:.6;"><div class="ck-done-dot" style="background:var(--border);font-size:14px;display:flex;align-items:center;justify-content:center;">📄</div><div><div class="ck-done-chip-label">Patrón</div><div class="ck-done-chip-val">Sin patrón</div></div></div>`;
