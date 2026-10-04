@@ -327,6 +327,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
       <div class="sum-row" id="discount-row" style="display:none;color:var(--green);"><span data-es="Descuento KROSHA10" data-en="Discount KROSHA10">Descuento KROSHA10</span><span id="discount-val"></span></div>
       <div class="sum-row" id="sum-ship-row"><span data-es="Envío" data-en="Shipping">Envío</span><span id="sum-ship-val" data-es="—" data-en="—">—</span></div>
       <div class="sum-row total"><span data-es="Total" data-en="Total">Total</span><span id="total">$0 MXN</span></div>
+      <div id="cart-fx-notice" style="display:none;margin:6px 0 2px;font-size:12px;color:#7A5A20;background:#FFF8EC;border:1px solid #F5D0A0;border-radius:8px;padding:8px 12px;line-height:1.5;"></div>
       <div class="digital-badge" data-es="✅ Acceso inmediato al finalizar tu compra" data-en="✅ Instant access after checkout">✅ Acceso inmediato al finalizar tu compra</div>
       <button class="btn-checkout" onclick="goToCheckout()" data-es="Continuar al pago →" data-en="Proceed to payment →">Continuar al pago →</button>
       <div class="trust-badges">
@@ -374,7 +375,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           <div class="form-grid" style="margin-top:12px;">
             <div class="field">
               <label id="lbl-phone" data-es="TELÉFONO *" data-en="PHONE *">TELÉFONO *</label>
-              <input type="tel" id="checkout-phone" placeholder="10 dígitos" required>
+              <input type="tel" id="checkout-phone" placeholder="" required>
             </div>
           </div>
         </div>
@@ -476,16 +477,6 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
         <div class="form-section">
           <h3>💳 <span data-es="Método de pago" data-en="Payment method">Método de pago</span></h3>
           <div class="pay-methods">
-            <div class="pay-method" id="pm-mp" onclick="selPay(this,'mp')">
-              <div class="pay-radio"><div class="pay-radio-dot"></div></div>
-              <div style="width:52px;height:32px;background:#009EE3;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <span style="color:#fff;font-weight:800;font-size:9.5px;font-family:system-ui,sans-serif;text-align:center;line-height:1.2;padding:2px;">Mercado<br>Pago</span>
-              </div>
-              <div class="pay-method-info">
-                <h4>Mercado Pago</h4>
-                <p data-es="Tarjeta, OXXO, transferencia — México y LATAM" data-en="Card, OXXO, transfer — Mexico & LATAM">Tarjeta, OXXO, transferencia — México y LATAM</p>
-              </div>
-            </div>
             <div class="pay-method" onclick="selPay(this,'stripe')">
               <div class="pay-radio"></div>
               <div style="width:52px;height:32px;background:#635BFF;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -504,6 +495,16 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               <div class="pay-method-info">
                 <h4>PayPal</h4>
                 <p data-es="Pago internacional — Protección al comprador" data-en="International payment — Buyer protection">Pago internacional — Protección al comprador</p>
+              </div>
+            </div>
+            <div class="pay-method" id="pm-mp" onclick="selPay(this,'mp')">
+              <div class="pay-radio"><div class="pay-radio-dot"></div></div>
+              <div style="width:52px;height:32px;background:#009EE3;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="color:#fff;font-weight:800;font-size:9.5px;font-family:system-ui,sans-serif;text-align:center;line-height:1.2;padding:2px;">Mercado<br>Pago</span>
+              </div>
+              <div class="pay-method-info">
+                <h4>Mercado Pago</h4>
+                <p data-es="Tarjeta, OXXO, transferencia — México y LATAM" data-en="Card, OXXO, transfer — Mexico & LATAM">Tarjeta, OXXO, transferencia — México y LATAM</p>
               </div>
             </div>
           </div>
@@ -594,7 +595,7 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
 const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,
   COP:210,ARS:49,BRL:0.27,CLP:49,PEN:0.19,UYU:2.05,BOB:0.36,
   PYG:385,GTQ:0.40,HNL:1.28,NIO:1.90,CRC:26.9};
-const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
+const syms={MXN:'$',USD:'$',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
   COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
   BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
 const countryToCurrency={
@@ -730,6 +731,8 @@ function updateSummary(sub){
   if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${cart.length} ${lang==='es'?'producto':'item'}${cart.length!==1?'s':''})`;
   const s=document.getElementById('subtotal');if(s)s.textContent=f(sub);
   const t=document.getElementById('total');if(t)t.textContent=f(total);
+  const cfx=document.getElementById('cart-fx-notice');
+  if(cfx){if(cur!=='MXN'){cfx.textContent=lang==='es'?`ℹ️ El precio en ${cur} incluye una comisión de procesamiento del 2.5%.`:`ℹ️ Price in ${cur} includes a 2.5% processing fee.`;cfx.style.display='block';}else cfx.style.display='none';}
   const ct=document.getElementById('confirm-total');if(ct)ct.textContent=f(total);
   if(hasDiscount){
     document.getElementById('discount-val').textContent='−'+f(disc);
@@ -775,8 +778,8 @@ function updateMxnNotice(){
   const convStr=sym+(convWithMarkup<10?convWithMarkup.toFixed(2):Math.round(convWithMarkup))+' '+cur;
   const mxnStr='$'+totalMXN.toLocaleString('es-MX')+' MXN';
   notice.innerHTML=lang==='es'
-    ?`<strong style="display:block;margin-bottom:3px;">ℹ️ Cobro en ${cur}</strong>El precio incluye una pequeña comisión bancaria internacional. Total: <strong>${convStr}</strong> (equivalente a <strong>${mxnStr}</strong>).`
-    :`<strong style="display:block;margin-bottom:3px;">ℹ️ Charged in ${cur}</strong>Price includes a small international processing fee. Total: <strong>${convStr}</strong> (equivalent to <strong>${mxnStr}</strong>).`;
+    ?`<strong style="display:block;margin-bottom:3px;">ℹ️ Cobro en ${cur}</strong>El precio incluye una comisión de procesamiento bancario (2.5%). Total: <strong>${convStr}</strong>.`
+    :`<strong style="display:block;margin-bottom:3px;">ℹ️ Charged in ${cur}</strong>Price includes a bank processing fee (2.5%). Total: <strong>${convStr}</strong>.`;
   notice.style.display='block';
 }
 
@@ -1021,8 +1024,8 @@ function renderPayPalBtn(){
   const container=document.getElementById('paypal-btn-container');
   if(!container||!window.paypal)return;
   container.innerHTML='';
-  const email=document.querySelector('input[type="email"]')?.value||'';
-  const name=document.getElementById('fname')?.value||'Cliente';
+  const ppSupported=['AUD','BRL','CAD','CZK','DKK','EUR','HKD','HUF','ILS','JPY','MYR','MXN','TWD','NZD','NOK','PHP','PLN','GBP','SGD','SEK','CHF','THB','USD'];
+  const ppCur=ppSupported.includes(cur)?cur:'USD';
   const total=getCartTotal();
   const items=getCartItems();
 
@@ -1030,13 +1033,18 @@ function renderPayPalBtn(){
     style:{layout:'vertical',color:'gold',shape:'pill',label:'pay',height:50},
     createOrder:(d,actions)=>actions.order.create({
       purchase_units:[{
-        amount:{value:total.toFixed(2),currency_code:'MXN'},
+        amount:{value:total.toFixed(2),currency_code:ppCur},
         description:'KroshaPatterns',
       }],
       application_context:{brand_name:'KroshaPatterns',shipping_preference:'NO_SHIPPING'},
     }),
     onApprove:async(d,actions)=>{
       await actions.order.capture();
+      // Read form at capture time so email/name are always current
+      const email=document.getElementById('checkout-email')?.value?.trim()||'';
+      const _fn=document.getElementById('checkout-name')?.value?.trim()||'';
+      const _ln=document.getElementById('checkout-apellido')?.value?.trim()||'';
+      const name=_fn&&_ln?`${_fn} ${_ln}`:_fn||_ln||'Cliente';
       const {ref,downloadToken}=await sendConfirmationEmail(email,name,items,total,'PayPal');
       showSuccess('🅿️ PayPal',ref,items,total,downloadToken);
     },
@@ -1070,29 +1078,6 @@ function loadScript(src,cb){
 function loadStripeSDK(cb){loadScript('https://js.stripe.com/v3/',cb);}
 function loadPayPalSDK(cb){loadScript(`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${cur}&locale=${lang==='es'?'es_MX':'en_US'}`,cb);}
 function loadMPSDK(cb){loadScript('https://sdk.mercadopago.com/js/v2',cb);}
-
-// ── CONFIRM ORDER ──
-async function confirmOrder(){
-  const email=document.getElementById('checkout-email')?.value?.trim()||'';
-  const firstName=document.getElementById('checkout-name')?.value?.trim()||'';
-  const lastName=document.getElementById('checkout-apellido')?.value?.trim()||'';
-  const phone=document.getElementById('checkout-phone')?.value?.trim()||'';
-  const name=firstName&&lastName?`${firstName} ${lastName}`:firstName||lastName||'Cliente';
-  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
-  if(!firstName){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
-  if(!lastName){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
-  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
-
-  const btn=document.getElementById('confirm-btn');
-  btn.textContent=lang==='es'?'Procesando...':'Processing...';
-  btn.disabled=true;btn.style.opacity='.7';
-
-  if(selPayMethod==='stripe'){
-    await processStripe(email,name,btn);
-  } else if(selPayMethod==='mp'){
-    await processMercadoPago(email,name,btn);
-  }
-}
 
 // ── STRIPE ──
 async function processStripe(email,name,btn){
@@ -1613,7 +1598,7 @@ function _updatePhoneLabel(){
   if(!lbl)return;
   const isPhys=hasPhysicalItems();
   lbl.textContent=isPhys?(lang==='es'?'TELÉFONO *':'PHONE *'):(lang==='es'?'TELÉFONO (opcional)':'PHONE (optional)');
-  if(inp)inp.placeholder=isPhys?(lang==='es'?'Requerido — 10 dígitos':'Required — 10 digits'):'10 dígitos';
+  if(inp)inp.placeholder=isPhys?(lang==='es'?'Requerido':'Required'):'';
 }
 
 function updateShipping(){

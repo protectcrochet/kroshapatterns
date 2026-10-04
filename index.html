@@ -448,7 +448,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
         <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
         <div style="display:flex;justify-content:center;margin-bottom:10px;">
-          <button onclick="copyProductLink()" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-mid);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:5px;transition:background .2s;" onmouseover="this.style.background='var(--pink-mid)'" onmouseout="this.style.background='none'">🔗 Compartir producto</button>
+          <button id="btn-share-prod" onclick="copyProductLink()" style="background:none;border:1.5px solid var(--border);border-radius:20px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-mid);font-family:'Nunito',sans-serif;display:flex;align-items:center;gap:5px;transition:background .2s;" onmouseover="this.style.background='var(--pink-mid)'" onmouseout="this.style.background='none'" data-es="🔗 Compartir producto" data-en="🔗 Share product">🔗 Compartir producto</button>
         </div>
         <div class="pay-pills">
           <span class="ppill ppill-stripe">stripe</span>
@@ -572,10 +572,10 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 <!-- KIT CTA -->
 <div id="kit-cta-section" style="display:none;">
   <div class="kit-cta-band">
-    <div class="bow-tag" style="margin:0 auto 14px;">🎨 <span>Kit Personalizado</span></div>
-    <h2>Diseña tu muñeca ideal</h2>
-    <p>Elige cada color y crea tu kit único de estambres</p>
-    <button class="ckit-start-btn" onclick="openKitModal()">✨ Arma tu Kit</button>
+    <div class="bow-tag" style="margin:0 auto 14px;">🎨 <span data-es="Kit Personalizado" data-en="Custom Kit">Kit Personalizado</span></div>
+    <h2 data-es="Diseña tu muñeca ideal" data-en="Design your perfect doll">Diseña tu muñeca ideal</h2>
+    <p data-es="Elige cada color y crea tu kit único de estambres" data-en="Choose each color and create your unique yarn kit">Elige cada color y crea tu kit único de estambres</p>
+    <button class="ckit-start-btn" onclick="openKitModal()" data-es="✨ Arma tu Kit" data-en="✨ Build Your Kit">✨ Arma tu Kit</button>
   </div>
 </div>
 
@@ -688,7 +688,7 @@ const CART_KEY='krosha_cart';
 const rates={MXN:1,USD:.052,EUR:.048,DOP:3.12,CAD:.071,GBP:.041,
   COP:210,ARS:49,BRL:0.27,CLP:49,PEN:0.19,UYU:2.05,BOB:0.36,
   PYG:385,GTQ:0.40,HNL:1.28,NIO:1.90,CRC:26.9};
-const syms={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
+const syms={MXN:'$',USD:'$',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
   COP:'COL$',ARS:'AR$',BRL:'R$',CLP:'CLP$',PEN:'S/',UYU:'$U',
   BOB:'Bs.',PYG:'₲',GTQ:'Q',HNL:'L',NIO:'C$',CRC:'₡'};
 const countryToCurrency={
@@ -1086,8 +1086,13 @@ const yarnProducts=YARN_COLORS.map((c,i)=>{
   };
 });
 
-function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
-function typeLabel(t){return t==='kits'?'Kit Crochet':t==='estambres'?'Kit Estambres':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':t==='accesorios'?'Accesorio':'Patrón Digital';}
+const FX_MARKUP=1.025;
+function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
+function f(mxn){const v=mxn*fxRate();return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+function typeLabel(t){
+  if(lang==='en'){return{kits:'Crochet Kit',estambres:'Yarn Kit',hilo:'Yarn',amigurumis:'Amigurumi',accesorios:'Accessory'}[t]||'Digital Pattern';}
+  return{kits:'Kit Crochet',estambres:'Kit Estambres',hilo:'Estambre',amigurumis:'Amigurumi',accesorios:'Accesorio'}[t]||'Patrón Digital';
+}
 function typeBadge(t){return t==='kits'?'kit':t==='estambres'?'hilo':t==='hilo'?'hilo':t==='amigurumis'?'kit':t==='accesorios'?'acc':'';}
 
 let activeFilter='patrones';
@@ -1106,7 +1111,7 @@ function renderNovedades(){
   if(!show.length){wrap.innerHTML='';return;}
   const wish=getWish();
   wrap.innerHTML=`
-    <p class="nov-title">Los más <em>nuevos</em></p>
+    <p class="nov-title">${lang==='en'?'Our <em>latest</em>':'Los más <em>nuevos</em>'}</p>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,300px));gap:20px;justify-content:center;margin:0 auto;padding-bottom:8px;">
       ${show.map((p,i)=>renderCard(p,i,wish)).join('')}
     </div>`;
@@ -1208,7 +1213,10 @@ function openM(id){
   document.getElementById('mname').textContent=curProd.yarnColorName?curProd.yarnColorName:(lang==='en'&&curProd.titleEn?curProd.titleEn:curProd.title);
   document.getElementById('mdesc').textContent=lang==='en'&&curProd.descEn?curProd.descEn:curProd.desc;
   document.getElementById('md-price').textContent=f(curProd.price);
-  document.getElementById('md-level').textContent=curProd.yarnColorName?'Premier Yarns Basix':(curProd.skill||'—');
+  const _skillEn={Básico:'Basic',Intermedio:'Intermediate',Avanzado:'Advanced'};
+  document.getElementById('md-level').textContent=curProd.yarnColorName?'Premier Yarns Basix':((lang==='en'&&_skillEn[curProd.skill])||curProd.skill||'—');
+  const shareBtn=document.getElementById('btn-share-prod');
+  if(shareBtn)shareBtn.textContent=lang==='en'?'🔗 Share product':'🔗 Compartir producto';
 
   // Yarn colors section (only for pattern products)
   const yarnSec=document.getElementById('m-yarn-section');
@@ -1346,7 +1354,7 @@ function openM(id){
     btnBuy.style.display='';
     btnAdd.style.display='';
     if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
-    if(fmtEl)fmtEl.textContent='Patrón Digital';
+    if(fmtEl)fmtEl.textContent=lang==='en'?'Digital Pattern':'Patrón Digital';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   }
@@ -1567,8 +1575,11 @@ function setLang(l){
     if(val&&!val.includes('<'))el.textContent=val;
     else if(val)el.innerHTML=val;
   });
+  const srch=document.getElementById('prod-search');
+  if(srch)srch.placeholder=l==='en'?'Search patterns, kits, accessories...':'Buscar patrones, kits, accesorios...';
   applyHero();
   renderGrid();
+  renderNovedades();
 }
 
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2700);}
