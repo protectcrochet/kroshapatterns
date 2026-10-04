@@ -1226,7 +1226,7 @@ function openM(id){
       </div>`;
     }).join('');
     // Pattern add-on toggle
-    const patProd=products.find(p=>p.id===curProd.patternId);
+    const patProd=products.find(p=>parseInt(p.id)===parseInt(curProd.patternId));
     const patPrice=patProd?patProd.price:0;
     const patToggleHtml=patProd?`<div onclick="toggleAddPatternToKit()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--blush);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;margin-top:10px;">
       <div id="cb-add-pattern" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--pink-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--pink-dark);flex-shrink:0;background:#fff;"></div>
@@ -1399,7 +1399,7 @@ function updateModalPrice(){
   if(curProd.isYarnKit){
     total=curProd.price;
     if(addPatternToKit){
-      const patProd=products.find(p=>p.id===curProd.patternId);
+      const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd)total+=patProd.price;
     }
   } else {
@@ -1485,7 +1485,7 @@ function addToCart(){
     const existing=cart.find(i=>i.id===curProd.id);
     if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:'estambres',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
     if(addPatternToKit&&curProd.patternId){
-      const patProd=products.find(p=>p.id===curProd.patternId);
+      const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd){
         const epat=cart.find(i=>i.id===patProd.id);
         if(epat)epat.qty++;else cart.push({id:patProd.id,title:patProd.title,price:patProd.price,img:patProd.images[0]||'',qty:1,type:patProd.type||'',patternSlug:patProd.patternSlug||'',pdfUrl:patProd.pdfUrl||'',shipSubsidy:0});
