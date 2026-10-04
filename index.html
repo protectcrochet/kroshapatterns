@@ -1758,6 +1758,9 @@ const DOLL_HAIR_PREVIEWS={
   'Gold':'images/cabello/cabello-yellow.webp',
   'Goldenrod':'images/cabello/cabello-yellow.webp',
 };
+const DOLL_SKIN_PREVIEWS={
+  'Buff':'images/piel/piel-buff.jpg',
+};
 const _CK_WIZ_STEPS=[
   {key:'piel',    label:'🩻 Piel',    title:'Elige el color de piel',           single:true,  icon:'🩻', topColor:'#F4C4A0'},
   {key:'cabello', label:'💇 Cabello', title:'Elige el color de cabello',         single:true,  icon:'💇', topColor:'#C49A72'},
@@ -1861,18 +1864,27 @@ function _renderCKWizard(){
     const sd=(cfg.sections||{})[step.key]||{colors:[],defaultQty:1};
     const avail=(sd.colors||[]).filter(c=>c!=='__none__'&&!isOutOfStock(c));
     const st=_ckState[step.key]||{color:'',qty:1};
-    let hairPrev='';
+    let stepPrev='';
     if(step.key==='cabello'){
       const prevImg=st.color?DOLL_HAIR_PREVIEWS[st.color]:null;
       const prevHex=st.color?getYarnHex(st.color):null;
-      hairPrev=`<div class="ck-hair-preview" id="ck-hair-preview">${prevImg
+      stepPrev=`<div class="ck-hair-preview" id="ck-hair-preview">${prevImg
         ?`<img src="${prevImg}" alt="Cabello ${st.color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${st.color}</div>`
         :st.color
           ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${st.color}</div></div>`
           :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>'
       }</div>`;
+    } else if(step.key==='piel'){
+      const prevImg=st.color?DOLL_SKIN_PREVIEWS[st.color]:null;
+      const prevHex=st.color?getYarnHex(st.color):null;
+      stepPrev=`<div class="ck-hair-preview" id="ck-skin-preview">${prevImg
+        ?`<img src="${prevImg}" alt="Piel ${st.color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${st.color}</div>`
+        :st.color
+          ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${st.color}</div></div>`
+          :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>'
+      }</div>`;
     }
-    content=hairPrev
+    content=stepPrev
       +_ckSwatchesHTML(step.key,avail,st.color,null)
       +_ckSelDisplayHTML(st.color,`ck-wiz-sel-${step.key}`)
       +`<div class="ckit-controls"><div class="ckit-qty-row"><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',null,-1)">−</button><span class="ckit-qty-val" id="ckit-qty-${step.key}">${st.qty}</span><button class="ckit-qty-btn" onclick="ckChangeQty('${step.key}',null,1)">+</button></div><span class="ckit-qty-label">ovillos</span></div>`;
@@ -1965,6 +1977,18 @@ function _ckUpdateWizSelDisplay(key,combo,color){
       const prevHex=color?getYarnHex(color):null;
       prev.innerHTML=prevImg
         ?`<img src="${prevImg}" alt="Cabello ${color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${color}</div>`
+        :color
+          ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${color}</div></div>`
+          :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>';
+    }
+  }
+  if(key==='piel'&&combo==null){
+    const prev=document.getElementById('ck-skin-preview');
+    if(prev){
+      const prevImg=color?DOLL_SKIN_PREVIEWS[color]:null;
+      const prevHex=color?getYarnHex(color):null;
+      prev.innerHTML=prevImg
+        ?`<img src="${prevImg}" alt="Piel ${color}" class="ck-hair-preview-img"><div class="ck-hair-preview-label">${color}</div>`
         :color
           ?`<div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${color}</div></div>`
           :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>';
