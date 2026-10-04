@@ -829,7 +829,10 @@ function yarnColorsToList(yc){
     if(counts[color])counts[color]++;
     else{counts[color]=1;order.push(color);}
   });
-  return order.map(color=>({color,qty:counts[color],price:yarnPrice(color)}));
+  return order.map(color=>{
+    const physQty=isSinfoniaColor(color)?counts[color]*2:counts[color];
+    return {color,qty:physQty,price:isSinfoniaColor(color)?65:150};
+  });
 }
 let cur='MXN', lang='es', curProd=null;
 let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false, addPatternToKit=false;
@@ -911,7 +914,7 @@ function generateYarnKits(patternProds){
     const kitId=1000+id;
     if(existingIds.has(kitId))return;
     const totalQty=yl.reduce((s,i)=>s+i.qty,0);
-    const price=yl.reduce((s,i)=>s+(i.price||150)*i.qty,0);
+    const price=yl.reduce((s,i)=>s+(isSinfoniaColor(i.color)?65:(i.price||150))*i.qty,0);
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
