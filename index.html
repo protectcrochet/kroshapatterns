@@ -33,6 +33,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .btn-cart:hover{background:var(--pink-text);}
 .cn{background:rgba(255,255,255,.3);width:20px;height:20px;border-radius:50%;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 
+/* DECORATIVE HEARTS */
+.deco-heart{position:absolute;pointer-events:none;opacity:.18;z-index:0;}
+.deco-heart svg{display:block;}
+@media(max-width:900px){.deco-heart{display:none;}}
+
 /* HERO */
 .hero{background:var(--blush);padding:60px 2rem 0;overflow:hidden;position:relative;}
 .hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:60% 40% 70% 30% / 50% 60% 40% 50%;background:var(--pink-mid);top:-150px;right:-100px;opacity:.3;}
@@ -465,6 +470,40 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 
 <!-- HERO -->
 <section class="hero">
+  <!-- Deco hearts left -->
+  <div class="deco-heart" style="left:-10px;top:60px;">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="left:30px;top:140px;transform:rotate(-15deg) scale(.55);">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="left:8px;top:200px;transform:rotate(10deg) scale(.35);">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <!-- Deco lines left -->
+  <div class="deco-heart" style="left:14px;top:170px;transform:rotate(-30deg);">
+    <svg width="50" height="14" viewBox="0 0 50 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2,7 C10,3 20,11 30,7 C38,4 44,9 48,7" stroke="#C06090" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M2,12 C12,8 22,13 34,10 C40,8 46,11 48,10" stroke="#C06090" stroke-width="2" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+  <!-- Deco hearts right -->
+  <div class="deco-heart" style="right:10px;top:50px;transform:rotate(12deg);">
+    <svg width="90" height="82" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="right:50px;top:160px;transform:rotate(-8deg) scale(.45);">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
   <div class="hero-inner">
     <div class="hero-left">
       <div class="bow-tag">🎀 <span data-es="Artesanía con amor" data-en="Handmade with love">Artesanía con amor</span></div>
@@ -499,7 +538,29 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 </div>
 
 <!-- NOVEDADES -->
-<div id="novedades-wrap" class="nov-wrap"></div>
+<div style="position:relative;overflow:hidden;">
+  <div class="deco-heart" style="left:-14px;top:20px;transform:rotate(-10deg);">
+    <svg width="100" height="90" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="left:20px;top:110px;transform:rotate(8deg) scale(.5);">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="right:-10px;top:30px;transform:rotate(15deg);">
+    <svg width="95" height="86" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="deco-heart" style="right:30px;top:130px;transform:rotate(-5deg) scale(.4);">
+    <svg width="110" height="100" viewBox="0 0 110 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M55,32 C55,18 40,8 28,18 C16,28 16,46 32,60 L55,82 L78,60 C94,46 94,28 82,18 C70,8 55,18 55,32 Z" stroke="#C06090" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+  </div>
+  <div id="novedades-wrap" class="nov-wrap"></div>
+</div>
 
 <!-- FILTER + PRODUCTS -->
 <div id="productos" class="filter-wrap">

@@ -357,18 +357,24 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
           </div>
           <div class="form-grid full">
             <div class="field">
-              <label data-es="CORREO ELECTRÓNICO" data-en="EMAIL">CORREO ELECTRÓNICO</label>
-              <input type="email" id="checkout-email" placeholder="tu@email.com" onblur="saveAbandonedCart()">
+              <label data-es="CORREO ELECTRÓNICO *" data-en="EMAIL *">CORREO ELECTRÓNICO *</label>
+              <input type="email" id="checkout-email" placeholder="tu@email.com" required onblur="saveAbandonedCart()">
             </div>
           </div>
           <div class="form-grid" style="margin-top:12px;">
             <div class="field">
-              <label data-es="NOMBRE COMPLETO" data-en="FULL NAME">NOMBRE COMPLETO</label>
-              <input type="text" id="checkout-name" placeholder="Tu nombre completo">
+              <label data-es="NOMBRE *" data-en="FIRST NAME *">NOMBRE *</label>
+              <input type="text" id="checkout-name" placeholder="Tu nombre" required>
             </div>
             <div class="field">
-              <label id="lbl-phone" data-es="TELÉFONO (opcional)" data-en="PHONE (optional)">TELÉFONO (opcional)</label>
-              <input type="tel" id="checkout-phone" placeholder="10 dígitos">
+              <label data-es="APELLIDO *" data-en="LAST NAME *">APELLIDO *</label>
+              <input type="text" id="checkout-apellido" placeholder="Tu apellido" required>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div class="field">
+              <label id="lbl-phone" data-es="TELÉFONO *" data-en="PHONE *">TELÉFONO *</label>
+              <input type="tel" id="checkout-phone" placeholder="10 dígitos" required>
             </div>
           </div>
         </div>
@@ -446,6 +452,12 @@ footer{background:var(--pink-text);color:rgba(255,220,235,.8);padding:30px 2rem;
               <div class="field">
                 <label id="lbl-zip" data-es="CÓDIGO POSTAL" data-en="ZIP / POSTAL CODE">CÓDIGO POSTAL</label>
                 <input type="text" id="ship-zip" placeholder="06600" maxlength="12" oninput="autoQuoteShipping()">
+              </div>
+            </div>
+            <div class="form-grid full" style="margin-top:12px;">
+              <div class="field">
+                <label data-es="REFERENCIAS (opcional)" data-en="REFERENCES (optional)">REFERENCIAS (opcional)</label>
+                <input type="text" id="ship-referencias" placeholder="Entre calles, color de fachada, señas...">
               </div>
             </div>
             <!-- Guardar dirección (solo si está logueada) -->
@@ -670,7 +682,7 @@ function renderCart(){
         <div class="ci-name">${item.title}</div>
         ${item.type==='customkit'?ckMiniSummary(item.customKit):''}
         ${outOfStock?`<div style="color:#C00;font-size:12px;font-weight:700;margin:2px 0 4px;">⚠️ ${lang==='es'?'Agotado — por favor elimínalo del carrito':'Out of stock — please remove it'}</div>`:''}
-        <div class="ci-detail">${f(item.price)} ${lang==='es'?'c/u':'each'}</div>
+        <div class="ci-detail">${item.type==='customkit'?f(item.price):`${f(item.price)} ${lang==='es'?'c/u':'each'}`}</div>
         <div class="ci-actions">
           <div class="qty-box">
             <button class="qty-btn" onclick="chQty(this,-1,'${item.id}')">−</button>
@@ -1060,8 +1072,14 @@ function loadMPSDK(cb){loadScript('https://sdk.mercadopago.com/js/v2',cb);}
 // ── CONFIRM ORDER ──
 async function confirmOrder(){
   const email=document.getElementById('checkout-email')?.value?.trim()||'';
-  const name=document.getElementById('checkout-name')?.value?.trim()||'Cliente';
-  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
+  const firstName=document.getElementById('checkout-name')?.value?.trim()||'';
+  const lastName=document.getElementById('checkout-apellido')?.value?.trim()||'';
+  const phone=document.getElementById('checkout-phone')?.value?.trim()||'';
+  const name=firstName&&lastName?`${firstName} ${lastName}`:firstName||lastName||'Cliente';
+  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
+  if(!firstName){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
+  if(!lastName){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
+  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
 
   const btn=document.getElementById('confirm-btn');
   btn.textContent=lang==='es'?'Procesando...':'Processing...';
@@ -1129,8 +1147,14 @@ async function processStripe(email,name,btn){
 async function confirmOrderMP(paymentType){
   // Validate form first
   const email=document.getElementById('checkout-email')?.value?.trim();
-  const name=document.getElementById('checkout-name')?.value?.trim();
-  if(!email||!name){showToast(lang==='es'?'⚠️ Completa nombre y correo':'⚠️ Fill name and email');return;}
+  const _fn=document.getElementById('checkout-name')?.value?.trim();
+  const _ln=document.getElementById('checkout-apellido')?.value?.trim();
+  const name=_fn&&_ln?`${_fn} ${_ln}`:_fn||_ln||'';
+  const phone=document.getElementById('checkout-phone')?.value?.trim();
+  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
+  if(!_fn){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
+  if(!_ln){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
+  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
 
   // Validate shipping address + rate if physical items
   if(hasPhysicalItems()){
@@ -1460,8 +1484,14 @@ function loadMP(callback){
 // ── CONFIRM ORDER — REAL PAYMENTS ──
 async function confirmOrder(){
   const email=document.getElementById('checkout-email')?.value?.trim()||'';
-  const name=document.getElementById('checkout-name')?.value?.trim()||'Cliente';
-  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu email':'⚠️ Enter your email');return;}
+  const _fn=document.getElementById('checkout-name')?.value?.trim()||'';
+  const _ln=document.getElementById('checkout-apellido')?.value?.trim()||'';
+  const phone=document.getElementById('checkout-phone')?.value?.trim()||'';
+  const name=_fn&&_ln?`${_fn} ${_ln}`:_fn||_ln||'Cliente';
+  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
+  if(!_fn){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
+  if(!_ln){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
+  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
 
   if(!selPayMethod){
     showToast(lang==='es'?'⚠️ Selecciona un método de pago':'⚠️ Select a payment method');
