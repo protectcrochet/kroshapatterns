@@ -2656,8 +2656,9 @@ function calcNetAmount(o){
       const fee=(total*0.036+3)*1.16;
       return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'Stripe MXN',note:''};
     }
-    // total está en divisa original (GBP/CAD/USD), no en MXN — sin tipo de cambio no aplica
-    return{net:null,fee:null,label:`Stripe ${currency}`,note:'Ver Stripe dashboard'};
+    // total en divisa original — fee estimado en esa misma moneda (sin cuota fija $3 MXN)
+    const fee=+(total*0.061*1.16).toFixed(2);
+    return{net:null,fee,label:`Stripe ${currency}`,note:'aprox., excl. cuota fija'};
   }
   if(method.includes('paypal')){
     if(currency==='MXN'){
@@ -2757,7 +2758,7 @@ function viewOrder(refOrId){
         <div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">PAGO</div>
         <div style="font-weight:700;">$${o.total} ${o.currency||'MXN'}</div>
         <div style="font-size:12px;color:var(--text-mid);">${o.method||'stripe'} · ${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</div>
-        ${(()=>{const nr=calcNetAmount(o);return nr.net!=null?`<div style="font-size:12px;margin-top:4px;color:#065F46;">Neto est. <strong>$${nr.net} MXN</strong> <span style="color:var(--text-light);">(-$${nr.fee} comisión)</span></div>`:(nr.note?`<div style="font-size:11px;margin-top:4px;color:var(--text-light);">${nr.note}</div>`:'');})()}
+        ${(()=>{const nr=calcNetAmount(o);const sym=o.currency&&o.currency!=='MXN'?o.currency+' ':'$';return nr.net!=null?`<div style="font-size:12px;margin-top:4px;color:#065F46;">Neto est. <strong>$${nr.net} MXN</strong> <span style="color:var(--text-light);">(-$${nr.fee} comisión)</span></div>`:nr.fee!=null?`<div style="font-size:12px;margin-top:4px;color:#92400E;">Comisión est. <strong>${sym}${nr.fee}</strong> <span style="color:var(--text-light);">(${nr.note})</span></div>`:'';})()}
       </div>
     </div>
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-bottom:6px;">
