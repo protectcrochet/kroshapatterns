@@ -2641,6 +2641,32 @@ function renderOrdersTable(){
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
+// Stripe MXN: (total×3.6% + $3) × 1.16 IVA
+// Stripe foreign: (total×3.6% + $3 + total×1.75%) × 1.16  (conversion fee ~1.75%)
+// MercadoPago / PayPal: pendiente de tarifas reales
+function calcNetAmount(o){
+  const total=parseFloat(o.total)||0;
+  const method=(o.method||'stripe').toLowerCase();
+  const currency=(o.currency||'MXN').toUpperCase();
+  if(method.includes('stripe')){
+    if(currency==='MXN'){
+      const fee=(total*0.036+3)*1.16;
+      return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'Stripe MXN',note:''};
+    } else {
+      // Fee en MXN estimado: (total_mxn×3.6% + $3 + total_mxn×1.75%) × 1.16
+      // total aquí podría estar en otra moneda — mostramos "ver Stripe"
+      return{net:null,fee:null,label:`Stripe ${currency}`,note:'Ver Stripe dashboard'};
+    }
+  }
+  if(method.includes('mercadopago')||method.includes('mp')){
+    return{net:null,fee:null,label:'MercadoPago',note:'Tarifas pendientes'};
+  }
+  if(method.includes('paypal')){
+    return{net:null,fee:null,label:'PayPal',note:'Tarifas pendientes'};
+  }
+  return{net:null,fee:null,label:method,note:'Plataforma desconocida'};
+}
+
 function populateCsvMonthSelect(){
   const sel=document.getElementById('csv-month-sel');
   if(!sel)return;
@@ -2667,20 +2693,25 @@ function exportOrdersCsv(){
   }
   if(!orders.length){showToast('No hay pedidos para ese período');return;}
   const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const header=['Ref','Nombre','Email','Total','Moneda','Plataforma','Estado','Tipo','Estado pago','Fecha','Productos'];
-  const rows=orders.map(o=>[
-    o.ref||o.id,
-    o.name||'',
-    o.email||'',
-    o.total||0,
-    o.currency||'MXN',
-    o.method||'stripe',
-    statusLabel(o.status),
-    isPhysicalOrder(o)?'Físico':'Digital',
-    isPhysicalOrder(o)?paymentStatusLabel(o.paymentStatus||'pending_payment'):'Pago recibido',
-    o.date?new Date(o.date).toLocaleDateString('es-MX'):'',
-    o.products||'',
-  ].map(esc).join(','));
+  const header=['Ref','Nombre','Email','Total','Moneda','Plataforma','Comisión est.','Neto est.','Estado','Tipo','Estado pago','Fecha','Productos'];
+  const rows=orders.map(o=>{
+    const nr=calcNetAmount(o);
+    return[
+      o.ref||o.id,
+      o.name||'',
+      o.email||'',
+      o.total||0,
+      o.currency||'MXN',
+      o.method||'stripe',
+      nr.fee!=null?nr.fee:(nr.note||'—'),
+      nr.net!=null?nr.net:(nr.note||'—'),
+      statusLabel(o.status),
+      isPhysicalOrder(o)?'Físico':'Digital',
+      isPhysicalOrder(o)?paymentStatusLabel(o.paymentStatus||'pending_payment'):'Pago recibido',
+      o.date?new Date(o.date).toLocaleDateString('es-MX'):'',
+      o.products||'',
+    ].map(esc).join(',');
+  });
   const csv='﻿'+[header.map(esc).join(','),...rows].join('\r\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -2717,6 +2748,7 @@ function viewOrder(refOrId){
         <div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">PAGO</div>
         <div style="font-weight:700;">$${o.total} ${o.currency||'MXN'}</div>
         <div style="font-size:12px;color:var(--text-mid);">${o.method||'stripe'} · ${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</div>
+        ${(()=>{const nr=calcNetAmount(o);return nr.net!=null?`<div style="font-size:12px;margin-top:4px;color:#065F46;">Neto est. <strong>$${nr.net} MXN</strong> <span style="color:var(--text-light);">(-$${nr.fee} comisión)</span></div>`:(nr.note?`<div style="font-size:11px;margin-top:4px;color:var(--text-light);">${nr.note}</div>`:'');})()}
       </div>
     </div>
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-bottom:6px;">
