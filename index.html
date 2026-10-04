@@ -113,6 +113,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .filter-title{font-family:'Fraunces',serif;font-size:36px;font-weight:600;color:var(--text);margin-bottom:8px;}
 .filter-title em{color:var(--pink-dark);font-style:italic;}
 .filter-sub{font-size:14px;color:var(--text-light);margin-bottom:20px;}
+.prod-search-wrap{margin-bottom:16px;}
+.prod-search-input{width:100%;max-width:440px;padding:11px 18px 11px 42px;border-radius:30px;border:2px solid var(--border);font-size:14px;font-family:'Nunito',sans-serif;color:var(--text);background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23c06090' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center;outline:none;transition:border-color .2s,box-shadow .2s;}
+.prod-search-input:focus{border-color:var(--pink-dark);box-shadow:0 0 0 3px rgba(192,96,144,.12);}
+.prod-search-input::placeholder{color:var(--text-light);}
 
 /* PRODUCT GRID */
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding:0 2rem 60px;}
@@ -577,9 +581,12 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 <div id="productos" class="filter-wrap">
   <h2 class="filter-title" data-es="Nuestros <em>patrones</em>" data-en="Our <em>patterns</em>">Nuestros <em>patrones</em></h2>
   <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
+  <div class="prod-search-wrap">
+    <input type="search" id="prod-search" class="prod-search-input" placeholder="Buscar patrones, kits, accesorios..." oninput="searchProds(this.value)" autocomplete="off" />
+  </div>
   <div class="filter-tabs">
     <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
-    <button class="ftab" onclick="filterProds('estambres',this)" data-es="Estambres" data-en="Yarn">Estambres</button>
+    <button class="ftab" onclick="filterProds('estambres',this)" data-es="Kit Estambres" data-en="Yarn Kits">Kit Estambres</button>
     <button class="ftab" onclick="filterProds('accesorios',this)" data-es="Accesorios" data-en="Accessories">Accesorios</button>
     <button class="ftab" onclick="filterProds('amigurumis',this)" data-es="Muñequitas" data-en="Dolls">Muñequitas</button>
     <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
@@ -812,8 +819,9 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
-function yarnGrams(n){return n==='Arena S'?100:200;}
-function yarnPrice(n){return n==='Arena S'?130:150;}
+function isSinfoniaColor(n){return n==='Arena S'||n==='Sky Blue'||n==='Camel';}
+function yarnGrams(n){return isSinfoniaColor(n)?100:200;}
+function yarnPrice(n){return isSinfoniaColor(n)?130:150;}
 function yarnColorsToList(yc){
   const counts={},order=[];
   Object.values(yc).forEach(color=>{
@@ -821,7 +829,7 @@ function yarnColorsToList(yc){
     if(counts[color])counts[color]++;
     else{counts[color]=1;order.push(color);}
   });
-  return order.map(color=>({color,qty:counts[color]}));
+  return order.map(color=>({color,qty:counts[color],price:yarnPrice(color)}));
 }
 let cur='MXN', lang='es', curProd=null;
 let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false, addPatternToKit=false;
@@ -919,8 +927,8 @@ function generateYarnKits(patternProds){
       status:isSoldOut?'soldOut':'active',
       skill:'',
       images:pat.images||[],
-      desc:(()=>{const hasPremier=yl.some(i=>(i.price||150)>=150);const hasSinfonia=yl.some(i=>i.price===65);const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g y Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ovillos ${brandStr}. Todos los colores incluidos para el patrón ${pat.title}.`;})(),
-      descEn:(()=>{const hasPremier=yl.some(i=>(i.price||150)>=150);const hasSinfonia=yl.some(i=>i.price===65);const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g and Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ${brandStr} skeins. All colors for the ${pat.titleEn||pat.title} pattern.`;})(),
+      desc:(()=>{const hasSinfonia=yl.some(i=>isSinfoniaColor(i.color));const hasPremier=yl.some(i=>!isSinfoniaColor(i.color));const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g y Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ovillos ${brandStr}. Todos los colores incluidos para el patrón ${pat.title}.`;})(),
+      descEn:(()=>{const hasSinfonia=yl.some(i=>isSinfoniaColor(i.color));const hasPremier=yl.some(i=>!isSinfoniaColor(i.color));const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g and Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';return `${totalQty} ${brandStr} skeins. All colors for the ${pat.titleEn||pat.title} pattern.`;})(),
       yarnList:yl,
       kitPrice:0,
       eyesPrice:0,
@@ -1032,6 +1040,7 @@ const defaultYarnColors={
   13:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Pink',detalles:'Gold'},           // Mini Ramo 25cm
   14:{piel:'Almond',cabello:'Red',vestido:'Forest',forro:'White',rosas:'Coral',detalles:'Gold'},          // Valiente/Mérida
   15:{piel:'Almond',cabello:'Brown',vestido:'Gold',forro:'White',rosas:'Rose',detalles:'Brown'},          // Bella/Belle
+  16:{piel:'Camel',cabello:'Black',vestido:'Forest',forro:'White',rosas:'Gold',detalles:'Gold'},           // Tiana
   17:{piel:'Powder Blue',cabello:'Sky Blue',vestido:'White',forro:'Lila',rosas:'',detalles:'Blue'},  // Emily (pendiente confirmar)
   18:{piel:'Powder Blue',cabello:'Red',vestido:'Teal',forro:'White',rosas:'Coral',detalles:'Black'},      // Sally
   19:{piel:'Almond',cabello:'Brown',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Gold'},           // Muñeca Ramo 35cm
@@ -1054,7 +1063,7 @@ const defaultYarnColors={
 
 // ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
 const yarnProducts=YARN_COLORS.map((c,i)=>{
-  const g=yarnGrams(c.name),p=c.name==='Arena S'?65:150;
+  const g=yarnGrams(c.name),p=isSinfoniaColor(c.name)?65:150;
   return{
     id:100+i,
     title:`Estambre ${c.name} ${g}g`,
@@ -1077,6 +1086,11 @@ function typeLabel(t){return t==='kits'?'Kit Crochet':t==='estambres'?'Kit Estam
 function typeBadge(t){return t==='kits'?'kit':t==='estambres'?'hilo':t==='hilo'?'hilo':t==='amigurumis'?'kit':t==='accesorios'?'acc':'';}
 
 let activeFilter='patrones';
+let _searchQuery='';
+function searchProds(q){
+  _searchQuery=(q||'').trim().toLowerCase();
+  renderGrid();
+}
 
 function renderNovedades(){
   const wrap=document.getElementById('novedades-wrap');
@@ -1098,11 +1112,19 @@ function renderGrid(filter){
   const products=getProducts();
   const wish=getWish();
   const g=document.getElementById('pgrid');
-  const filtered=(activeFilter==='all'?products:activeFilter==='wish'?products.filter(p=>wish.includes(p.id)):products.filter(p=>p.type===activeFilter)).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  let filtered=(activeFilter==='all'?products:activeFilter==='wish'?products.filter(p=>wish.includes(p.id)):products.filter(p=>p.type===activeFilter)).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  if(_searchQuery){
+    filtered=filtered.filter(p=>{
+      const haystack=[(lang==='en'&&p.titleEn?p.titleEn:p.title),p.yarnColorName||'',p.desc||''].join(' ').toLowerCase();
+      return haystack.includes(_searchQuery);
+    });
+  }
   if(!filtered.length){
-    const msg=activeFilter==='wish'
-      ?'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">Aún no tienes favoritos. ¡Haz clic en el ♡ de cualquier producto!</div>'
-      :'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';
+    const msg=_searchQuery
+      ?`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">Sin resultados para "<strong>${_searchQuery}</strong>"</div>`
+      :activeFilter==='wish'
+        ?'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">Aún no tienes favoritos. ¡Haz clic en el ♡ de cualquier producto!</div>'
+        :'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:15px;">No hay productos en esta categoría aún.</div>';
     g.innerHTML=msg;return;
   }
   g.innerHTML=filtered.map((p,i)=>renderCard(p,i,wish)).join('');
