@@ -1595,6 +1595,9 @@ let _publishedHero=null;
   // Si viene de carrito a editar kit
   const _editParam=new URLSearchParams(window.location.search).get('editkit');
   if(_editParam){setTimeout(()=>{openKitModal();ckLoadEditKit(_editParam);},400);}
+  // Abrir modal de kit desde URL: ?kit=1 o #kit-personalizado
+  const _kitParam=new URLSearchParams(window.location.search).get('kit');
+  if(_kitParam||window.location.hash==='#kit-personalizado'){setTimeout(()=>openKitModal(),500);}
   // If applyHero didn't populate the hero cards, fill with first 2 published products
   const heroWrap=document.getElementById('hero-imgs-wrap');
   if(heroWrap&&heroWrap.querySelector('img')==null&&_publishedProducts&&_publishedProducts.length){
