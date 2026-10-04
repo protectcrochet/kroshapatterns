@@ -1086,7 +1086,9 @@ const yarnProducts=YARN_COLORS.map((c,i)=>{
   };
 });
 
-function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+const FX_MARKUP=1.025;
+function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
+function f(mxn){const v=mxn*fxRate();return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function typeLabel(t){return t==='kits'?'Kit Crochet':t==='estambres'?'Kit Estambres':t==='hilo'?'Estambre':t==='amigurumis'?'Amigurumi':t==='accesorios'?'Accesorio':'Patrón Digital';}
 function typeBadge(t){return t==='kits'?'kit':t==='estambres'?'hilo':t==='hilo'?'hilo':t==='amigurumis'?'kit':t==='accesorios'?'acc':'';}
 

@@ -1021,8 +1021,8 @@ function renderPayPalBtn(){
   const container=document.getElementById('paypal-btn-container');
   if(!container||!window.paypal)return;
   container.innerHTML='';
-  const email=document.querySelector('input[type="email"]')?.value||'';
-  const name=document.getElementById('fname')?.value||'Cliente';
+  const ppSupported=['AUD','BRL','CAD','CZK','DKK','EUR','HKD','HUF','ILS','JPY','MYR','MXN','TWD','NZD','NOK','PHP','PLN','GBP','SGD','SEK','CHF','THB','USD'];
+  const ppCur=ppSupported.includes(cur)?cur:'USD';
   const total=getCartTotal();
   const items=getCartItems();
 
@@ -1030,13 +1030,18 @@ function renderPayPalBtn(){
     style:{layout:'vertical',color:'gold',shape:'pill',label:'pay',height:50},
     createOrder:(d,actions)=>actions.order.create({
       purchase_units:[{
-        amount:{value:total.toFixed(2),currency_code:'MXN'},
+        amount:{value:total.toFixed(2),currency_code:ppCur},
         description:'KroshaPatterns',
       }],
       application_context:{brand_name:'KroshaPatterns',shipping_preference:'NO_SHIPPING'},
     }),
     onApprove:async(d,actions)=>{
       await actions.order.capture();
+      // Read form at capture time so email/name are always current
+      const email=document.getElementById('checkout-email')?.value?.trim()||'';
+      const _fn=document.getElementById('checkout-name')?.value?.trim()||'';
+      const _ln=document.getElementById('checkout-apellido')?.value?.trim()||'';
+      const name=_fn&&_ln?`${_fn} ${_ln}`:_fn||_ln||'Cliente';
       const {ref,downloadToken}=await sendConfirmationEmail(email,name,items,total,'PayPal');
       showSuccess('🅿️ PayPal',ref,items,total,downloadToken);
     },
@@ -1070,29 +1075,6 @@ function loadScript(src,cb){
 function loadStripeSDK(cb){loadScript('https://js.stripe.com/v3/',cb);}
 function loadPayPalSDK(cb){loadScript(`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=${cur}&locale=${lang==='es'?'es_MX':'en_US'}`,cb);}
 function loadMPSDK(cb){loadScript('https://sdk.mercadopago.com/js/v2',cb);}
-
-// ── CONFIRM ORDER ──
-async function confirmOrder(){
-  const email=document.getElementById('checkout-email')?.value?.trim()||'';
-  const firstName=document.getElementById('checkout-name')?.value?.trim()||'';
-  const lastName=document.getElementById('checkout-apellido')?.value?.trim()||'';
-  const phone=document.getElementById('checkout-phone')?.value?.trim()||'';
-  const name=firstName&&lastName?`${firstName} ${lastName}`:firstName||lastName||'Cliente';
-  if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
-  if(!firstName){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
-  if(!lastName){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
-  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
-
-  const btn=document.getElementById('confirm-btn');
-  btn.textContent=lang==='es'?'Procesando...':'Processing...';
-  btn.disabled=true;btn.style.opacity='.7';
-
-  if(selPayMethod==='stripe'){
-    await processStripe(email,name,btn);
-  } else if(selPayMethod==='mp'){
-    await processMercadoPago(email,name,btn);
-  }
-}
 
 // ── STRIPE ──
 async function processStripe(email,name,btn){
