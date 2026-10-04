@@ -1188,6 +1188,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <option value="shipped">🚚 Enviado</option>
         <option value="cancelled">❌ Cancelado</option>
       </select>
+      <select id="order-detail-payment-status" style="flex:1;min-width:160px;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:13px;" onchange="updateOrderPaymentStatus(this.value)">
+        <option value="pending_payment">💳 Pago pendiente</option>
+        <option value="received">💰 Pago recibido</option>
+      </select>
       <button id="order-phys-toggle" class="btn btn-outline btn-sm" onclick="toggleOrderPhysical()" style="white-space:nowrap;"></button>
       <button class="btn btn-outline" id="order-detail-resend-btn" onclick="resendOrderAccess()" style="flex:1;">📧 Reenviar acceso</button>
       <button class="btn btn-red btn-sm" onclick="deleteOrder()" style="white-space:nowrap;">🗑️ Eliminar pedido</button>
@@ -2621,7 +2625,7 @@ function renderOrdersTable(){
       <td><strong>#${String(o.ref||o.id).slice(-6)}</strong></td>
       <td><strong>${o.name||'—'}</strong><div style="font-size:12px;color:var(--text-light);">${o.email}</div></td>
       <td style="font-size:12px;max-width:150px;color:var(--text-mid);">${(o.products||'').substring(0,60)}${(o.products||'').length>60?'…':''}</td>
-      <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div></td>
+      <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div><div style="margin-top:3px;">${paymentStatusBadge(o.paymentStatus)}</div></td>
       <td><span class="order-status ${o.status}">${statusLabel(o.status)}</span></td>
       <td>${typeBadge}</td>
       <td style="font-size:12px;color:var(--text-light);">${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</td>
@@ -2631,6 +2635,8 @@ function renderOrdersTable(){
 }
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
+function paymentStatusLabel(s){return{pending_payment:'💳 Pago pendiente',received:'💰 Pago recibido'}[s]||(s?s:'💳 Pago pendiente');}
+function paymentStatusBadge(s){const isPending=!s||s==='pending_payment';return`<span style="display:inline-flex;align-items:center;gap:3px;background:${isPending?'#FFF7E6':'#ECFDF5'};color:${isPending?'#92400E':'#065F46'};border-radius:10px;padding:2px 7px;font-size:10px;font-weight:700;">${isPending?'💳 Pago pendiente':'💰 Pago recibido'}</span>`;}
 
 let _viewingOrder=null;
 function viewOrder(refOrId){
@@ -2792,6 +2798,7 @@ function viewOrder(refOrId){
   }
   document.getElementById('gen-guia-result').innerHTML='';
   document.getElementById('order-detail-status').value=o.status||'paid';
+  document.getElementById('order-detail-payment-status').value=o.paymentStatus||'pending_payment';
   _updatePhysToggleBtn();
   document.getElementById('order-detail-modal').classList.add('open');
 }
@@ -2865,18 +2872,29 @@ async function toggleOrderPhysical(){
 async function updateOrderStatus(newStatus){
   if(!_viewingOrder)return;
   _viewingOrder.status=newStatus;
-  // Update in server orders list
   _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{...o,status:newStatus}:o);
-  // Update in localStorage if local
   const local=getOrders();
   const updated=local.map(o=>o.id===_viewingOrder.id?{...o,status:newStatus}:o);
   saveOrders(updated);
-  // Save to server
   try{
     await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
   }catch(e){}
   renderOrdersTable();
   showToast('Estado actualizado: '+statusLabel(newStatus));
+}
+
+async function updateOrderPaymentStatus(newPaymentStatus){
+  if(!_viewingOrder)return;
+  _viewingOrder.paymentStatus=newPaymentStatus;
+  _serverOrders=_serverOrders.map(o=>String(o.ref||o.id)===String(_viewingOrder.ref||_viewingOrder.id)?{...o,paymentStatus:newPaymentStatus}:o);
+  const local=getOrders();
+  const updated=local.map(o=>o.id===_viewingOrder.id?{...o,paymentStatus:newPaymentStatus}:o);
+  saveOrders(updated);
+  try{
+    await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(_viewingOrder)});
+  }catch(e){}
+  renderOrdersTable();
+  showToast(paymentStatusLabel(newPaymentStatus));
 }
 
 let _shipProvider = 't1';
