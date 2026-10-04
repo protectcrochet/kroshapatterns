@@ -15,24 +15,22 @@ export default async function handler(req, res) {
 
     const { amount, currency, items, customerEmail, customerName } = req.body;
 
-    if (!amount || !currency || !customerEmail) {
+    if (!amount || !customerEmail) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    // Currencies supported by Stripe (zero-decimal currencies need no *100)
+    // The frontend sends the amount already in the customer's currency with a
+    // 2.5% FX markup applied (to cover Stripe's cross-border + conversion fees),
+    // so you always receive the full MXN price regardless of payment currency.
     const stripeSupported = ['mxn','usd','eur','dop','cad','gbp','ars','brl','cop','clp','pen','uyu','gtq','hnl','nio','crc'];
     const zeroDecimal = ['clp','jpy','krw','pyg'];
-    let cur = currency.toLowerCase();
-    // Fall back to USD for unsupported currencies
-    if (!stripeSupported.includes(cur)) cur = 'usd';
+    let cur = (currency||'mxn').toLowerCase();
+    if (!stripeSupported.includes(cur)) cur = 'mxn';
 
-    // Amount in smallest unit (cents), zero-decimal currencies stay as-is
     const amountInCents = zeroDecimal.includes(cur) ? Math.round(amount) : Math.round(amount * 100);
 
-    // Stripe minimum amounts per currency (in smallest unit)
     const minimums = { mxn:1000, usd:50, eur:50, gbp:30, cad:50, brl:50, ars:3700, cop:200000, clp:500, dop:50, pen:200 };
-    const minAmount = minimums[cur] || 50;
-    const finalAmount = Math.max(amountInCents, minAmount);
+    const finalAmount = Math.max(amountInCents, minimums[cur] || 50);
 
     // Create Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({

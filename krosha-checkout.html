@@ -608,7 +608,9 @@ let cur='MXN', lang='es', hasDiscount=false, selPayMethod=null;
 let stripeInst=null, stripeCard=null;
 let _coInv={};  // inventario cargado al iniciar checkout
 
-function f(mxn){const v=mxn*rates[cur];return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+const FX_MARKUP=1.025; // 2.5% cubre comisión cross-border + conversión de Stripe para pagos internacionales
+function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
+function f(mxn){const v=mxn*fxRate();return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 
 const _CK_YARN_HEX={'White':'#FFFFFF','Cream':'#FFF8DC','Ecru':'#F5F0E8','Linen':'#FAF0E6','Aran':'#E8D5B7','Arena S':'#F2DFC0','Almond':'#DEB887','Sand':'#E8D5B0','Buff':'#F5DEB3','Warm Beige':'#D4B896','Wheat':'#F5DEB3','Camel':'#C19A6B','Toffee':'#A0785A','Hazel':'#8E7455','Taupe':'#8B7D7B','Nutmeg':'#8C4E2A','Gold':'#FFD700','Goldenrod':'#DAA520','Mustard':'#FFDB58','Yellow':'#FFF176','Lemon':'#FFF44F','Maize':'#F4C430','Sunshine':'#FFE600','Sunny':'#FFD966','Butterscotch':'#E3A857','Orange':'#FF8C00','Coral':'#FF7F50','Peach':'#FFDAB9','Salmon':'#FA8072','Red':'#DC143C','Cherry Red':'#9B1B30','Crimson':'#B22222','Garnet':'#6D1A36','Burgundy':'#800020','Mahogany':'#C04000','Blush':'#FFB6C1','Pink':'#FFC0CB','Hot Pink':'#FF69B4','Taffy':'#FF8FAB','Rose':'#FF007F','Raspberry':'#E30B5C','Fuchsia':'#FF00FF','Mauve':'#D4869E','Orchid':'#DA70D6','Lilac':'#B57BCC','Lila':'#D4A5C9','Purple':'#800080','Violet':'#8B00FF','Eggplant':'#614051','Navy':'#001F5B','Royal Blue':'#4169E1','Blue':'#2962FF','Sky Blue':'#87CEEB','Light Blue':'#ADD8E6','Powder Blue':'#B0E0E6','Teal':'#008080','Turquoise':'#40E0D0','Aqua':'#00CED1','Mint':'#98FF98','Sage':'#BCB88A','Green':'#008000','Forest':'#228B22','Brown':'#8B4513','Chocolate':'#7B3F00','Cocoa':'#4A2C2A','Charcoal':'#36454F','Grey':'#9E9E9E','Gray':'#808080','Silver':'#C0C0C0','Black':'#1A1A1A'};
@@ -769,12 +771,12 @@ function updateMxnNotice(){
   const disc=hasDiscount?Math.round(sub*.1):0;
   const totalMXN=Math.round((sub-disc+_effectiveShipCost())*100)/100;
   const sym=syms[cur]||'';
-  const conv=totalMXN*(rates[cur]||1);
-  const convStr=sym+(conv<10?conv.toFixed(2):Math.round(conv))+' '+cur;
+  const convWithMarkup=totalMXN*fxRate();
+  const convStr=sym+(convWithMarkup<10?convWithMarkup.toFixed(2):Math.round(convWithMarkup))+' '+cur;
   const mxnStr='$'+totalMXN.toLocaleString('es-MX')+' MXN';
   notice.innerHTML=lang==='es'
-    ?`<strong style="display:block;margin-bottom:3px;">ℹ️ El cobro se realiza en pesos mexicanos (MXN)</strong>El procesador de pago opera en MXN. El monto es <strong>${mxnStr}</strong> — equivalente aproximado a <strong>${convStr}</strong> según el tipo de cambio actual.`
-    :`<strong style="display:block;margin-bottom:3px;">ℹ️ Payment is charged in Mexican pesos (MXN)</strong>The payment processor charges in MXN. The amount is <strong>${mxnStr}</strong> — approximately <strong>${convStr}</strong> at the current exchange rate.`;
+    ?`<strong style="display:block;margin-bottom:3px;">ℹ️ Cobro en ${cur}</strong>El precio incluye una pequeña comisión bancaria internacional. Total: <strong>${convStr}</strong> (equivalente a <strong>${mxnStr}</strong>).`
+    :`<strong style="display:block;margin-bottom:3px;">ℹ️ Charged in ${cur}</strong>Price includes a small international processing fee. Total: <strong>${convStr}</strong> (equivalent to <strong>${mxnStr}</strong>).`;
   notice.style.display='block';
 }
 
@@ -1057,7 +1059,7 @@ function getCartTotal(){
   const cart=getCartItems();
   const sub=cart.reduce((a,i)=>a+(i.price*i.qty),0);
   const disc=hasDiscount?Math.round(sub*.1):0;
-  return Math.round((sub-disc+_effectiveShipCost())*(rates[cur]||1)*100)/100;
+  return Math.round((sub-disc+_effectiveShipCost())*fxRate()*100)/100;
 }
 
 // ── LOAD SDKs ──

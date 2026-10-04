@@ -2641,6 +2641,43 @@ function renderOrdersTable(){
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
+// Stripe MXN doméstico: (total×3.6% + $3) × 1.16 IVA
+// Stripe divisa extranjera: (total_MXN×6.1% + $3) × 1.16  [3.6% proceso + 1.5% cross-border + 1% conversión]
+//   Verificado: $276.50 MXN (de $15.08 USD) → fee $23.05 ✓ | $285.80 MXN (de £11.89 GBP) → fee $23.70 ✓
+// PayPal MXN:        (total×3.95% + $4) × 1.16 IVA
+// PayPal extranjero: total×5.4% + $4 (sin IVA, cross-border)
+// MercadoPago:       (total×3.49% + $4) × 1.16 IVA
+function calcNetAmount(o){
+  const total=parseFloat(o.total)||0;
+  const method=(o.method||'stripe').toLowerCase();
+  const currency=(o.currency||'MXN').toUpperCase();
+  if(method.includes('stripe')){
+    if(currency==='MXN'){
+      const fee=(total*0.036+3)*1.16;
+      return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'Stripe MXN',note:''};
+    }
+    // Divisa extranjera: total debe estar en MXN (monto liquidado por Stripe)
+    // Si total está en la moneda original (USD/GBP) el cálculo no aplica
+    const fee=(total*0.061+3)*1.16;
+    return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:`Stripe ${currency}→MXN`,note:'si total en MXN'};
+  }
+  if(method.includes('paypal')){
+    if(currency==='MXN'){
+      const fee=(total*0.0395+4)*1.16;
+      return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'PayPal MXN',note:''};
+    }
+    // Internacional: 5.4% + $4, sin IVA
+    const fee=total*0.054+4;
+    return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:`PayPal ${currency}`,note:'aprox.'};
+  }
+  if(method.includes('mercadopago')||method.includes('mp')){
+    // 3.49% + $4 MXN + 16% IVA — verificado con 3 ejemplos reales
+    const fee=(total*0.0349+4)*1.16;
+    return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'MercadoPago',note:''};
+  }
+  return{net:null,fee:null,label:method,note:'Plataforma desconocida'};
+}
+
 function populateCsvMonthSelect(){
   const sel=document.getElementById('csv-month-sel');
   if(!sel)return;
@@ -2667,20 +2704,25 @@ function exportOrdersCsv(){
   }
   if(!orders.length){showToast('No hay pedidos para ese período');return;}
   const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const header=['Ref','Nombre','Email','Total','Moneda','Plataforma','Estado','Tipo','Estado pago','Fecha','Productos'];
-  const rows=orders.map(o=>[
-    o.ref||o.id,
-    o.name||'',
-    o.email||'',
-    o.total||0,
-    o.currency||'MXN',
-    o.method||'stripe',
-    statusLabel(o.status),
-    isPhysicalOrder(o)?'Físico':'Digital',
-    isPhysicalOrder(o)?paymentStatusLabel(o.paymentStatus||'pending_payment'):'Pago recibido',
-    o.date?new Date(o.date).toLocaleDateString('es-MX'):'',
-    o.products||'',
-  ].map(esc).join(','));
+  const header=['Ref','Nombre','Email','Total','Moneda','Plataforma','Comisión est.','Neto est.','Estado','Tipo','Estado pago','Fecha','Productos'];
+  const rows=orders.map(o=>{
+    const nr=calcNetAmount(o);
+    return[
+      o.ref||o.id,
+      o.name||'',
+      o.email||'',
+      o.total||0,
+      o.currency||'MXN',
+      o.method||'stripe',
+      nr.fee!=null?nr.fee:(nr.note||'—'),
+      nr.net!=null?nr.net:(nr.note||'—'),
+      statusLabel(o.status),
+      isPhysicalOrder(o)?'Físico':'Digital',
+      isPhysicalOrder(o)?paymentStatusLabel(o.paymentStatus||'pending_payment'):'Pago recibido',
+      o.date?new Date(o.date).toLocaleDateString('es-MX'):'',
+      o.products||'',
+    ].map(esc).join(',');
+  });
   const csv='﻿'+[header.map(esc).join(','),...rows].join('\r\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
@@ -2717,6 +2759,7 @@ function viewOrder(refOrId){
         <div style="font-size:11px;color:var(--text-light);margin-bottom:3px;">PAGO</div>
         <div style="font-weight:700;">$${o.total} ${o.currency||'MXN'}</div>
         <div style="font-size:12px;color:var(--text-mid);">${o.method||'stripe'} · ${o.date?new Date(o.date).toLocaleDateString('es-MX'):''}</div>
+        ${(()=>{const nr=calcNetAmount(o);return nr.net!=null?`<div style="font-size:12px;margin-top:4px;color:#065F46;">Neto est. <strong>$${nr.net} MXN</strong> <span style="color:var(--text-light);">(-$${nr.fee} comisión)</span></div>`:(nr.note?`<div style="font-size:11px;margin-top:4px;color:var(--text-light);">${nr.note}</div>`:'');})()}
       </div>
     </div>
     <div style="background:var(--bg);border-radius:10px;padding:12px 14px;border:1.5px solid var(--border);margin-bottom:6px;">
