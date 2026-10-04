@@ -2641,11 +2641,11 @@ function renderOrdersTable(){
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
-// Stripe MXN:      (total×3.6% + $3) × 1.16 IVA
-// Stripe extranjero: mostramos "Ver Stripe dashboard" (requiere tipo de cambio del día)
-// PayPal MXN:      (total×3.95% + $4) × 1.16 IVA  — tarifa publicada PayPal MX, verificada
-// PayPal extranjero: total×5.4% + $4              — sin IVA (comisión cross-border)
-// MercadoPago: pendiente de tarifas
+// Stripe MXN:        (total×3.6% + $3) × 1.16 IVA
+// Stripe extranjero: "Ver Stripe dashboard" (requiere tipo de cambio del día)
+// PayPal MXN:        (total×3.95% + $4) × 1.16 IVA
+// PayPal extranjero: total×5.4% + $4 (sin IVA, cross-border)
+// MercadoPago:       (total×3.49% + $4) × 1.16 IVA
 function calcNetAmount(o){
   const total=parseFloat(o.total)||0;
   const method=(o.method||'stripe').toLowerCase();
@@ -2667,7 +2667,9 @@ function calcNetAmount(o){
     return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:`PayPal ${currency}`,note:'aprox.'};
   }
   if(method.includes('mercadopago')||method.includes('mp')){
-    return{net:null,fee:null,label:'MercadoPago',note:'Tarifas pendientes'};
+    // 3.49% + $4 MXN + 16% IVA — verificado con 3 ejemplos reales
+    const fee=(total*0.0349+4)*1.16;
+    return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'MercadoPago',note:''};
   }
   return{net:null,fee:null,label:method,note:'Plataforma desconocida'};
 }
