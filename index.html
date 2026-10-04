@@ -298,9 +298,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .ck-hair-preview{text-align:center;margin-bottom:18px;background:var(--pink-bg);border-radius:18px;padding:14px 14px 10px;border:1.5px solid var(--border);}
 .ck-hair-preview-img{width:170px;height:170px;object-fit:cover;object-position:top center;border-radius:14px;display:block;margin:0 auto 8px;box-shadow:0 4px 14px rgba(192,96,144,.18);}
 .ck-skin-preview-img{width:170px;height:170px;object-fit:cover;object-position:center center;border-radius:14px;display:block;margin:0 auto 8px;box-shadow:0 4px 14px rgba(192,96,144,.18);}
-.ck-dress-preview-wrap{position:relative;width:170px;height:210px;margin:0 auto 8px;border-radius:14px;overflow:hidden;box-shadow:0 4px 14px rgba(192,96,144,.18);}
-.ck-dress-preview-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
-.ck-dress-color-layer{position:absolute;inset:0;mix-blend-mode:multiply;pointer-events:none;border-radius:14px;}
+.ck-dress-swatch-img{width:170px;height:170px;object-fit:cover;object-position:center center;border-radius:14px;display:block;margin:0 auto 8px;box-shadow:0 4px 14px rgba(192,96,144,.18);}
 .ck-hair-preview-label{font-size:12px;color:var(--text-light);font-weight:700;letter-spacing:.3px;}
 .ck-hair-preview-empty{color:var(--text-light);font-size:13px;padding:18px 0;opacity:.8;}
 .ck-hair-preview-placeholder{padding:10px 0;}.ck-hair-preview-circle{width:56px;height:56px;border-radius:50%;margin:0 auto 8px;border:2px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.1);}
@@ -1891,20 +1889,14 @@ function _renderCKWizard(){
           :'<div class="ck-hair-preview-empty">👆 Toca un color para ver la muñequita</div>'
       }</div>`;
     } else if(step.key==='vestido'||step.key==='forro'){
-      const hex=st.color?getYarnHex(st.color):null;
-      // Overlay only covers dress area (gradient transparent top → color at 42%)
-      const overlayStyle=hex
-        ?`background:linear-gradient(to bottom,transparent 40%,${hex} 48%);`
-        :'display:none;';
-      const label=st.color?`<div class="ck-hair-preview-label">${st.color}</div>`
-        :'<div class="ck-hair-preview-empty">👆 Toca un color para ver el vestido</div>';
-      stepPrev=`<div class="ck-hair-preview" id="ck-dress-preview">
-        <div class="ck-dress-preview-wrap">
-          <img src="images/vestido/vestido-base.jpg" alt="Vestido">
-          <div class="ck-dress-color-layer" id="ck-dress-layer" style="${overlayStyle}"></div>
-        </div>
-        ${label}
-      </div>`;
+      const swatchImg=st.color?getYarnImg(st.color):null;
+      const prevHex=st.color?getYarnHex(st.color):null;
+      stepPrev=`<div class="ck-hair-preview" id="ck-dress-preview">${swatchImg
+        ?`<img src="${swatchImg}" alt="Color ${st.color}" class="ck-dress-swatch-img" id="ck-dress-swatch"><div class="ck-hair-preview-label">${st.color}</div>`
+        :st.color
+          ?`<img src="" alt="" class="ck-dress-swatch-img" id="ck-dress-swatch" style="display:none"><div class="ck-hair-preview-placeholder"><div class="ck-hair-preview-circle" style="background:${prevHex};"></div><div class="ck-hair-preview-label">${st.color}</div></div>`
+          :'<img src="" alt="" class="ck-dress-swatch-img" id="ck-dress-swatch" style="display:none"><div class="ck-hair-preview-empty">👆 Toca un color para ver la muestra</div>'
+      }</div>`;
     }
     content=stepPrev
       +_ckSwatchesHTML(step.key,avail,st.color,null)
@@ -2017,13 +2009,19 @@ function _ckUpdateWizSelDisplay(key,combo,color){
     }
   }
   if((key==='vestido'||key==='forro')&&combo==null){
-    const layer=document.getElementById('ck-dress-layer');
-    const labelEl=document.querySelector('#ck-dress-preview .ck-hair-preview-label, #ck-dress-preview .ck-hair-preview-empty');
+    const swatch=document.getElementById('ck-dress-swatch');
+    const labelEl=document.querySelector('#ck-dress-preview .ck-hair-preview-label, #ck-dress-preview .ck-hair-preview-empty, #ck-dress-preview .ck-hair-preview-placeholder');
+    const swatchImg=color?getYarnImg(color):null;
     const hex=color?getYarnHex(color):null;
-    if(layer)layer.style.cssText=hex
-      ?`background:linear-gradient(to bottom,transparent 40%,${hex} 48%);`
-      :'display:none;';
-    if(labelEl){labelEl.className=color?'ck-hair-preview-label':'ck-hair-preview-empty';labelEl.textContent=color||'👆 Toca un color para ver el vestido';}
+    if(swatch){
+      if(swatchImg){swatch.src=swatchImg;swatch.style.display='';}
+      else{swatch.src='';swatch.style.display='none';}
+    }
+    if(labelEl){
+      if(swatchImg){labelEl.className='ck-hair-preview-label';labelEl.textContent=color;}
+      else if(color&&hex){labelEl.className='ck-hair-preview-placeholder';labelEl.innerHTML=`<div class="ck-hair-preview-circle" style="background:${hex};"></div><div class="ck-hair-preview-label">${color}</div>`;}
+      else{labelEl.className='ck-hair-preview-empty';labelEl.textContent='👆 Toca un color para ver la muestra';}
+    }
   }
 }
 
