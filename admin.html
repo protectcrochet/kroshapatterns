@@ -2641,9 +2641,9 @@ function renderOrdersTable(){
 function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
-// Stripe MXN doméstico: (total×3.6% + $3) × 1.16 IVA
-// Stripe divisa extranjera: (total_MXN×6.1% + $3) × 1.16  [3.6% proceso + 1.5% cross-border + 1% conversión]
-//   Verificado: $276.50 MXN (de $15.08 USD) → fee $23.05 ✓ | $285.80 MXN (de £11.89 GBP) → fee $23.70 ✓
+// Stripe MXN: (total×3.6% + $3) × 1.16 IVA
+// Stripe divisa extranjera: o.total está en la moneda del cliente (GBP/CAD/USD),
+//   no en MXN — no se puede calcular neto sin el tipo de cambio del día → Ver Stripe
 // PayPal MXN:        (total×3.95% + $4) × 1.16 IVA
 // PayPal extranjero: total×5.4% + $4 (sin IVA, cross-border)
 // MercadoPago:       (total×3.49% + $4) × 1.16 IVA
@@ -2656,10 +2656,8 @@ function calcNetAmount(o){
       const fee=(total*0.036+3)*1.16;
       return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:'Stripe MXN',note:''};
     }
-    // Divisa extranjera: total debe estar en MXN (monto liquidado por Stripe)
-    // Si total está en la moneda original (USD/GBP) el cálculo no aplica
-    const fee=(total*0.061+3)*1.16;
-    return{net:+(total-fee).toFixed(2),fee:+fee.toFixed(2),label:`Stripe ${currency}→MXN`,note:'si total en MXN'};
+    // total está en divisa original (GBP/CAD/USD), no en MXN — sin tipo de cambio no aplica
+    return{net:null,fee:null,label:`Stripe ${currency}`,note:'Ver Stripe dashboard'};
   }
   if(method.includes('paypal')){
     if(currency==='MXN'){
