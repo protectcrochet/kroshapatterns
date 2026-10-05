@@ -30,6 +30,8 @@ export default async function handler(req, res) {
     // ── REGISTER ──
     if (action === 'register') {
       if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Ingresa un correo válido' });
+      if (password.length < 8) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres' });
       const existing = await redis.get(`krosha:user:${email.toLowerCase()}`);
       if (existing) return res.status(400).json({ error: 'Este email ya tiene una cuenta' });
       const user = { email: email.toLowerCase(), name: name || '', passwordHash: hashPwd(password), createdAt: new Date().toISOString() };
