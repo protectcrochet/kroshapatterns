@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KroshaPatterns — Carrito & Checkout</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -611,7 +612,7 @@ let _coInv={};  // inventario cargado al iniciar checkout
 
 const FX_MARKUP=1.025; // 2.5% cubre comisión cross-border + conversión de Stripe para pagos internacionales
 function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
-function f(mxn){const v=mxn*fxRate();return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+function f(mxn){const v=mxn*fxRate();if(cur==='MXN')return syms[cur]+Math.round(v)+' MXN';return syms[cur]+v.toFixed(2)+' '+cur;}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 
 const _CK_YARN_HEX={'White':'#FFFFFF','Cream':'#FFF8DC','Ecru':'#F5F0E8','Linen':'#FAF0E6','Aran':'#E8D5B7','Arena S':'#F2DFC0','Almond':'#DEB887','Sand':'#E8D5B0','Buff':'#F5DEB3','Warm Beige':'#D4B896','Wheat':'#F5DEB3','Camel':'#C19A6B','Toffee':'#A0785A','Hazel':'#8E7455','Taupe':'#8B7D7B','Nutmeg':'#8C4E2A','Gold':'#FFD700','Goldenrod':'#DAA520','Mustard':'#FFDB58','Yellow':'#FFF176','Lemon':'#FFF44F','Maize':'#F4C430','Sunshine':'#FFE600','Sunny':'#FFD966','Butterscotch':'#E3A857','Orange':'#FF8C00','Coral':'#FF7F50','Peach':'#FFDAB9','Salmon':'#FA8072','Red':'#DC143C','Cherry Red':'#9B1B30','Crimson':'#B22222','Garnet':'#6D1A36','Burgundy':'#800020','Mahogany':'#C04000','Blush':'#FFB6C1','Pink':'#FFC0CB','Hot Pink':'#FF69B4','Taffy':'#FF8FAB','Rose':'#FF007F','Raspberry':'#E30B5C','Fuchsia':'#FF00FF','Mauve':'#D4869E','Orchid':'#DA70D6','Lilac':'#B57BCC','Lila':'#D4A5C9','Purple':'#800080','Violet':'#8B00FF','Eggplant':'#614051','Navy':'#001F5B','Royal Blue':'#4169E1','Blue':'#2962FF','Sky Blue':'#87CEEB','Light Blue':'#ADD8E6','Powder Blue':'#B0E0E6','Teal':'#008080','Turquoise':'#40E0D0','Aqua':'#00CED1','Mint':'#98FF98','Sage':'#BCB88A','Green':'#008000','Forest':'#228B22','Brown':'#8B4513','Chocolate':'#7B3F00','Cocoa':'#4A2C2A','Charcoal':'#36454F','Grey':'#9E9E9E','Gray':'#808080','Silver':'#C0C0C0','Black':'#1A1A1A'};
@@ -728,7 +729,8 @@ function updateSummary(sub){
   const total=sub-disc+_effectiveShipCost();
   const cart=getCartItems();
   const sl=document.getElementById('subtotal-label');
-  if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${cart.length} ${lang==='es'?'producto':'item'}${cart.length!==1?'s':''})`;
+  const totalQty=cart.reduce((a,i)=>a+(i.qty||1),0);
+  if(sl)sl.textContent=`${lang==='es'?'Subtotal':'Subtotal'} (${totalQty} ${lang==='es'?'producto':'item'}${totalQty!==1?'s':''})`;
   const s=document.getElementById('subtotal');if(s)s.textContent=f(sub);
   const t=document.getElementById('total');if(t)t.textContent=f(total);
   const cfx=document.getElementById('cart-fx-notice');
@@ -1478,7 +1480,7 @@ async function confirmOrder(){
   if(!email){showToast(lang==='es'?'⚠️ Ingresa tu correo':'⚠️ Enter your email');return;}
   if(!_fn){showToast(lang==='es'?'⚠️ Ingresa tu nombre':'⚠️ Enter your first name');return;}
   if(!_ln){showToast(lang==='es'?'⚠️ Ingresa tu apellido':'⚠️ Enter your last name');return;}
-  if(!phone){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
+  if(!phone&&hasPhysicalItems()){showToast(lang==='es'?'⚠️ Ingresa tu teléfono':'⚠️ Enter your phone number');return;}
 
   if(!selPayMethod){
     showToast(lang==='es'?'⚠️ Selecciona un método de pago':'⚠️ Select a payment method');

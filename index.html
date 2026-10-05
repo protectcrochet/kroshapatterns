@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KroshaPatterns — Patrones, Kits & Materiales de Crochet</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Fraunces:ital,wght@0,400;0,600;1,400;1,600&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -655,17 +656,17 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     <div class="foot-col">
       <h4 data-es="Ayuda" data-en="Help">Ayuda</h4>
       <ul>
-        <li><a href="#" data-es="¿Cómo descargar?" data-en="How to download?">¿Cómo descargar?</a></li>
-        <li><a href="#" data-es="Envíos" data-en="Shipping">Envíos</a></li>
-        <li><a href="#" data-es="Contacto" data-en="Contact">Contacto</a></li>
+        <li><a href="legal.html#descargar" data-es="¿Cómo descargar?" data-en="How to download?">¿Cómo descargar?</a></li>
+        <li><a href="legal.html#envios" data-es="Envíos" data-en="Shipping">Envíos</a></li>
+        <li><a href="mailto:kroshapattern@gmail.com" data-es="Contacto" data-en="Contact">Contacto</a></li>
       </ul>
     </div>
     <div class="foot-col">
       <h4>Legal</h4>
       <ul>
-        <li><a href="#" data-es="Privacidad" data-en="Privacy">Privacidad</a></li>
-        <li><a href="#" data-es="Términos" data-en="Terms">Términos</a></li>
-        <li><a href="#" data-es="Derechos de autor" data-en="Copyright">Derechos de autor</a></li>
+        <li><a href="legal.html#privacidad" data-es="Privacidad" data-en="Privacy">Privacidad</a></li>
+        <li><a href="legal.html#terminos" data-es="Términos" data-en="Terms">Términos</a></li>
+        <li><a href="legal.html#copyright" data-es="Derechos de autor" data-en="Copyright">Derechos de autor</a></li>
       </ul>
     </div>
   </div>
@@ -1088,7 +1089,7 @@ const yarnProducts=YARN_COLORS.map((c,i)=>{
 
 const FX_MARKUP=1.025;
 function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
-function f(mxn){const v=mxn*fxRate();return syms[cur]+(v<10?v.toFixed(2):Math.round(v))+' '+cur;}
+function f(mxn){const v=mxn*fxRate();if(cur==='MXN')return syms[cur]+Math.round(v)+' MXN';return syms[cur]+v.toFixed(2)+' '+cur;}
 function typeLabel(t){
   if(lang==='en'){return{kits:'Crochet Kit',estambres:'Yarn Kit',hilo:'Yarn',amigurumis:'Amigurumi',accesorios:'Accessory'}[t]||'Digital Pattern';}
   return{kits:'Kit Crochet',estambres:'Kit Estambres',hilo:'Estambre',amigurumis:'Amigurumi',accesorios:'Accesorio'}[t]||'Patrón Digital';
@@ -1785,7 +1786,7 @@ async function logoutUser(){
     fetch('/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout',token:_session.token})}).catch(()=>{});
   }
   _clearSession();
-  closeAcctModal();
+  showAcctTab('login');
   showToast('👋 Sesión cerrada');
 }
 
