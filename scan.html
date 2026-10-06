@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Escanear Inventario — KroshaPatterns</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --pink:#C4498A;--pink-dark:#8B3565;--pink-light:#F9E8F0;
+  --green:#16a34a;--green-light:#dcfce7;
+  --red:#dc2626;--red-light:#fee2e2;
+  --text:#2d1a2e;--text-mid:#7a4d65;--text-light:#b48ea8;
+  --border:#f0dce8;--white:#fff;--bg:#fdf5f9;
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* LOGIN */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+.login-box{background:var(--white);border-radius:24px;padding:40px 32px;width:100%;max-width:340px;text-align:center;border:1.5px solid var(--border);box-shadow:0 16px 48px rgba(196,73,138,.12);}
+.login-logo{font-size:40px;margin-bottom:8px;}
+.login-title{font-size:20px;font-weight:900;color:var(--pink-dark);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text-light);margin-bottom:28px;}
+.pin-display{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:background .15s;}
+.pin-dot.filled{background:var(--pink);border-color:var(--pink);}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:240px;margin:0 auto;}
+.pin-btn{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:16px;font-size:20px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--text);transition:all .15s;}
+.pin-btn:active{background:var(--pink-light);border-color:var(--pink);}
+.pin-btn.del{font-size:16px;color:var(--text-light);}
+.pin-err{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+
+/* APP */
+#app{display:none;max-width:480px;margin:0 auto;padding:0 0 80px;}
+.top-bar{background:var(--pink-dark);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.top-bar-title{font-weight:900;font-size:16px;}
+.top-bar-sub{font-size:11px;opacity:.7;margin-top:1px;}
+.logout-btn{background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:'Nunito',sans-serif;}
+
+/* MODE TABS */
+.mode-tabs{display:grid;grid-template-columns:1fr 1fr;margin:12px 12px 0;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);}
+.mode-tab{padding:10px;text-align:center;font-size:13px;font-weight:700;cursor:pointer;background:var(--white);color:var(--text-mid);border:none;font-family:'Nunito',sans-serif;transition:all .15s;}
+.mode-tab.active{background:var(--pink);color:#fff;}
+
+/* SCANNER AREA */
+.scan-area{margin:12px;background:var(--white);border-radius:16px;border:1.5px solid var(--border);overflow:hidden;}
+.cam-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#111;display:none;}
+.cam-wrap video{width:100%;height:100%;object-fit:cover;display:block;}
+.cam-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.cam-frame{width:60%;aspect-ratio:3/1;border:3px solid var(--pink);border-radius:8px;box-shadow:0 0 0 2000px rgba(0,0,0,.4);}
+.cam-label{position:absolute;bottom:12px;width:100%;text-align:center;color:#fff;font-size:12px;font-weight:700;opacity:.9;}
+.cam-controls{padding:10px 12px;display:flex;gap:8px;border-top:1px solid var(--border);}
+.cam-btn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;border:1.5px solid var(--border);background:var(--white);color:var(--text);}
+.cam-btn.active{background:var(--pink);color:#fff;border-color:var(--pink);}
+
+.manual-area{padding:14px;}
+.manual-label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.barcode-input{width:100%;border:2px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;font-family:'Nunito',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.barcode-input:focus{border-color:var(--pink);}
+.scan-hint{font-size:12px;color:var(--text-light);margin-top:6px;}
+
+/* CONFIRM CARD */
+.confirm-card{margin:0 12px 12px;border-radius:16px;padding:16px;display:none;}
+.confirm-card.ok{background:var(--green-light);border:1.5px solid #86efac;}
+.confirm-card.warn{background:#fef9c3;border:1.5px solid #fde68a;}
+.confirm-card.err{background:var(--red-light);border:1.5px solid #fca5a5;}
+.confirm-color{font-size:18px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.confirm-qty{font-size:13px;color:var(--text-mid);}
+.confirm-qty strong{font-size:20px;font-weight:900;color:var(--green);}
+.confirm-qty strong.zero{color:var(--red);}
+.undo-btn{margin-top:10px;background:rgba(0,0,0,.08);border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--text);}
+
+/* COLOR PICKER MODAL */
+.modal{display:none;position:fixed;inset:0;background:rgba(45,26,46,.55);z-index:200;align-items:flex-end;justify-content:center;}
+.modal.open{display:flex;}
+.modal-box{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;padding:20px 16px 32px;}
+.modal-title{font-size:16px;font-weight:900;color:var(--text);margin-bottom:4px;}
+.modal-code{font-size:12px;color:var(--text-light);font-family:monospace;margin-bottom:14px;}
+.color-search{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:10px;}
+.color-search:focus{border-color:var(--pink);}
+.color-list{overflow-y:auto;flex:1;}
+.color-item{padding:12px 14px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;display:flex;justify-content:space-between;align-items:center;}
+.color-item:hover{background:var(--pink-light);}
+.color-item .stock{font-size:12px;color:var(--text-light);font-weight:400;}
+.modal-cancel{margin-top:12px;width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);font-size:14px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;color:var(--text-mid);}
+
+/* HISTORY */
+.history-wrap{margin:0 12px;background:var(--white);border-radius:16px;border:1.5px solid var(--border);overflow:hidden;}
+.history-header{padding:10px 14px;font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.history-clear{font-size:11px;color:var(--text-light);cursor:pointer;font-weight:400;}
+.history-item{padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px;display:flex;justify-content:space-between;align-items:center;}
+.history-item:last-child{border-bottom:none;}
+.history-color{font-weight:700;color:var(--text);}
+.history-meta{font-size:11px;color:var(--text-light);margin-top:1px;}
+.history-qty{font-size:15px;font-weight:900;}
+.history-qty.minus{color:var(--red);}
+.history-qty.set{color:var(--pink);}
+.history-empty{padding:20px;text-align:center;font-size:13px;color:var(--text-light);}
+
+/* MODO INVENTARIO — set exact count */
+.count-area{padding:14px;}
+.count-color-sel{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px;font-family:'Nunito',sans-serif;outline:none;margin-bottom:10px;}
+.count-color-sel:focus{border-color:var(--pink);}
+.qty-row{display:flex;gap:10px;align-items:center;}
+.qty-btn{background:var(--white);border:1.5px solid var(--border);border-radius:10px;width:44px;height:44px;font-size:22px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;color:var(--text);flex-shrink:0;}
+.qty-input{flex:1;border:2px solid var(--border);border-radius:10px;padding:10px;font-size:20px;font-weight:700;font-family:'Nunito',sans-serif;text-align:center;outline:none;}
+.qty-input:focus{border-color:var(--pink);}
+.save-btn{width:100%;margin-top:10px;padding:14px;background:var(--pink);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:900;font-family:'Nunito',sans-serif;cursor:pointer;}
+.save-btn:active{background:var(--pink-dark);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">🧶</div>
+    <div class="login-title">Inventario</div>
+    <div class="login-sub">KroshaPatterns · Ingresa tu PIN</div>
+    <div class="pin-display">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn" onclick="pinPress('')"></button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    </div>
+    <div class="pin-err" id="pin-err">PIN incorrecto</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="top-bar">
+    <div>
+      <div class="top-bar-title">🧶 Escanear Inventario</div>
+      <div class="top-bar-sub" id="top-sub">KroshaPatterns</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Salir</button>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mode-tab active" id="tab-scan" onclick="setMode('scan')">➖ Registrar salida</button>
+    <button class="mode-tab" id="tab-count" onclick="setMode('count')">📦 Contar inventario</button>
+  </div>
+
+  <!-- SCAN MODE -->
+  <div id="panel-scan">
+    <div class="scan-area" style="margin-top:12px;">
+      <div class="cam-wrap" id="cam-wrap">
+        <video id="cam-video" autoplay playsinline muted></video>
+        <div class="cam-overlay">
+          <div class="cam-frame"></div>
+        </div>
+        <div class="cam-label">Apunta al código de barras</div>
+      </div>
+      <div class="cam-controls">
+        <button class="cam-btn" id="btn-cam" onclick="toggleCamera()">📷 Activar cámara</button>
+        <button class="cam-btn" id="btn-torch" onclick="toggleTorch()" style="display:none;">🔦 Linterna</button>
+      </div>
+      <div class="manual-area">
+        <div class="manual-label">Código de barras</div>
+        <input type="text" class="barcode-input" id="barcode-input" placeholder="Escanea o escribe el código"
+          inputmode="numeric" autocomplete="off" autocorrect="off" spellcheck="false"
+          oninput="onBarcodeInput(this.value)" onkeydown="if(event.key==='Enter')submitBarcode()">
+        <div class="scan-hint">💡 Si tienes escáner Bluetooth, conecta y escanea directo aquí</div>
+      </div>
+    </div>
+
+    <div class="confirm-card" id="confirm-card">
+      <div class="confirm-color" id="confirm-color"></div>
+      <div class="confirm-qty" id="confirm-qty"></div>
+      <button class="undo-btn" id="undo-btn" onclick="undoLast()">↩ Deshacer</button>
+    </div>
+  </div>
+
+  <!-- COUNT MODE -->
+  <div id="panel-count" style="display:none;">
+    <div class="scan-area" style="margin-top:12px;">
+      <div class="cam-controls" style="border-top:none;">
+        <button class="cam-btn" id="btn-cam-count" onclick="toggleCamera('count')">📷 Escanear color</button>
+      </div>
+      <div class="cam-wrap" id="cam-wrap-count">
+        <video id="cam-video-count" autoplay playsinline muted></video>
+        <div class="cam-overlay"><div class="cam-frame"></div></div>
+        <div class="cam-label">Apunta al código del hilo</div>
+      </div>
+      <div class="count-area">
+        <div class="manual-label">Color</div>
+        <select class="count-color-sel" id="count-color-sel"></select>
+        <div class="manual-label" style="margin-top:10px;">Cantidad en bodega</div>
+        <div class="qty-row">
+          <button class="qty-btn" onclick="adjQty(-1)">−</button>
+          <input type="number" class="qty-input" id="qty-input" value="0" min="0" max="9999">
+          <button class="qty-btn" onclick="adjQty(1)">+</button>
+        </div>
+        <button class="save-btn" onclick="saveCount()">💾 Guardar</button>
+      </div>
+    </div>
+
+    <div class="confirm-card" id="confirm-card-count">
+      <div class="confirm-color" id="confirm-color-count"></div>
+      <div class="confirm-qty" id="confirm-qty-count"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history-wrap" style="margin-top:12px;">
+    <div class="history-header">
+      <span>Últimos movimientos</span>
+      <span class="history-clear" onclick="clearHistory()">Limpiar</span>
+    </div>
+    <div id="history-list"><div class="history-empty">Sin movimientos aún</div></div>
+  </div>
+</div>
+
+<!-- COLOR PICKER MODAL -->
+<div class="modal" id="color-modal">
+  <div class="modal-box">
+    <div class="modal-title">¿Qué color es este hilo?</div>
+    <div class="modal-code" id="modal-barcode-label"></div>
+    <input type="text" class="color-search" id="color-search" placeholder="🔍 Buscar color..." oninput="filterColors(this.value)">
+    <div class="color-list" id="color-list"></div>
+    <button class="modal-cancel" onclick="closeColorModal()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const YARN_COLORS=[
+  'White','Cream','Ecru','Linen','Aran','Arena S','Almond','Sand','Buff','Warm Beige','Wheat','Camel','Toffee','Hazel','Taupe','Nutmeg',
+  'Gold','Goldenrod','Mustard','Dijon Mustard','Yellow','Lemon','Maize','Sunshine','Sunny','Butterscotch',
+  'Orange','Bright Orange','Coral','Peach','Apricot','Salmon','Goldfish','Pumpkin','Sweet Potato','Ember',
+  'Red','Cherry Red','Crimson','Garnet','Burgundy','Mahogany','Chestnut','Wine','Merlot','Rouge',
+  'Blush','Crepe','Ballet','Pink','Hot Pink','Taffy','Rose','Raspberry','Fuchsia',
+  'Mauve','Light Mauve','Pale Orchid','Orchid','Thistle','Lila','Wisteria','Lilac',
+  'Purple','Violet','Dark Purple','Plum','Eggplant',
+  'Navy','Royal Blue','Blue','Bright Blue','Azure','Cadet','Sky Blue','Light Blue','Carolina Sky','Powder Blue','Slate','Steel','Storm','Denim','Twilight',
+  'Teal','Peacock','Turquoise','Seaglass','Aqua',
+  'Mint','Celery','Spring Green','Lime',
+  'Sage','Fern','Leaf','Green','Olive','Artichoke','Juniper','Emerald','Forest','Forest Green','Pine','Spruce','Hunter','Thyme','Holly',
+  'Tan','Brown','Pecan','Chocolate','Cocoa','Espresso',
+  'Charcoal','Grey','Gray','Silver','Light Gray','Black',
+];
+
+let pin='', scanPin='', inventory={}, barcodes={}, mode='scan';
+let camStream=null, camActive=false, camActiveCount=false, detector=null;
+let lastScan=null, scanCooldown=false;
+const history=[];
+
+// ── PIN ──
+function pinPress(d){
+  if(!d) return;
+  if(pin.length>=6) return;
+  pin+=d;
+  updateDots();
+  if(pin.length>=4) setTimeout(checkPin,120);
+}
+function pinDel(){pin=pin.slice(0,-1);updateDots();}
+function updateDots(){
+  const len=Math.min(pin.length,4);
+  for(let i=0;i<4;i++) document.getElementById('d'+i).className='pin-dot'+(i<len?' filled':'');
+}
+async function checkPin(){
+  document.getElementById('pin-err').style.display='none';
+  try{
+    const r=await fetch('/api/scan-inventory',{method:'GET',headers:{'x-scan-pin':pin}});
+    if(r.ok){
+      const data=await r.json();
+      scanPin=pin;
+      inventory=data.inventory||{};
+      barcodes=data.barcodes||{};
+      document.getElementById('login').style.display='none';
+      document.getElementById('app').style.display='block';
+      buildColorSel();
+      renderHistory();
+      document.getElementById('top-sub').textContent=Object.keys(inventory).length+' colores en inventario';
+    }else{
+      document.getElementById('pin-err').style.display='block';
+    }
+  }catch(e){
+    document.getElementById('pin-err').style.display='block';
+  }
+  pin='';updateDots();
+}
+function doLogout(){
+  scanPin='';pin='';
+  document.getElementById('app').style.display='none';
+  document.getElementById('login').style.display='flex';
+  stopCamera();
+}
+
+// ── MODE ──
+function setMode(m){
+  mode=m;
+  document.getElementById('tab-scan').className='mode-tab'+(m==='scan'?' active':'');
+  document.getElementById('tab-count').className='mode-tab'+(m==='count'?' active':'');
+  document.getElementById('panel-scan').style.display=m==='scan'?'block':'none';
+  document.getElementById('panel-count').style.display=m==='count'?'block':'none';
+  if(m!=='scan') stopCamera();
+  if(m!=='count') stopCamera('count');
+}
+
+// ── CAMERA ──
+async function toggleCamera(panel){
+  const isCount=panel==='count';
+  const wrap=document.getElementById(isCount?'cam-wrap-count':'cam-wrap');
+  const video=document.getElementById(isCount?'cam-video-count':'cam-video');
+  const btn=document.getElementById(isCount?'btn-cam-count':'btn-cam');
+  const active=isCount?camActiveCount:camActive;
+  if(active){stopCamera(panel);return;}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    video.srcObject=stream;
+    wrap.style.display='block';
+    btn.textContent='⏹ Detener cámara';btn.classList.add('active');
+    if(isCount) camActiveCount=true; else {camActive=true;camStream=stream;}
+    if(!isCount){
+      const torchBtn=document.getElementById('btn-torch');
+      const track=stream.getVideoTracks()[0];
+      if(track&&track.getCapabilities&&track.getCapabilities().torch) torchBtn.style.display='';
+    }
+    if('BarcodeDetector' in window){
+      if(!detector) detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+      scanLoop(video,isCount);
+    }
+  }catch(e){alert('No se pudo acceder a la cámara: '+e.message);}
+}
+function stopCamera(panel){
+  const isCount=panel==='count';
+  const wrap=document.getElementById(isCount?'cam-wrap-count':'cam-wrap');
+  const video=document.getElementById(isCount?'cam-video-count':'cam-video');
+  const btn=document.getElementById(isCount?'btn-cam-count':'btn-cam');
+  if(video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());video.srcObject=null;}
+  wrap.style.display='none';
+  if(btn){btn.textContent=isCount?'📷 Escanear color':'📷 Activar cámara';btn.classList.remove('active');}
+  if(isCount) camActiveCount=false; else {camActive=false;camStream=null;}
+}
+async function scanLoop(video,isCount){
+  if((!isCount&&!camActive)||(isCount&&!camActiveCount)) return;
+  try{
+    const codes=await detector.detect(video);
+    if(codes.length&&!scanCooldown){
+      const code=codes[0].rawValue;
+      scanCooldown=true;
+      setTimeout(()=>scanCooldown=false,2000);
+      if(isCount){
+        const color=barcodes[code];
+        if(color){
+          document.getElementById('count-color-sel').value=color;
+        }else{
+          pendingBarcode=code;openColorModal(code);
+        }
+      }else{
+        document.getElementById('barcode-input').value=code;
+        await processBarcode(code);
+        document.getElementById('barcode-input').value='';
+      }
+    }
+  }catch(e){}
+  requestAnimationFrame(()=>scanLoop(video,isCount));
+}
+async function toggleTorch(){
+  if(!camStream) return;
+  const track=camStream.getVideoTracks()[0];
+  const caps=track.getCapabilities&&track.getCapabilities();
+  if(caps&&caps.torch){
+    const cur=track.getSettings().torch;
+    await track.applyConstraints({advanced:[{torch:!cur}]});
+  }
+}
+
+// ── SCAN MODE ──
+let inputTimer=null;
+function onBarcodeInput(v){
+  clearTimeout(inputTimer);
+  if(v.length>=8) inputTimer=setTimeout(()=>submitBarcode(),300);
+}
+function submitBarcode(){
+  const v=document.getElementById('barcode-input').value.trim();
+  if(v) processBarcode(v);
+}
+async function processBarcode(code){
+  showCard('','','');
+  try{
+    const r=await fetch('/api/scan-inventory',{
+      method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},
+      body:JSON.stringify({action:'scan',barcode:code})
+    });
+    const data=await r.json();
+    if(data.needsMapping){pendingBarcode=code;openColorModal(code);return;}
+    if(data.ok){
+      showCard(data.color,data.prev,data.newQty,'ok');
+      lastScan={color:data.color,prevQty:data.prev};
+      inventory[data.color]=data.newQty;
+      addHistory(data.color,'−1',data.prev,data.newQty);
+      document.getElementById('barcode-input').value='';
+      vibrate();
+    }
+  }catch(e){showCard('Error de red','','','err');}
+}
+function showCard(color,prev,newQty,type){
+  const card=document.getElementById('confirm-card');
+  if(!color){card.style.display='none';return;}
+  card.className='confirm-card '+(type||'ok');
+  document.getElementById('confirm-color').textContent='✅ '+color;
+  const qtyEl=document.getElementById('confirm-qty');
+  const isZero=newQty===0;
+  qtyEl.innerHTML=`Stock: <s style="color:var(--text-light)">${prev}</s> → <strong class="${isZero?'zero':''}">${newQty}</strong>`;
+  document.getElementById('undo-btn').style.display='block';
+  card.style.display='block';
+}
+async function undoLast(){
+  if(!lastScan) return;
+  const r=await fetch('/api/scan-inventory',{
+    method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},
+    body:JSON.stringify({action:'undo',colorName:lastScan.color,qty:lastScan.prevQty})
+  });
+  if(r.ok){
+    inventory[lastScan.color]=lastScan.prevQty;
+    addHistory(lastScan.color,'↩','',lastScan.prevQty);
+    lastScan=null;
+    document.getElementById('confirm-card').style.display='none';
+  }
+}
+
+// ── COUNT MODE ──
+function buildColorSel(){
+  const sel=document.getElementById('count-color-sel');
+  sel.innerHTML=YARN_COLORS.map(c=>`<option value="${c}">${c} (${inventory[c]??0})</option>`).join('');
+}
+function adjQty(d){
+  const inp=document.getElementById('qty-input');
+  inp.value=Math.max(0,(parseInt(inp.value)||0)+d);
+}
+async function saveCount(){
+  const color=document.getElementById('count-color-sel').value;
+  const qty=parseInt(document.getElementById('qty-input').value)||0;
+  const r=await fetch('/api/scan-inventory',{
+    method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},
+    body:JSON.stringify({action:'adjust',colorName:color,qty})
+  });
+  const data=await r.json();
+  if(data.ok){
+    inventory[color]=qty;
+    const card=document.getElementById('confirm-card-count');
+    card.className='confirm-card ok';
+    document.getElementById('confirm-color-count').textContent='✅ '+color;
+    document.getElementById('confirm-qty-count').innerHTML=`Stock actualizado: <strong>${qty}</strong>`;
+    card.style.display='block';
+    addHistory(color,'=',data.prev,qty);
+    buildColorSel();
+    vibrate();
+    setTimeout(()=>{card.style.display='none';},2500);
+  }
+}
+
+// ── COLOR MODAL ──
+let pendingBarcode='', pendingCallback=null;
+function openColorModal(barcode){
+  pendingBarcode=barcode;
+  document.getElementById('modal-barcode-label').textContent='Código: '+barcode;
+  document.getElementById('color-search').value='';
+  renderColorList(YARN_COLORS);
+  document.getElementById('color-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('color-search').focus(),300);
+}
+function closeColorModal(){document.getElementById('color-modal').classList.remove('open');pendingBarcode='';}
+function filterColors(q){
+  const f=q.toLowerCase();
+  renderColorList(f?YARN_COLORS.filter(c=>c.toLowerCase().includes(f)):YARN_COLORS);
+}
+function renderColorList(colors){
+  const el=document.getElementById('color-list');
+  el.innerHTML=colors.map(c=>`<div class="color-item" onclick="selectColor('${c}')">
+    <span>${c}</span><span class="stock">${inventory[c]??0} en stock</span>
+  </div>`).join('');
+}
+async function selectColor(color){
+  closeColorModal();
+  if(!pendingBarcode) return;
+  await fetch('/api/scan-inventory',{
+    method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},
+    body:JSON.stringify({action:'map',barcode:pendingBarcode,colorName:color})
+  });
+  barcodes[pendingBarcode]=color;
+  if(mode==='scan'){
+    await processBarcode(pendingBarcode);
+  }else{
+    document.getElementById('count-color-sel').value=color;
+  }
+  pendingBarcode='';
+}
+
+// ── HISTORY ──
+function addHistory(color,op,prev,newQty){
+  const time=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  history.unshift({color,op,prev,newQty,time});
+  if(history.length>20) history.pop();
+  renderHistory();
+}
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!history.length){el.innerHTML='<div class="history-empty">Sin movimientos aún</div>';return;}
+  el.innerHTML=history.map(h=>`<div class="history-item">
+    <div>
+      <div class="history-color">${h.color}</div>
+      <div class="history-meta">${h.time}</div>
+    </div>
+    <div class="history-qty ${h.op==='='?'set':'minus'}">${h.op==='='?'= '+h.newQty:h.op+' → '+h.newQty}</div>
+  </div>`).join('');
+}
+function clearHistory(){history.length=0;renderHistory();}
+
+function vibrate(){if(navigator.vibrate) navigator.vibrate(80);}
+</script>
+</body>
+</html>
