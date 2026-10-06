@@ -1515,33 +1515,32 @@ function getYarnList(){
 function fillYarnSelects(){} // kept for backward compat
 
 // ── CONSTANTS ──
-const ADMIN_PWD_KEY='krosha_admin_pwd';
 const ADMIN_API_KEY_KEY='krosha_admin_api_key';
-const ADMIN_EMAIL_KEY='krosha_admin_email';
 const ADMIN_CRED_KEY='krosha_admin_cred_id';
 const PRODS_KEY='krosha_products';
 const ORDERS_KEY='krosha_orders';
 const CUSTS_KEY='krosha_customers';
 const HERO_KEY='krosha_hero';
 const SETTINGS_KEY='krosha_settings';
-
 // API key (must match ADMIN_KEY env var in Vercel)
 if(!localStorage.getItem(ADMIN_API_KEY_KEY)) localStorage.setItem(ADMIN_API_KEY_KEY,'');
 function getApiKey(){return localStorage.getItem(ADMIN_API_KEY_KEY)||'';}
 
 // ── LOGIN ──
+async function _hashPwd(p){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
 async function doLoginStep1(){
   const email=document.getElementById('email-input').value.trim().toLowerCase();
   const pwd=document.getElementById('pwd-input').value;
-  document.getElementById('login-error').style.display='none';
-  const storedEmail=localStorage.getItem(ADMIN_EMAIL_KEY);
-  const storedPwd=localStorage.getItem(ADMIN_PWD_KEY);
-  if((storedEmail&&email!==storedEmail)||!storedPwd||pwd!==storedPwd){
-    document.getElementById('login-error').style.display='block';
-    document.getElementById('pwd-input').value='';
-    return;
-  }
-  if(!storedEmail) localStorage.setItem(ADMIN_EMAIL_KEY,email);
+  const errEl=document.getElementById('login-error');
+  errEl.style.display='none';
+  try{
+    const pwdHash=await _hashPwd(pwd);
+    const r=await fetch('/api/admin-verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,pwdHash})});
+    if(!r.ok){errEl.style.display='block';document.getElementById('pwd-input').value='';return;}
+  }catch(e){errEl.style.display='block';document.getElementById('pwd-input').value='';return;}
   document.getElementById('login-step-1').style.display='none';
   document.getElementById('login-step-2').style.display='';
   await doBiometric();
@@ -1556,7 +1555,7 @@ async function doBiometric(){
       const credential=await navigator.credentials.create({publicKey:{
         challenge,
         rp:{name:'KroshaPatterns Admin',id:location.hostname},
-        user:{id:new TextEncoder().encode('krosha-admin'),name:localStorage.getItem(ADMIN_EMAIL_KEY)||'admin',displayName:'Admin KroshaPatterns'},
+        user:{id:new TextEncoder().encode('krosha-admin'),name:'admin',displayName:'Admin KroshaPatterns'},
         pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
         authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
         timeout:60000
