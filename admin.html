@@ -225,12 +225,25 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
   <div class="login-box">
     <div class="login-logo">🎀 KroshaPatterns</div>
     <div class="login-sub">Panel de administración</div>
-    <input type="password" id="pwd-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">Entrar al admin</button>
-    <div class="login-error" id="login-error">❌ Contraseña incorrecta</div>
-    <div style="margin-top:16px;font-size:12px;color:var(--text-light);">
-      ¿Olvidaste tu contraseña?
-      <span onclick="resetAdminPwd()" style="color:var(--pink-dark);cursor:pointer;font-weight:700;text-decoration:underline;">Restablecer a Answin1+</span>
+
+    <!-- PASO 1: correo + contraseña -->
+    <div id="login-step-1">
+      <input type="email" id="email-input" placeholder="Correo electrónico" autocomplete="username" onkeydown="if(event.key==='Enter')doLoginStep1()">
+      <input type="password" id="pwd-input" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLoginStep1()">
+      <button class="login-btn" onclick="doLoginStep1()">Continuar →</button>
+      <div class="login-error" id="login-error" style="display:none;">❌ Correo o contraseña incorrectos</div>
+    </div>
+
+    <!-- PASO 2: biométrico -->
+    <div id="login-step-2" style="display:none;text-align:center;">
+      <div style="font-size:48px;margin-bottom:12px;" id="bio-icon">🔐</div>
+      <div style="font-weight:800;font-size:16px;margin-bottom:6px;" id="bio-title">Verificación de identidad</div>
+      <div style="font-size:13px;color:var(--text-light);margin-bottom:20px;" id="bio-sub">Usa tu huella o Face ID para continuar</div>
+      <button class="login-btn" id="bio-btn" onclick="doBiometric()">Verificar con biométrico</button>
+      <div class="login-error" id="bio-error" style="display:none;"></div>
+      <div style="margin-top:14px;">
+        <span onclick="backToStep1()" style="font-size:12px;color:var(--text-light);cursor:pointer;text-decoration:underline;">← Volver</span>
+      </div>
     </div>
   </div>
 </div>
@@ -709,11 +722,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <!-- Clave de servidor — PRIMERO para que sea fácil de encontrar en móvil -->
       <div style="background:var(--white);border:2px solid var(--pink-deep);border-radius:16px;padding:24px;margin-bottom:20px;">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🔐 Clave de servidor (API)</div>
-        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Debe coincidir con la variable <code>ADMIN_KEY</code> en Vercel. Si no la cambiaste en Vercel, es <strong>Answin1+</strong></div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Debe coincidir con la variable <code>ADMIN_KEY</code> en Vercel.</div>
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
           <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
             <label>Clave del servidor</label>
-            <input type="password" id="api-key-input" placeholder="Answin1+">
+            <input type="password" id="api-key-input" placeholder="Clave API de Vercel">
           </div>
           <button class="btn btn-pink btn-sm" style="height:42px;" onclick="changeApiKey()">Guardar</button>
           <button class="btn btn-outline btn-sm" style="height:42px;" onclick="testApiKey()">🔍 Probar</button>
@@ -1504,37 +1517,76 @@ function fillYarnSelects(){} // kept for backward compat
 // ── CONSTANTS ──
 const ADMIN_PWD_KEY='krosha_admin_pwd';
 const ADMIN_API_KEY_KEY='krosha_admin_api_key';
+const ADMIN_EMAIL_KEY='krosha_admin_email';
+const ADMIN_CRED_KEY='krosha_admin_cred_id';
 const PRODS_KEY='krosha_products';
 const ORDERS_KEY='krosha_orders';
 const CUSTS_KEY='krosha_customers';
 const HERO_KEY='krosha_hero';
 const SETTINGS_KEY='krosha_settings';
 
-// UI password (local login only)
-if(!localStorage.getItem(ADMIN_PWD_KEY)||localStorage.getItem(ADMIN_PWD_KEY)==='Answin1+') localStorage.setItem(ADMIN_PWD_KEY,'Answin1+');
-// API key (must match ADMIN_KEY env var in Vercel — separate from UI password)
-if(!localStorage.getItem(ADMIN_API_KEY_KEY)) localStorage.setItem(ADMIN_API_KEY_KEY,'Answin1+');
-function getApiKey(){return localStorage.getItem(ADMIN_API_KEY_KEY)||'Answin1+';}
+// API key (must match ADMIN_KEY env var in Vercel)
+if(!localStorage.getItem(ADMIN_API_KEY_KEY)) localStorage.setItem(ADMIN_API_KEY_KEY,'');
+function getApiKey(){return localStorage.getItem(ADMIN_API_KEY_KEY)||'';}
 
 // ── LOGIN ──
-function doLogin(){
+async function doLoginStep1(){
+  const email=document.getElementById('email-input').value.trim().toLowerCase();
   const pwd=document.getElementById('pwd-input').value;
-  if(pwd===localStorage.getItem(ADMIN_PWD_KEY)){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    initApp();
-  } else {
+  document.getElementById('login-error').style.display='none';
+  const storedEmail=localStorage.getItem(ADMIN_EMAIL_KEY);
+  const storedPwd=localStorage.getItem(ADMIN_PWD_KEY);
+  if((storedEmail&&email!==storedEmail)||!storedPwd||pwd!==storedPwd){
     document.getElementById('login-error').style.display='block';
     document.getElementById('pwd-input').value='';
+    return;
+  }
+  if(!storedEmail) localStorage.setItem(ADMIN_EMAIL_KEY,email);
+  document.getElementById('login-step-1').style.display='none';
+  document.getElementById('login-step-2').style.display='';
+  await doBiometric();
+}
+
+async function doBiometric(){
+  document.getElementById('bio-error').style.display='none';
+  try{
+    const challenge=crypto.getRandomValues(new Uint8Array(32));
+    const credIdB64=localStorage.getItem(ADMIN_CRED_KEY);
+    if(!credIdB64){
+      const credential=await navigator.credentials.create({publicKey:{
+        challenge,
+        rp:{name:'KroshaPatterns Admin',id:location.hostname},
+        user:{id:new TextEncoder().encode('krosha-admin'),name:localStorage.getItem(ADMIN_EMAIL_KEY)||'admin',displayName:'Admin KroshaPatterns'},
+        pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
+        authenticatorSelection:{userVerification:'required',residentKey:'preferred'},
+        timeout:60000
+      }});
+      localStorage.setItem(ADMIN_CRED_KEY,btoa(String.fromCharCode(...new Uint8Array(credential.rawId))));
+    }else{
+      const credId=Uint8Array.from(atob(credIdB64),c=>c.charCodeAt(0));
+      await navigator.credentials.get({publicKey:{
+        challenge,
+        userVerification:'required',
+        allowCredentials:[{type:'public-key',id:credId}],
+        timeout:60000
+      }});
+    }
+    openAdmin();
+  }catch(e){
+    document.getElementById('bio-error').textContent=e.name==='NotAllowedError'?'❌ Verificación cancelada o denegada':'❌ Error: '+e.message;
+    document.getElementById('bio-error').style.display='block';
   }
 }
-function resetAdminPwd(){
-  if(!confirm('¿Restablecer la contraseña a Answin1+?')) return;
-  localStorage.setItem(ADMIN_PWD_KEY,'Answin1+');
-  localStorage.setItem(ADMIN_API_KEY_KEY,'Answin1+');
-  document.getElementById('login-error').style.display='none';
-  document.getElementById('pwd-input').value='';
-  alert('✅ Listo. Ahora entra con: Answin1+');
+
+function backToStep1(){
+  document.getElementById('login-step-2').style.display='none';
+  document.getElementById('login-step-1').style.display='';
+}
+
+function openAdmin(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  initApp();
 }
 async function saveAll(){
   const btn=document.getElementById('save-all-btn');
@@ -1581,6 +1633,9 @@ function doLogout(){
   document.getElementById('app').style.display='none';
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('pwd-input').value='';
+  document.getElementById('login-step-1').style.display='';
+  document.getElementById('login-step-2').style.display='none';
+  document.getElementById('login-error').style.display='none';
 }
 
 // ── DATA ──
