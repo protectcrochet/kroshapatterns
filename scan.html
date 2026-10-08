@@ -276,13 +276,14 @@ function updateDots(){
   const len=Math.min(pin.length,4);
   for(let i=0;i<4;i++) document.getElementById('d'+i).className='pin-dot'+(i<len?' filled':'');
 }
-async function checkPin(){
-  document.getElementById('pin-err').style.display='none';
+async function checkPin(silent){
+  if(!silent) document.getElementById('pin-err').style.display='none';
   try{
     const r=await fetch('/api/scan-inventory',{method:'GET',headers:{'x-scan-pin':pin}});
     if(r.ok){
       const data=await r.json();
       scanPin=pin;
+      try{ localStorage.setItem('krosha_scan_pin',pin); }catch(e){}
       inventory=data.inventory||{};
       barcodes=data.barcodes||{};
       document.getElementById('login').style.display='none';
@@ -291,10 +292,11 @@ async function checkPin(){
       renderHistory();
       document.getElementById('top-sub').textContent=Object.keys(inventory).length+' colores en inventario';
     }else{
-      document.getElementById('pin-err').style.display='block';
+      if(!silent) document.getElementById('pin-err').style.display='block';
+      try{ localStorage.removeItem('krosha_scan_pin'); }catch(e){}
     }
   }catch(e){
-    document.getElementById('pin-err').style.display='block';
+    if(!silent) document.getElementById('pin-err').style.display='block';
   }
   pin='';updateDots();
 }
@@ -304,6 +306,12 @@ function doLogout(){
   document.getElementById('login').style.display='flex';
   stopCamera();
 }
+window.addEventListener('load',async function(){
+  try{
+    const saved=localStorage.getItem('krosha_scan_pin');
+    if(saved){ pin=saved; await checkPin(true); }
+  }catch(e){}
+});
 
 // ── MODE ──
 function setMode(m){
