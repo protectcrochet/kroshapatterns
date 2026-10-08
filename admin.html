@@ -542,6 +542,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div class="page-title">Inventario <em>🧶📦</em></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-outline" onclick="refreshInventoryFromServer(this)" id="btn-inv-refresh">🔄 Actualizar stock</button>
+          <button class="btn btn-outline" onclick="exportInventoryCSV()">📥 Exportar CSV</button>
           <button class="btn btn-pink" onclick="saveAll()">💾 Guardar inventario</button>
         </div>
       </div>
@@ -3877,15 +3878,18 @@ function renderInventory(){
     const img=getAdminYarnImg(color);
     const imgHtml=img?`<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:`<div style="width:32px;height:32px;border-radius:50%;background:#ddd;flex-shrink:0;"></div>`;
     const badge=stock===0?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;">Agotado</span>`:stock<=3?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;">Bajo</span>`:'';
-    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;">
+    const cesc=color.replace(/'/g,"\\'");
+    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;">
       ${imgHtml}
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${color}</div>
         ${badge}
       </div>
+      <button onclick="updateStock('${cesc}',${Math.max(0,stock-1)})" style="width:28px;height:28px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
       <input type="number" min="0" max="999" value="${stock}"
-        style="width:56px;border:1.5px solid var(--border);border-radius:8px;padding:5px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;"
-        onchange="updateStock('${color.replace(/'/g,"\\'")}',this.value)">
+        style="width:50px;border:1.5px solid var(--border);border-radius:8px;padding:5px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;"
+        onchange="updateStock('${cesc}',this.value)">
+      <button onclick="updateStock('${cesc}',${stock+1})" style="width:28px;height:28px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
     </div>`;
   }).join('');
   const sumEl=document.getElementById('inv-summary');
@@ -3927,6 +3931,17 @@ async function setTodoAgotado(){
       showToast('⚠️ Error de red: '+e.message);
     }
   });
+}
+
+function exportInventoryCSV(){
+  const inv=getInventory();
+  const date=new Date().toLocaleDateString('es-MX',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');
+  const rows=[['Color','Stock'],...YARN_COLORS.map(c=>[c,inv[c]??0])];
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`inventario-${date}.csv`;
+  a.click();
 }
 
 async function publishInventory(){

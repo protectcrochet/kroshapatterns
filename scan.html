@@ -521,7 +521,10 @@ async function undoLast(){
   });
   if(r.ok){
     inventory[lastScan.color]=lastScan.prevQty;
-    addHistory(lastScan.color,'↩','',lastScan.prevQty);
+    // Eliminar el registro del scan del historial (undo no se registra)
+    const idx=history.findIndex(h=>h.color===lastScan.color&&h.op==='−1');
+    if(idx!==-1) history.splice(idx,1);
+    renderHistory();
     lastScan=null;
     document.getElementById('confirm-card').style.display='none';
   }
@@ -596,9 +599,10 @@ async function selectColor(color){
 }
 
 // ── HISTORY ──
+function pinSuffix(){return scanPin.length>=2?'**'+scanPin.slice(-2):'';}
 function addHistory(color,op,prev,newQty){
   const time=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
-  history.unshift({color,op,prev,newQty,time});
+  history.unshift({color,op,prev,newQty,time,pin:pinSuffix()});
   if(history.length>20) history.pop();
   renderHistory();
 }
@@ -608,7 +612,7 @@ function renderHistory(){
   el.innerHTML=history.map(h=>`<div class="history-item">
     <div>
       <div class="history-color">${h.color}</div>
-      <div class="history-meta">${h.time}</div>
+      <div class="history-meta">${h.time}${h.pin?' · '+h.pin:''}</div>
     </div>
     <div class="history-qty ${h.op==='='?'set':'minus'}">${h.op==='='?'= '+h.newQty:h.op+' → '+h.newQty}</div>
   </div>`).join('');
