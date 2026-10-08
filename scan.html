@@ -454,11 +454,17 @@ function onBarcodeInput(v){
   clearTimeout(inputTimer);
   if(v.length>=8) inputTimer=setTimeout(()=>submitBarcode(),300);
 }
+function normalizeBarcode(code){
+  // Algunos escáneres leen UPC-A (12 dígitos) como EAN-13 con cero inicial
+  if(code.length===13&&code[0]==='0'&&CATALOG_MAP[code.slice(1)]) return code.slice(1);
+  return code;
+}
 function submitBarcode(){
-  const v=document.getElementById('barcode-input').value.trim();
+  const v=normalizeBarcode(document.getElementById('barcode-input').value.trim());
   if(v) processBarcode(v);
 }
 async function processBarcode(code){
+  code=normalizeBarcode(code);
   showCard('','','');
   try{
     const r=await fetch('/api/scan-inventory',{
