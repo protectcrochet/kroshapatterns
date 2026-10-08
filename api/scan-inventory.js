@@ -40,6 +40,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // Carga masiva de mapeos (catálogo pre-cargado)
+    if (action === 'bulk-map') {
+      const { mappings } = req.body || {};
+      if (!Array.isArray(mappings)) return res.status(400).json({ error: 'Faltan datos' });
+      const barcodes = await getBarcodes();
+      for (const m of mappings) {
+        if (m.barcode && m.colorName) barcodes[m.barcode] = m.colorName;
+      }
+      await redis.set('krosha:barcodes', JSON.stringify(barcodes));
+      return res.status(200).json({ ok: true, count: mappings.length });
+    }
+
     // Escanear: buscar color y descontar 1
     if (action === 'scan') {
       if (!barcode) return res.status(400).json({ error: 'Falta código' });
