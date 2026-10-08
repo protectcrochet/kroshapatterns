@@ -258,6 +258,7 @@ const YARN_COLORS=[
   'Charcoal','Grey','Gray','Silver','Light Gray','Black',
 ];
 
+const CATALOG_MAP={};
 const PREMIER_BASIX_CATALOG=[
   {b:'847652085883',c:'White'},{b:'847652085890',c:'Light Gray'},{b:'847652085906',c:'Gray'},
   {b:'847652085913',c:'Black'},{b:'847652085920',c:'Lemon'},{b:'847652085937',c:'Coral'},
@@ -293,6 +294,8 @@ const PREMIER_BASIX_CATALOG=[
   {b:'763876278613',c:'Arena S'},
 ];
 
+PREMIER_BASIX_CATALOG.forEach(x=>{ CATALOG_MAP[x.b]=x.c; });
+
 let pin='', scanPin='', inventory={}, barcodes={}, mode='scan';
 let camStream=null, camActive=false, camActiveCount=false, detector=null;
 let lastScan=null, scanCooldown=false;
@@ -326,8 +329,8 @@ async function checkPin(silent){
       buildColorSel();
       renderHistory();
       document.getElementById('top-sub').textContent=Object.keys(inventory).length+' colores en inventario';
-      // Si el catálogo Premier Basix no está cargado, cargarlo automáticamente
-      if(Object.keys(barcodes).length < 90) seedCatalog(scanPin);
+      // Si el catálogo Premier Basix no está cargado, cargarlo antes de entrar
+      if(Object.keys(barcodes).length < 90) await seedCatalog(scanPin);
     }else{
       if(!silent) document.getElementById('pin-err').style.display='block';
       try{ localStorage.removeItem('krosha_scan_pin'); }catch(e){}
@@ -420,7 +423,7 @@ async function scanLoop(video,isCount){
       scanCooldown=true;
       setTimeout(()=>scanCooldown=false,2000);
       if(isCount){
-        const color=barcodes[code];
+        const color=barcodes[code]||CATALOG_MAP[code];
         if(color){
           document.getElementById('count-color-sel').value=color;
         }else{
@@ -463,7 +466,26 @@ async function processBarcode(code){
       body:JSON.stringify({action:'scan',barcode:code})
     });
     const data=await r.json();
-    if(data.needsMapping){pendingBarcode=code;openColorModal(code);return;}
+    if(data.needsMapping){
+      const catalogColor=CATALOG_MAP[code];
+      if(catalogColor){
+        // Guardar mapeo y re-escanear automáticamente
+        await fetch('/api/scan-inventory',{method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},body:JSON.stringify({action:'map',barcode:code,colorName:catalogColor})});
+        barcodes[code]=catalogColor;
+        const r2=await fetch('/api/scan-inventory',{method:'POST',headers:{'Content-Type':'application/json','x-scan-pin':scanPin},body:JSON.stringify({action:'scan',barcode:code})});
+        const d2=await r2.json();
+        if(d2.ok){
+          showCard(d2.color,d2.prev,d2.newQty,'ok');
+          lastScan={color:d2.color,prevQty:d2.prev};
+          inventory[d2.color]=d2.newQty;
+          addHistory(d2.color,'−1',d2.prev,d2.newQty);
+          document.getElementById('barcode-input').value='';
+          vibrate();
+        }
+        return;
+      }
+      pendingBarcode=code;openColorModal(code);return;
+    }
     if(data.ok){
       showCard(data.color,data.prev,data.newQty,'ok');
       lastScan={color:data.color,prevQty:data.prev};
