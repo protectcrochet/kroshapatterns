@@ -258,6 +258,41 @@ const YARN_COLORS=[
   'Charcoal','Grey','Gray','Silver','Light Gray','Black',
 ];
 
+const PREMIER_BASIX_CATALOG=[
+  {b:'847652085883',c:'White'},{b:'847652085890',c:'Light Gray'},{b:'847652085906',c:'Gray'},
+  {b:'847652085913',c:'Black'},{b:'847652085920',c:'Lemon'},{b:'847652085937',c:'Coral'},
+  {b:'847652085944',c:'Ballet'},{b:'847652085951',c:'Pink'},{b:'847652085968',c:'Fuchsia'},
+  {b:'847652085975',c:'Taffy'},{b:'847652085982',c:'Rose'},{b:'847652085999',c:'Red'},
+  {b:'847652086002',c:'Garnet'},{b:'847652086019',c:'Burgundy'},{b:'847652086026',c:'Crepe'},
+  {b:'847652086033',c:'Blush'},{b:'847652086040',c:'Light Mauve'},{b:'847652086064',c:'Lilac'},
+  {b:'847652086071',c:'Purple'},{b:'847652086088',c:'Eggplant'},{b:'847652086095',c:'Royal Blue'},
+  {b:'847652086101',c:'Light Blue'},{b:'847652086125',c:'Slate'},{b:'847652086132',c:'Azure'},
+  {b:'847652086149',c:'Denim'},{b:'847652086156',c:'Seaglass'},{b:'847652086163',c:'Aqua'},
+  {b:'847652086170',c:'Turquoise'},{b:'847652086187',c:'Peacock'},{b:'847652086194',c:'Cream'},
+  {b:'847652086200',c:'Hazel'},{b:'847652086217',c:'Taupe'},{b:'847652086224',c:'Pecan'},
+  {b:'847652086231',c:'Leaf'},{b:'847652086248',c:'Juniper'},{b:'847652086255',c:'Mustard'},
+  {b:'847652086262',c:'Forest Green'},{b:'847652086279',c:'Navy'},{b:'847652086286',c:'Aran'},
+  {b:'847652086293',c:'Nutmeg'},{b:'847652086309',c:'Pumpkin'},{b:'847652086316',c:'Linen'},
+  {b:'847652086323',c:'Teal'},{b:'847652086330',c:'Ember'},{b:'847652086347',c:'Charcoal'},
+  {b:'847652086354',c:'Chocolate'},{b:'847652086361',c:'Goldenrod'},{b:'847652086378',c:'Peach'},
+  {b:'847652098883',c:'Steel'},{b:'847652098890',c:'Thistle'},{b:'847652098906',c:'Goldfish'},
+  {b:'847652098913',c:'Butterscotch'},{b:'847652098920',c:'Pine'},{b:'847652098937',c:'Orange'},
+  {b:'847652098944',c:'Sage'},{b:'847652098951',c:'Spring Green'},{b:'847652098968',c:'Fern'},
+  {b:'847652098975',c:'Maize'},{b:'847652098982',c:'Buff'},{b:'847652098999',c:'Violet'},
+  {b:'847652099002',c:'Salmon'},{b:'847652099019',c:'Storm'},{b:'847652099026',c:'Pale Orchid'},
+  {b:'840166810699',c:'Chestnut'},{b:'840166810705',c:'Toffee'},{b:'840166810712',c:'Warm Beige'},
+  {b:'840166810729',c:'Apricot'},{b:'840166810736',c:'Cocoa'},{b:'840166810743',c:'Mahogany'},
+  {b:'840166824733',c:'Cherry Red'},{b:'840166824740',c:'Dijon Mustard'},{b:'840166824757',c:'Sweet Potato'},
+  {b:'840166824764',c:'Lime'},{b:'840166824771',c:'Spruce'},{b:'840166824788',c:'Bright Blue'},
+  {b:'840166824795',c:'Raspberry'},{b:'840166824801',c:'Wisteria'},{b:'840166837764',c:'Sunny'},
+  {b:'840166837771',c:'Bright Orange'},{b:'840166837788',c:'Merlot'},{b:'840166837795',c:'Orchid'},
+  {b:'840166837801',c:'Rouge'},{b:'840166837818',c:'Dark Purple'},{b:'840166837825',c:'Carolina Sky'},
+  {b:'840166837832',c:'Twilight'},{b:'840166837849',c:'Powder Blue'},{b:'840166837856',c:'Cadet'},
+  {b:'840166837863',c:'Blue'},{b:'840166837870',c:'Celery'},{b:'840166837887',c:'Artichoke'},
+  {b:'840166837894',c:'Mint'},{b:'840166837900',c:'Holly'},{b:'840166837917',c:'Thyme'},
+  {b:'763876278613',c:'Arena S'},
+];
+
 let pin='', scanPin='', inventory={}, barcodes={}, mode='scan';
 let camStream=null, camActive=false, camActiveCount=false, detector=null;
 let lastScan=null, scanCooldown=false;
@@ -291,6 +326,8 @@ async function checkPin(silent){
       buildColorSel();
       renderHistory();
       document.getElementById('top-sub').textContent=Object.keys(inventory).length+' colores en inventario';
+      // Si el catálogo Premier Basix no está cargado, cargarlo automáticamente
+      if(Object.keys(barcodes).length < 90) seedCatalog(scanPin);
     }else{
       if(!silent) document.getElementById('pin-err').style.display='block';
       try{ localStorage.removeItem('krosha_scan_pin'); }catch(e){}
@@ -299,6 +336,16 @@ async function checkPin(silent){
     if(!silent) document.getElementById('pin-err').style.display='block';
   }
   pin='';updateDots();
+}
+async function seedCatalog(sp){
+  const mappings=PREMIER_BASIX_CATALOG.map(x=>({barcode:x.b,colorName:x.c}));
+  try{
+    const r=await fetch('/api/scan-inventory',{method:'POST',
+      headers:{'Content-Type':'application/json','x-scan-pin':sp},
+      body:JSON.stringify({action:'bulk-map',mappings})});
+    const d=await r.json();
+    if(d.ok){ PREMIER_BASIX_CATALOG.forEach(x=>{ barcodes[x.b]=x.c; }); }
+  }catch(e){}
 }
 function doLogout(){
   scanPin='';pin='';
@@ -311,6 +358,11 @@ window.addEventListener('load',async function(){
     const saved=localStorage.getItem('krosha_scan_pin');
     if(saved){ pin=saved; await checkPin(true); }
   }catch(e){}
+});
+document.addEventListener('keydown',function(e){
+  if(document.getElementById('login').style.display==='none') return;
+  if(e.key>='0'&&e.key<='9') pinPress(e.key);
+  else if(e.key==='Backspace') pinDel();
 });
 
 // ── MODE ──
