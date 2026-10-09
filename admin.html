@@ -1318,7 +1318,34 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div id="kit-yarn-list-editor" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div id="kit-yarn-empty-hint" style="font-size:12px;color:var(--text-light);text-align:center;padding:12px 0;">Haz clic en "+ Agregar color" para configurar los estambres</div>
       <button onclick="addKitYarnRow()" style="margin-top:10px;background:var(--pink-dark);color:#fff;border:none;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Agregar color</button>
-      <div style="margin-top:24px;display:flex;gap:10px;justify-content:flex-end;">
+
+      <!-- Ojos de seguridad -->
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;font-size:13px;margin-bottom:12px;">
+          <input type="checkbox" id="kit-eyes-enabled" style="width:17px;height:17px;accent-color:var(--pink-dark);" onchange="toggleKitEyes(this.checked)">
+          👁 Ofrecer ojos de seguridad (add-on)
+        </label>
+        <div id="kit-eyes-details" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field">
+            <label>Precio por par (MXN)</label>
+            <input type="number" id="kit-eyes-price" min="0" max="999" value="50" placeholder="50" style="padding:9px 12px;">
+          </div>
+          <div class="field">
+            <label>Tamaño</label>
+            <select id="kit-eyes-size" style="padding:9px 12px;">
+              <option value="">Sin especificar</option>
+              <option value="6mm">6 mm</option>
+              <option value="8mm">8 mm</option>
+              <option value="10mm">10 mm</option>
+              <option value="12mm">12 mm</option>
+              <option value="15mm">15 mm</option>
+              <option value="18mm">18 mm</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-outline" onclick="closeKitYarnModal()">Cancelar</button>
         <button class="btn btn-pink" onclick="saveKitYarnList()">💾 Guardar kit</button>
       </div>
@@ -1768,6 +1795,17 @@ function openKitYarnEditor(kitId){
     const yc=targetProd.yarnColors||(defaultYarnColors[targetProd.id])||{};
     const yl=targetProd.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
     yl.forEach(item=>addKitYarnRow(item.color,item.qty,item.price||150));
+    // Cargar configuración de ojos
+    const eyesOn=!!(targetProd.eyesPrice>0);
+    document.getElementById('kit-eyes-enabled').checked=eyesOn;
+    document.getElementById('kit-eyes-price').value=targetProd.eyesPrice||50;
+    document.getElementById('kit-eyes-size').value=targetProd.eyesSize||'';
+    toggleKitEyes(eyesOn);
+  } else {
+    document.getElementById('kit-eyes-enabled').checked=false;
+    document.getElementById('kit-eyes-price').value=50;
+    document.getElementById('kit-eyes-size').value='';
+    toggleKitEyes(false);
   }
   document.getElementById('kit-yarn-modal').classList.add('open');
 }
@@ -1818,12 +1856,20 @@ function getKitYarnList(){
   })).filter(i=>i.color);
 }
 
+function toggleKitEyes(on){
+  const det=document.getElementById('kit-eyes-details');
+  if(det) det.style.display=on?'grid':'none';
+}
+
 async function saveKitYarnList(){
   const newYarnList=getKitYarnList();
+  const eyesOn=document.getElementById('kit-eyes-enabled').checked;
+  const eyesPrice=eyesOn?(parseFloat(document.getElementById('kit-eyes-price').value)||0):0;
+  const eyesSize=eyesOn?(document.getElementById('kit-eyes-size').value||''):'';
   const prods=getProds();
   const idx=prods.findIndex(p=>p.id===_editingKitPatternId);
   if(idx===-1){showToast('⚠️ Producto no encontrado','warn');return;}
-  prods[idx]={...prods[idx],yarnList:newYarnList};
+  prods[idx]={...prods[idx],yarnList:newYarnList,eyesPrice,eyesSize};
   saveProds(prods);
   renderProdsTable();
   renderKitStock();

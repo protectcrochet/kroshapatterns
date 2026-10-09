@@ -1306,7 +1306,7 @@ function openM(id){
         ${eyeThumb}
         <div class="addon-info">
           <strong>${lang==='es'?'Ojos de seguridad':'Safety Eyes'}</strong>
-          <span>${lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair'}</span>
+          <span>${curProd.eyesSize?(lang==='es'?`Par ${curProd.eyesSize} amigurumi`:`${curProd.eyesSize} amigurumi pair`):(lang==='es'?'Par de ojos amigurumi':'Amigurumi safety eyes pair')}</span>
         </div>
         <span class="addon-price">+${f(curProd.eyesPrice)}</span>
       </div>`;
