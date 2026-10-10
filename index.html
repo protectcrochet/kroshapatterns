@@ -1299,7 +1299,7 @@ function openM(id){
 
   // Add-on / combo section
   const addonSec=document.getElementById('m-addon-section');
-  if(addonSec&&!curProd.yarnColorName&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
+  if(addonSec&&!curProd.isYarnKit&&!curProd.yarnColorName&&(curProd.kitPrice>0||curProd.eyesPrice>0)){
     let html=`<div class="addon-section"><div class="addon-title">🎁 ${lang==='es'?'¿Deseas agregar los estambres para este patrón?':'Want to add the yarn kit for this pattern?'}</div>`;
     if(curProd.kitPrice>0){
       const yl=curProd.yarnList||[];
@@ -1426,6 +1426,7 @@ function updateModalPrice(){
       const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd)total+=patProd.price;
     }
+    if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
   } else {
     if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
     if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
@@ -1514,6 +1515,11 @@ function addToCart(){
         const epat=cart.find(i=>i.id===patProd.id);
         if(epat)epat.qty++;else cart.push({id:patProd.id,title:patProd.title,price:patProd.price,img:patProd.images[0]||'',qty:1,type:patProd.type||'',patternSlug:patProd.patternSlug||'',pdfUrl:patProd.pdfUrl||'',shipSubsidy:0});
       }
+    }
+    if(addonEyes&&curProd.eyesPrice){
+      const eyesId=`${curProd.id}-eyes`;
+      const eeyes=cart.find(i=>i.id===eyesId);
+      if(eeyes)eeyes.qty++;else cart.push({id:eyesId,title:`Ojos de Seguridad`,price:curProd.eyesPrice,img:curProd.eyesImg||'/images/IMG_5938.jpg',qty:1,shipSubsidy:0});
     }
     saveCart(cart);updateCartBadge();closeM();
     showToast(`🎀 ${curProd.title} ${lang==='es'?'agregado':'added'}`);
