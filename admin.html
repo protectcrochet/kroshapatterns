@@ -114,6 +114,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
 .btn-green{background:var(--green-light);color:var(--green);border:1.5px solid #b0ddc8;}
 .btn-green:hover{background:#b0ddc8;}
 .btn-sm{padding:6px 14px;font-size:12px;}
+.rsm-btn{padding:6px 14px;border-radius:16px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;border:1.5px solid var(--border);background:var(--white);color:var(--text-mid);transition:all .15s;}
+.rsm-btn:hover{background:var(--pink-mid);}
+.rsm-btn.rsm-active{background:var(--pink-dark);color:#fff;border-color:var(--pink-dark);}
+.rsm-date{border:1.5px solid var(--border);border-radius:16px;padding:5px 12px;font-size:12px;font-family:'Nunito',sans-serif;background:var(--white);color:var(--text);outline:none;}
 
 /* TABLE */
 .data-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:16px;overflow:hidden;border:1.5px solid var(--border);}
@@ -384,9 +388,29 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
       </div>
       <!-- Mini resumen de ingresos -->
-      <div id="orders-mini-summary" style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"></div>
+      <div id="orders-mini-summary" style="margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"></div>
       <div id="orders-revenue-summary" style="display:none;"></div>
       <div id="orders-cat-wrap" style="display:none;"><div id="orders-cat-summary"></div></div>
+
+      <!-- Panel resumen detallado -->
+      <div id="orders-resumen-panel" style="background:var(--pink-mid);border:1.5px solid var(--border);border-radius:18px;padding:16px 18px;margin-bottom:18px;">
+        <!-- Header con toggle -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:14px;font-weight:800;color:var(--text);">📊 Resumen de ventas</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <button class="rsm-btn rsm-active" id="rsm-btn-today" onclick="setResumenFilter('today')">Hoy</button>
+            <button class="rsm-btn" id="rsm-btn-week" onclick="setResumenFilter('week')">Esta semana</button>
+            <button class="rsm-btn" id="rsm-btn-month" onclick="setResumenFilter('month')">Este mes</button>
+            <button class="rsm-btn" id="rsm-btn-all" onclick="setResumenFilter('all')">Todo</button>
+            <input type="date" id="rsm-date-from" class="rsm-date" placeholder="Desde" onchange="setResumenFilter('custom')" title="Desde">
+            <input type="date" id="rsm-date-to" class="rsm-date" placeholder="Hasta" onchange="setResumenFilter('custom')" title="Hasta">
+          </div>
+        </div>
+        <!-- Cards contadores -->
+        <div id="rsm-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:14px;"></div>
+        <!-- Tabla productos -->
+        <div id="rsm-products-wrap"></div>
+      </div>
 
       <div class="toolbar">
         <input class="search-input" placeholder="🔍 Buscar por nombre o email..." oninput="filterOrders(this.value)">
@@ -2524,6 +2548,126 @@ const CURRENCY_SYMS={MXN:'$',USD:'USD $',EUR:'€',DOP:'RD$',CAD:'CA$',GBP:'£',
 const fmtAmt=(n,cur)=>(CURRENCY_SYMS[cur]||'$')+Math.round(n).toLocaleString('es-MX')+' '+cur;
 const MONTH_NAMES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 
+// ── RESUMEN DE VENTAS ──────────────────────────────────────────
+let _rsmFilter='today';
+
+function setResumenFilter(f){
+  _rsmFilter=f;
+  ['today','week','month','all','custom'].forEach(k=>{
+    const b=document.getElementById('rsm-btn-'+k);
+    if(b)b.classList.toggle('rsm-active',k===f);
+  });
+  renderResumen();
+}
+
+function _rsmGetFiltered(){
+  const all=getAllOrders().filter(o=>o.status==='paid'||o.status==='shipped');
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if(_rsmFilter==='today'){
+    return all.filter(o=>{const d=new Date(o.date||o.id);return!isNaN(d)&&d>=today;});
+  }
+  if(_rsmFilter==='week'){
+    const wStart=new Date(today);wStart.setDate(today.getDate()-today.getDay());
+    return all.filter(o=>{const d=new Date(o.date||o.id);return!isNaN(d)&&d>=wStart;});
+  }
+  if(_rsmFilter==='month'){
+    const mStart=new Date(now.getFullYear(),now.getMonth(),1);
+    return all.filter(o=>{const d=new Date(o.date||o.id);return!isNaN(d)&&d>=mStart;});
+  }
+  if(_rsmFilter==='custom'){
+    const from=document.getElementById('rsm-date-from')?.value;
+    const to=document.getElementById('rsm-date-to')?.value;
+    return all.filter(o=>{
+      const d=new Date(o.date||o.id);if(isNaN(d))return false;
+      const ds=d.toISOString().slice(0,10);
+      if(from&&ds<from)return false;
+      if(to&&ds>to)return false;
+      return true;
+    });
+  }
+  return all;
+}
+
+function renderResumen(){
+  const cardsEl=document.getElementById('rsm-cards');
+  const prodEl=document.getElementById('rsm-products-wrap');
+  if(!cardsEl||!prodEl)return;
+  const orders=_rsmGetFiltered();
+  const physical=orders.filter(o=>isPhysicalOrder(o));
+  const digital=orders.filter(o=>!isPhysicalOrder(o));
+  const revMXN=orders.filter(o=>(o.currency||'MXN').toUpperCase()==='MXN')
+    .reduce((s,o)=>s+(parseFloat(o.total)||0),0);
+  const revOther={};
+  orders.filter(o=>(o.currency||'MXN').toUpperCase()!=='MXN').forEach(o=>{
+    const c=(o.currency||'?').toUpperCase();
+    revOther[c]=(revOther[c]||0)+(parseFloat(o.total)||0);
+  });
+  const otherStr=Object.entries(revOther).map(([c,v])=>fmtAmt(v,c)).join(' · ');
+  // Cards
+  cardsEl.innerHTML=`
+    <div style="background:linear-gradient(135deg,var(--pink-dark),#c0567a);border-radius:14px;padding:12px 14px;color:#fff;">
+      <div style="font-size:10px;opacity:.8;margin-bottom:4px;">📦 PEDIDOS</div>
+      <div style="font-size:30px;font-weight:900;line-height:1;">${orders.length}</div>
+    </div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;">
+      <div style="font-size:10px;color:var(--text-light);margin-bottom:4px;">📄 DIGITALES</div>
+      <div style="font-size:30px;font-weight:900;color:#276749;line-height:1;">${digital.length}</div>
+      ${orders.length?`<div style="font-size:10px;color:var(--text-light);margin-top:3px;">${orders.length?Math.round(digital.length/orders.length*100):0}%</div>`:''}
+    </div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;">
+      <div style="font-size:10px;color:var(--text-light);margin-bottom:4px;">📦 FÍSICOS</div>
+      <div style="font-size:30px;font-weight:900;color:#1a5fa6;line-height:1;">${physical.length}</div>
+      ${orders.length?`<div style="font-size:10px;color:var(--text-light);margin-top:3px;">${orders.length?Math.round(physical.length/orders.length*100):0}%</div>`:''}
+    </div>
+    <div style="background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;">
+      <div style="font-size:10px;color:var(--text-light);margin-bottom:4px;">💰 INGRESOS MXN</div>
+      <div style="font-size:20px;font-weight:900;color:var(--pink-dark);line-height:1.2;">${fmtAmt(revMXN,'MXN')}</div>
+      ${otherStr?`<div style="font-size:10px;color:var(--text-light);margin-top:3px;">${otherStr}</div>`:''}
+    </div>`;
+  // Tabla productos
+  const prodCount={};
+  orders.forEach(o=>{
+    (Array.isArray(o.itemsRaw)?o.itemsRaw:[]).forEach(it=>{
+      const key=it.title||it.name||'Sin nombre';
+      if(!prodCount[key]){prodCount[key]={qty:0,rev:0,digital:0,physical:0};}
+      const q=parseInt(it.qty)||1;
+      const r=(parseFloat(it.price)||0)*q;
+      prodCount[key].qty+=q;
+      prodCount[key].rev+=r;
+      if(isPhysicalOrder(o))prodCount[key].physical+=q;
+      else prodCount[key].digital+=q;
+    });
+  });
+  const entries=Object.entries(prodCount).sort((a,b)=>b[1].qty-a[1].qty);
+  if(entries.length){
+    prodEl.innerHTML=`
+      <div style="font-size:12px;font-weight:700;color:var(--text-mid);margin-bottom:8px;margin-top:2px;">🎀 Detalle por patrón / producto</div>
+      <div style="overflow-x:auto;">
+      <table class="data-table" style="font-size:12.5px;">
+        <thead><tr>
+          <th>Patrón / Producto</th>
+          <th style="text-align:center;">Total unid.</th>
+          <th style="text-align:center;">📄 Digital</th>
+          <th style="text-align:center;">📦 Físico</th>
+          <th style="text-align:right;">Ingresos</th>
+        </tr></thead>
+        <tbody>${entries.map(([name,d])=>`
+          <tr>
+            <td><strong>${name}</strong></td>
+            <td style="text-align:center;font-weight:800;font-size:15px;">${d.qty}</td>
+            <td style="text-align:center;color:#276749;">${d.digital||'—'}</td>
+            <td style="text-align:center;color:#1a5fa6;">${d.physical||'—'}</td>
+            <td style="text-align:right;font-weight:700;color:var(--pink-dark);">$${Math.round(d.rev).toLocaleString('es-MX')}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table></div>`;
+  } else {
+    prodEl.innerHTML=`<div style="font-size:12.5px;color:var(--text-light);padding:6px 0;">No hay detalle de productos en este período.<br><span style="font-size:11px;">Los pedidos manuales sin <em>itemsRaw</em> no aparecen en esta tabla.</span></div>`;
+  }
+}
+// ───────────────────────────────────────────────────────────────
+
 function renderOrdersRevenue(){
   // Solo mini-resumen en tab Pedidos
   const mini=document.getElementById('orders-mini-summary');
@@ -2715,6 +2859,7 @@ function isPhysicalOrder(o){
 }
 function renderOrdersTable(){
   renderOrdersRevenue();
+  renderResumen();
   const orders=getAllOrders();
   const filtered=orders.filter(o=>{
     const ms=!orderFilter||o.name.toLowerCase().includes(orderFilter.toLowerCase())||o.email.toLowerCase().includes(orderFilter.toLowerCase());
