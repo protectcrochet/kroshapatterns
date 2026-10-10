@@ -1344,18 +1344,25 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <p style="font-size:13px;color:var(--text-light);margin-bottom:16px;">Colores y cantidad de ovillos que incluye este kit.</p>
       <div id="kit-yarn-list-editor" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div id="kit-yarn-empty-hint" style="font-size:12px;color:var(--text-light);text-align:center;padding:12px 0;">Haz clic en "+ Agregar color" para configurar los estambres</div>
-      <button onclick="addKitYarnRow()" style="margin-top:10px;background:var(--pink-dark);color:#fff;border:none;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Agregar color</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button onclick="addKitYarnRow()" style="background:var(--pink-dark);color:#fff;border:none;padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">+ Agregar color</button>
+        <button onclick="addColorFromInventory(this)" style="background:var(--pink-mid);color:var(--pink-dark);border:1.5px solid var(--pink-deep);padding:8px 18px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">🎨 Del inventario</button>
+      </div>
 
       <!-- Ojos de seguridad -->
       <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
-        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;font-size:13px;margin-bottom:12px;">
-          <input type="checkbox" id="kit-eyes-enabled" style="width:17px;height:17px;accent-color:var(--pink-dark);" onchange="toggleKitEyes(this.checked)">
-          👁 Ofrecer ojos de seguridad (add-on)
+        <div style="font-size:12px;font-weight:800;color:var(--text-mid);margin-bottom:10px;">👁 Ojos de seguridad</div>
+        <button onclick="addKitEyesPreset(15)" style="display:flex;align-items:center;gap:8px;background:#FFF0F8;color:var(--pink-dark);border:1.5px dashed var(--pink-deep);border-radius:14px;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;width:100%;margin-bottom:10px;">
+          <span style="font-size:18px;">👁</span> Agregar ojos de seguridad <strong>+$15 pesos</strong>
+        </button>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:700;font-size:12px;color:var(--text-light);margin-bottom:10px;">
+          <input type="checkbox" id="kit-eyes-enabled" style="width:16px;height:16px;accent-color:var(--pink-dark);" onchange="toggleKitEyes(this.checked)">
+          Personalizar precio y tamaño
         </label>
         <div id="kit-eyes-details" style="display:none;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="field">
             <label>Precio por par (MXN)</label>
-            <input type="number" id="kit-eyes-price" min="0" max="999" value="50" placeholder="50" style="padding:9px 12px;">
+            <input type="number" id="kit-eyes-price" min="0" max="999" value="15" placeholder="15" style="padding:9px 12px;">
           </div>
           <div class="field">
             <label>Tamaño</label>
@@ -1825,12 +1832,12 @@ function openKitYarnEditor(kitId){
     // Cargar configuración de ojos
     const eyesOn=!!(targetProd.eyesPrice>0);
     document.getElementById('kit-eyes-enabled').checked=eyesOn;
-    document.getElementById('kit-eyes-price').value=targetProd.eyesPrice||50;
+    document.getElementById('kit-eyes-price').value=targetProd.eyesPrice||15;
     document.getElementById('kit-eyes-size').value=targetProd.eyesSize||'';
     toggleKitEyes(eyesOn);
   } else {
     document.getElementById('kit-eyes-enabled').checked=false;
-    document.getElementById('kit-eyes-price').value=50;
+    document.getElementById('kit-eyes-price').value=15;
     document.getElementById('kit-eyes-size').value='';
     toggleKitEyes(false);
   }
@@ -1873,6 +1880,42 @@ function removeKitYarnRow(btn){
   btn.parentNode.remove();
   if(!document.getElementById('kit-yarn-list-editor').children.length)
     document.getElementById('kit-yarn-empty-hint').style.display='block';
+}
+
+function addKitEyesPreset(price){
+  document.getElementById('kit-eyes-enabled').checked=true;
+  document.getElementById('kit-eyes-price').value=price;
+  toggleKitEyes(true);
+}
+
+function addColorFromInventory(triggerBtn){
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;}
+  const inv=getInventory();
+  const inStock=Object.entries(inv).filter(([,qty])=>qty>0).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(!inStock.length){showToast('No hay colores en inventario disponibles','warn');return;}
+  const popup=document.createElement('div');
+  popup.className='color-pick-popup';
+  popup.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--text-light);padding:8px 10px 2px;text-transform:uppercase;letter-spacing:.06em;">Colores en stock</div>
+    <input class="color-pick-search" placeholder="Buscar color..." oninput="filterCPicker(this)">
+    <div class="color-pick-grid">${inStock.map(([c,qty])=>{
+      const img=getAdminYarnImg(c);
+      return `<div class="color-pick-item" onclick="_addInvColor('${c.replace(/'/g,"\\'")}')">
+        ${img?`<img src="${img}" onerror="this.style.display='none'">`:'<div class="cpick-dot-fb"></div>'}
+        <span>${c}<br><span style="font-size:9px;color:var(--text-light);">${qty} ovillo${qty!==1?'s':''}</span></span>
+      </div>`;
+    }).join('')}</div>`;
+  document.body.appendChild(popup);
+  const r=triggerBtn.getBoundingClientRect();
+  popup.style.top=(r.bottom+6)+'px';
+  popup.style.left=Math.min(r.left,window.innerWidth-318)+'px';
+  _activePPopup=popup;
+  popup.querySelector('.color-pick-search').focus();
+  setTimeout(()=>document.addEventListener('click',_closePicker,{capture:true}),50);
+}
+
+function _addInvColor(c){
+  if(_activePPopup){_activePPopup.remove();_activePPopup=null;document.removeEventListener('click',_closePicker,{capture:true});}
+  addKitYarnRow(c);
 }
 
 function getKitYarnList(){
