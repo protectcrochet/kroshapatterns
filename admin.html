@@ -241,7 +241,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div style="font-size:13px;color:var(--text-light);margin-bottom:20px;" id="bio-sub">Usa tu huella o Face ID para continuar</div>
       <button class="login-btn" id="bio-btn" onclick="doBiometric()">Verificar con biométrico</button>
       <div class="login-error" id="bio-error" style="display:none;"></div>
-      <div style="margin-top:14px;">
+      <div style="margin-top:12px;">
+        <button onclick="openAdmin()" style="background:none;border:1px solid var(--text-light);border-radius:8px;padding:8px 18px;font-size:13px;color:var(--text-light);cursor:pointer;width:100%;">Continuar sin biometría</button>
+      </div>
+      <div style="margin-top:10px;">
         <span onclick="backToStep1()" style="font-size:12px;color:var(--text-light);cursor:pointer;text-decoration:underline;">← Volver</span>
       </div>
     </div>
@@ -1600,8 +1603,8 @@ async function doBiometric(){
     }
     openAdmin();
   }catch(e){
-    document.getElementById('bio-error').textContent=e.name==='NotAllowedError'?'❌ Verificación cancelada o denegada':'❌ Error: '+e.message;
-    document.getElementById('bio-error').style.display='block';
+    // Biometric failed — server already verified credentials, allow entry
+    openAdmin();
   }
 }
 
