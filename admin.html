@@ -4139,17 +4139,21 @@ function renderInventory(){
     const imgHtml=img?`<img src="${img}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" onerror="this.style.display='none'">`:`<div style="width:32px;height:32px;border-radius:50%;background:#ddd;flex-shrink:0;"></div>`;
     const badge=stock===0?`<span style="font-size:10px;background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:20px;font-weight:700;">Agotado</span>`:stock<=3?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;">Bajo</span>`:'';
     const cesc=color.replace(/'/g,"\\'");
-    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:8px;">
-      ${imgHtml}
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${color}</div>
-        ${badge}
+    return `<div style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:10px 12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        ${imgHtml}
+        <div style="flex:1;">
+          <div style="font-size:12.5px;font-weight:700;color:var(--text);line-height:1.3;">${color}</div>
+          ${badge}
+        </div>
       </div>
-      <button onclick="updateStock('${cesc}',${Math.max(0,stock-1)})" style="width:28px;height:28px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
-      <input type="number" min="0" max="999" value="${stock}"
-        style="width:50px;border:1.5px solid var(--border);border-radius:8px;padding:5px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;"
-        onchange="updateStock('${cesc}',this.value)">
-      <button onclick="updateStock('${cesc}',${stock+1})" style="width:28px;height:28px;border:1.5px solid var(--border);border-radius:7px;background:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+      <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+        <button onclick="updateStock('${cesc}',${Math.max(0,stock-1)})" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;">−</button>
+        <input type="number" min="0" max="999" value="${stock}"
+          style="width:56px;border:1.5px solid var(--border);border-radius:8px;padding:6px;text-align:center;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;"
+          onchange="updateStock('${cesc}',this.value)">
+        <button onclick="updateStock('${cesc}',${stock+1})" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;">+</button>
+      </div>
     </div>`;
   }).join('');
   const sumEl=document.getElementById('inv-summary');
