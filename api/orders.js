@@ -37,11 +37,17 @@ export default async function handler(req, res) {
       // Upsert: actualizar pedido existente (ej. cambio de estado)
       orders[idx] = { ...orders[idx], ...order };
     } else {
+      // Asignar ref consecutivo si no viene uno
+      if (!order.ref) {
+        const seq = await redis.incr('krosha:order_seq');
+        order.ref = 'KP-' + String(seq).padStart(4, '0');
+      }
+      if (!order.id) order.id = Date.now();
       orders.unshift(order);
       if (orders.length > 500) orders.length = 500;
     }
     await redis.set('krosha:orders', JSON.stringify(orders));
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ ok: true, ref: order.ref });
   }
 
   if (req.method === 'DELETE') {

@@ -40,42 +40,40 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
-    const ref = orderRef || `KP-${Date.now().toString().slice(-6)}`;
+    const clientRef = orderRef; // ref del cliente, solo para dedup
 
-    // ── Dedup: si el pedido ya existe en Redis, no reenviar correo ──
-    // forceResend=true lo salta (usado desde el admin para reenviar acceso)
-    if (orderRef && !forceResend) {
+    // Para forceResend (reenvío desde admin) usar el ref original tal cual
+    let ref = forceResend ? (clientRef || `KP-${Date.now().toString().slice(-6)}`) : null;
+
+    // ── Dedup + asignación de ref consecutivo ──
+    if (!forceResend) {
       try {
         const { Redis } = await import('@upstash/redis');
         const redis = new Redis({ url: process.env.UPSTASH_REDIS_REST_URL, token: process.env.UPSTASH_REDIS_REST_TOKEN });
         const raw = await redis.get('krosha:orders');
         const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
-        const existingIdx = orders.findIndex(o => o.ref === ref);
-        if (existingIdx >= 0) {
-          // Pedido duplicado — pero si ahora tenemos dirección y antes no había, guardarla
-          const existing = orders[existingIdx];
-          let updated = false;
-          if (shippingAddress && !existing.shippingAddress) {
-            existing.shippingAddress = shippingAddress;
-            updated = true;
+
+        if (clientRef) {
+          // Buscar por clientRef (nuevo) o por ref legacy (pedidos anteriores)
+          const existingIdx = orders.findIndex(o => o.clientRef === clientRef || o.ref === clientRef);
+          if (existingIdx >= 0) {
+            const existing = orders[existingIdx];
+            let updated = false;
+            if (shippingAddress && !existing.shippingAddress) { existing.shippingAddress = shippingAddress; updated = true; }
+            if (shippingRate && !existing.shippingRate) { existing.shippingRate = shippingRate; updated = true; }
+            if (shippingPackage && !existing.shippingPackage) { existing.shippingPackage = shippingPackage; updated = true; }
+            if (updated) await redis.set('krosha:orders', JSON.stringify(orders));
+            return res.status(200).json({ success: true, orderRef: existing.ref, duplicate: true });
           }
-          if (shippingRate && !existing.shippingRate) {
-            existing.shippingRate = shippingRate;
-            updated = true;
-          }
-          if (shippingPackage && !existing.shippingPackage) {
-            existing.shippingPackage = shippingPackage;
-            updated = true;
-          }
-          if (updated) {
-            await redis.set('krosha:orders', JSON.stringify(orders));
-            console.log(`Dedup: pedido ${ref} ya existía, actualizada dirección de envío.`);
-          } else {
-            console.log(`Dedup: pedido ${ref} ya procesado, omitiendo correo.`);
-          }
-          return res.status(200).json({ success: true, orderRef: ref, duplicate: true });
         }
-      } catch (e) { /* no bloquear si Redis falla */ }
+
+        // Asignar número consecutivo
+        const seq = await redis.incr('krosha:order_seq');
+        ref = 'KP-' + String(seq).padStart(4, '0');
+      } catch (e) {
+        // Fallback si Redis falla
+        ref = `KP-${Date.now().toString().slice(-6)}`;
+      }
     }
 
     // ── Resolver URLs de entrega por item ──
@@ -292,6 +290,7 @@ export default async function handler(req, res) {
         orders.unshift({
           id: Date.now(),
           ref,
+          clientRef: clientRef || null,
           date: new Date().toISOString(),
           name: customerName || '',
           email: customerEmail,

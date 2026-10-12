@@ -1255,6 +1255,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <input type="hidden" id="order-edit-id">
     <div class="form-grid">
       <div class="field">
+        <label>Referencia <span style="font-size:10px;color:var(--text-light);">(vacío = auto KP-XXXX)</span></label>
+        <input type="text" id="of-ref" placeholder="KP-445019 o vacío para auto">
+      </div>
+      <div class="field">
         <label>Nombre del cliente</label>
         <input type="text" id="of-name" placeholder="María García">
       </div>
@@ -2943,7 +2947,7 @@ function renderOrdersTable(){
       ?`<span style="display:inline-flex;align-items:center;gap:3px;background:#EBF5FF;color:#1a5fa6;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">📦 Físico</span>`
       :`<span style="display:inline-flex;align-items:center;gap:3px;background:#F0FFF4;color:#276749;border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;">📄 Digital</span>`;
     return`<tr${isPhys&&o.status!=='shipped'&&o.status!=='cancelled'?' style="background:rgba(235,245,255,.45);"':''}>
-      <td><strong>#${String(o.ref||o.id).slice(-6)}</strong></td>
+      <td><strong>${o.ref?'#'+o.ref:'ID:'+String(o.id).slice(-6)}</strong></td>
       <td><strong>${o.name||'—'}</strong><div style="font-size:12px;color:var(--text-light);">${o.email}</div></td>
       <td style="font-size:12px;max-width:150px;color:var(--text-mid);">${(o.products||'').substring(0,60)}${(o.products||'').length>60?'…':''}</td>
       <td><strong>$${o.total} ${o.currency||'MXN'}</strong><div style="font-size:11px;color:var(--text-light);">${o.method||'stripe'}</div><div style="margin-top:3px;">${paymentStatusBadge(isPhys?(o.paymentStatus||'pending_payment'):'received')}</div></td>
@@ -3597,14 +3601,15 @@ async function deleteOrder(){
 function openOrderModal(){
   document.getElementById('order-edit-id').value='';
   document.getElementById('order-modal-title').textContent='Nuevo pedido';
-  ['of-name','of-email','of-country','of-total','of-products'].forEach(id=>{document.getElementById(id).value='';});
-  document.getElementById('of-status').value='pending';
+  ['of-ref','of-name','of-email','of-country','of-total','of-products'].forEach(id=>{document.getElementById(id).value='';});
+  document.getElementById('of-status').value='paid';
   document.getElementById('order-modal').classList.add('open');
 }
 function editOrder(id){
   const o=getOrders().find(x=>x.id===id);if(!o)return;
   document.getElementById('order-edit-id').value=id;
   document.getElementById('order-modal-title').textContent='Editar pedido';
+  document.getElementById('of-ref').value=o.ref||'';
   document.getElementById('of-name').value=o.name;
   document.getElementById('of-email').value=o.email;
   document.getElementById('of-country').value=o.country||'';
@@ -3615,8 +3620,9 @@ function editOrder(id){
   document.getElementById('order-modal').classList.add('open');
 }
 function closeOrderModal(){document.getElementById('order-modal').classList.remove('open');}
-function saveOrder(){
+async function saveOrder(){
   const editId=document.getElementById('order-edit-id').value;
+  const manualRef=(document.getElementById('of-ref').value||'').trim();
   const order={
     id:editId?parseInt(editId):Date.now(),
     name:document.getElementById('of-name').value,
@@ -3625,18 +3631,32 @@ function saveOrder(){
     total:parseFloat(document.getElementById('of-total').value)||0,
     products:document.getElementById('of-products').value,
     pay:document.getElementById('of-pay').value,
+    method:document.getElementById('of-pay').value,
     status:document.getElementById('of-status').value,
     date:new Date().toISOString(),
+    source:'manual',
   };
+  if(manualRef)order.ref=manualRef;
   if(!order.name){showToast('⚠️ El nombre es obligatorio');return;}
-  let orders=getOrders();
-  if(editId){orders=orders.map(o=>o.id===parseInt(editId)?order:o);}
-  else orders.push(order);
-  saveOrders(orders);
-  closeOrderModal();
-  renderOrdersTable();
-  renderDashboard();
-  showToast(editId?'✅ Pedido actualizado':'📦 Pedido agregado');
+  try{
+    const r=await fetch('/api/orders',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify(order)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    // Actualizar caché local
+    let orders=getOrders();
+    if(editId){orders=orders.map(o=>o.id===parseInt(editId)?{...order,ref:d.ref||order.ref}:o);}
+    else{order.ref=d.ref||order.ref;orders.unshift(order);}
+    saveOrders(orders);
+    // Refrescar desde servidor para que aparezca el ref asignado
+    const gr=await fetch('/api/orders',{headers:{'x-admin-key':getApiKey()}});
+    if(gr.ok){_serverOrders=await gr.json();saveOrders(_serverOrders);}
+    closeOrderModal();
+    renderOrdersTable();
+    renderDashboard();
+    showToast(editId?'✅ Pedido actualizado':'📦 Pedido guardado en servidor — '+( d.ref||''));
+  }catch(e){
+    showToast('⚠️ Error guardando pedido: '+e.message);
+  }
 }
 
 // ── CUSTOMERS ──
