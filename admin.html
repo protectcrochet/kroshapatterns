@@ -428,6 +428,9 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <option value="physical_pending">📦🔴 Físicos por enviar</option>
           <option value="digital">📄 Solo digitales</option>
         </select>
+        <select class="filter-sel" id="order-prod-filter" onchange="filterOrders('','','',this.value)">
+          <option value="">🛍 Todos los productos</option>
+        </select>
       </div>
       <div style="overflow-x:auto;">
         <table class="data-table">
@@ -1241,6 +1244,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       </select>
       <button id="order-phys-toggle" class="btn btn-outline btn-sm" onclick="toggleOrderPhysical()" style="white-space:nowrap;"></button>
       <button class="btn btn-outline" id="order-detail-resend-btn" onclick="resendOrderAccess()" style="flex:1;">📧 Reenviar acceso</button>
+      <button class="btn btn-pink" id="order-detail-token-btn" onclick="generateTokenAndSend()" style="flex:1;white-space:nowrap;">🎟️ Generar token y enviar</button>
       <button class="btn btn-red btn-sm" onclick="deleteOrder()" style="white-space:nowrap;">🗑️ Eliminar pedido</button>
     </div>
   </div>
@@ -2634,7 +2638,7 @@ async function clientBlobUpload(file){
 }
 
 // ── ORDERS ──
-let orderFilter='',orderStatusFilter='',orderTypeFilter='';
+let orderFilter='',orderStatusFilter='',orderTypeFilter='',orderProdFilter='';
 let _serverOrders=[];
 
 function _orderRevenue(orders){
@@ -2955,6 +2959,7 @@ async function loadServerOrders(){
       if(r.status===401) showToast('⚠️ Clave admin incorrecta para cargar pedidos','warn');
     }
   }catch(e){console.error('[Orders] Error de red:',e);}
+  _populateOrderProdFilter();
   renderOrdersTable();
   populateCsvMonthSelect();
 }
@@ -2993,7 +2998,14 @@ function renderOrdersTable(){
     if(orderTypeFilter==='physical') mtp=isPhys;
     else if(orderTypeFilter==='physical_pending') mtp=isPhys&&o.status!=='shipped'&&o.status!=='cancelled';
     else if(orderTypeFilter==='digital') mtp=!isPhys;
-    return ms&&mst&&mtp;
+    let mprod=true;
+    if(orderProdFilter){
+      const [pid,pname]=orderProdFilter.includes('|||')?orderProdFilter.split('|||'):['',orderProdFilter];
+      const matchId=pid&&(o.itemsRaw||[]).some(i=>String(i.id)===String(pid));
+      const hay=((o.products||'')+' '+((o.itemsRaw||[]).map(i=>i.title).join(' '))).toLowerCase();
+      mprod=matchId||hay.includes((pname||'').toLowerCase());
+    }
+    return ms&&mst&&mtp&&mprod;
   });
   document.getElementById('orders-tbody').innerHTML=filtered.length?filtered.map(o=>{
     const isPhys=isPhysicalOrder(o);
@@ -3012,7 +3024,14 @@ function renderOrdersTable(){
     </tr>`;
   }).join(''):'<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-light);">No hay pedidos con ese filtro.</td></tr>';
 }
-function filterOrders(s,st,tp){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;renderOrdersTable();}
+function filterOrders(s,st,tp,prod){if(s!==undefined)orderFilter=s;if(st!==undefined)orderStatusFilter=st;if(tp!==undefined)orderTypeFilter=tp;if(prod!==undefined)orderProdFilter=prod;renderOrdersTable();}
+function _populateOrderProdFilter(){
+  const sel=document.getElementById('order-prod-filter');
+  if(!sel)return;
+  const prods=getProds().filter(p=>p.status!=='draft');
+  sel.innerHTML='<option value="">🛍 Todos los productos</option>'+
+    prods.map(p=>{const n=p.nameEs||p.title||'Producto';return`<option value="${p.id+'|||'+n}">${n}</option>`;}).join('');
+}
 function statusLabel(s){return{pending:'⏳ Pendiente',paid:'✅ Pagado',shipped:'🚚 Enviado',cancelled:'❌ Cancelado'}[s]||s;}
 
 // Stripe MXN: (total×3.6% + $3) × 1.16 IVA
@@ -3629,6 +3648,41 @@ async function resendOrderAccess(){
   }catch(e){
     showToast('❌ Error al reenviar: '+e.message,'warn');
   }finally{btn.textContent='📧 Reenviar acceso';btn.disabled=false;}
+}
+
+async function generateTokenAndSend(){
+  if(!_viewingOrder)return;
+  const btn=document.getElementById('order-detail-token-btn');
+  btn.textContent='⏳ Generando...';btn.disabled=true;
+  try{
+    const prods=getProds();
+    let items=(_viewingOrder.itemsRaw&&_viewingOrder.itemsRaw.length?_viewingOrder.itemsRaw:[{title:_viewingOrder.products||'Patrón',price:_viewingOrder.total,qty:1}]);
+    items=items.map(item=>{
+      if(item.patternSlug||item.pdfUrl)return item;
+      const p=item.id?prods.find(x=>String(x.id)===String(item.id)):null;
+      if(p)return{...item,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''};
+      return item;
+    });
+    const r=await fetch('/api/send-confirmation',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        customerEmail:_viewingOrder.email,
+        customerName:_viewingOrder.name||'Cliente',
+        items,total:_viewingOrder.total,
+        currency:_viewingOrder.currency||'MXN',
+        payMethod:_viewingOrder.method||'stripe',
+        orderRef:_viewingOrder.ref||String(_viewingOrder.id),
+        forceResend:true,
+      })
+    });
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.error||'Error');
+    // Cambiar estado a "enviado" automáticamente
+    await updateOrderStatus('shipped');
+    showToast('🎟️ Token generado y correo enviado a '+_viewingOrder.email);
+  }catch(e){
+    showToast('❌ Error: '+e.message,'warn');
+  }finally{btn.textContent='🎟️ Generar token y enviar';btn.disabled=false;}
 }
 
 // ── REENVÍO MASIVO ──
