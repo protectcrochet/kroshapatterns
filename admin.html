@@ -1299,7 +1299,13 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <div class="form-grid full" style="margin-top:12px;">
       <div class="field">
-        <label>Productos (descripción)</label>
+        <label>Producto del catálogo <span style="font-size:10px;color:var(--text-light);">(para generar acceso automático)</span></label>
+        <select id="of-prod-sel" onchange="onOrderProdSelect()" style="width:100%;">
+          <option value="">— Seleccionar producto —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Descripción <span style="font-size:10px;color:var(--text-light);">(se llena solo al seleccionar)</span></label>
         <input type="text" id="of-products" placeholder="Ramo Magico Candy + Estambre Rosa">
       </div>
     </div>
@@ -3850,11 +3856,29 @@ async function deleteOrder(){
     showToast('❌ Error al eliminar: '+e.message,'warn');
   }
 }
+function _fillOrderProdSel(){
+  const sel=document.getElementById('of-prod-sel');
+  if(!sel)return;
+  const prods=getProds().filter(p=>p.status!=='draft');
+  sel.innerHTML='<option value="">— Seleccionar producto —</option>'+
+    prods.map(p=>`<option value="${p.id}">${p.nameEs||p.title||'Producto'} — $${p.price||0} MXN</option>`).join('');
+}
+function onOrderProdSelect(){
+  const sel=document.getElementById('of-prod-sel');
+  if(!sel||!sel.value)return;
+  const p=getProds().find(x=>String(x.id)===sel.value);
+  if(!p)return;
+  document.getElementById('of-products').value=p.nameEs||p.title||'';
+  if(!document.getElementById('of-total').value)
+    document.getElementById('of-total').value=p.price||'';
+}
 function openOrderModal(){
   document.getElementById('order-edit-id').value='';
   document.getElementById('order-modal-title').textContent='Nuevo pedido';
   ['of-ref','of-name','of-email','of-country','of-total','of-products'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('of-status').value='paid';
+  document.getElementById('of-prod-sel').value='';
+  _fillOrderProdSel();
   document.getElementById('order-modal').classList.add('open');
 }
 function editOrder(id){
@@ -3869,25 +3893,45 @@ function editOrder(id){
   document.getElementById('of-products').value=o.products;
   document.getElementById('of-status').value=o.status;
   document.getElementById('of-pay').value=o.pay||'Stripe';
+  _fillOrderProdSel();
+  // Pre-seleccionar el producto si itemsRaw tiene uno
+  const firstItemId=o.itemsRaw?.[0]?.id;
+  if(firstItemId)document.getElementById('of-prod-sel').value=String(firstItemId);
   document.getElementById('order-modal').classList.add('open');
 }
 function closeOrderModal(){document.getElementById('order-modal').classList.remove('open');}
 async function saveOrder(){
   const editId=document.getElementById('order-edit-id').value;
   const manualRef=(document.getElementById('of-ref').value||'').trim();
+  const selProdId=document.getElementById('of-prod-sel').value;
+  const selProd=selProdId?getProds().find(p=>String(p.id)===selProdId):null;
+  const prodDesc=document.getElementById('of-products').value||(selProd?selProd.nameEs||selProd.title:'');
+  const total=parseFloat(document.getElementById('of-total').value)||selProd?.price||0;
   const order={
     id:editId?parseInt(editId):Date.now(),
     name:document.getElementById('of-name').value,
     email:document.getElementById('of-email').value,
     country:document.getElementById('of-country').value,
-    total:parseFloat(document.getElementById('of-total').value)||0,
-    products:document.getElementById('of-products').value,
+    total,
+    products:prodDesc,
     pay:document.getElementById('of-pay').value,
     method:document.getElementById('of-pay').value,
     status:document.getElementById('of-status').value,
     date:new Date().toISOString(),
     source:'manual',
   };
+  // Guardar itemsRaw con datos completos del producto para que funcione el token
+  if(selProd){
+    order.itemsRaw=[{
+      id:selProd.id,
+      title:selProd.nameEs||selProd.title||prodDesc,
+      price:selProd.price||total,
+      qty:1,
+      patternSlug:selProd.patternSlug||'',
+      pdfUrl:selProd.pdfUrl||'',
+      type:selProd.type||'patrones',
+    }];
+  }
   if(manualRef)order.ref=manualRef;
   if(!order.name){showToast('⚠️ El nombre es obligatorio');return;}
   try{
