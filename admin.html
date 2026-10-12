@@ -3679,6 +3679,7 @@ async function generateTokenAndSend(){
         payMethod:_viewingOrder.method||'stripe',
         orderRef:_viewingOrder.ref||String(_viewingOrder.id),
         forceResend:true,
+        accessOnly:true,
       })
     });
     const d=await r.json();
@@ -3813,6 +3814,7 @@ async function startMassResend(){
           payMethod:o.method||'stripe',
           orderRef:o.ref||String(o.id),
           forceResend:true,
+          accessOnly:true,
         })
       });
       const d=await r.json();

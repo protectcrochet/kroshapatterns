@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const { Resend } = await import('resend');
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress, shippingRate, shippingPackage, forceResend } = req.body;
+    const { customerEmail, customerName, items, total, currency, payMethod, orderRef, shippingAddress, shippingRate, shippingPackage, forceResend, accessOnly } = req.body;
 
     if (!customerEmail || !items?.length) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
@@ -262,12 +262,52 @@ export default async function handler(req, res) {
 </body>
 </html>`;
 
+    const accessEmailHtml = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#FDF0F5;font-family:'Arial',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#FDF0F5;padding:40px 20px;">
+    <tr><td>
+      <table width="100%" maxwidth="580" style="max-width:580px;margin:0 auto;background:#FFFBFD;border-radius:24px;overflow:hidden;border:1.5px solid #F0C8DC;">
+        <tr>
+          <td style="background:#C06090;padding:28px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:6px;">🎀</div>
+            <div style="font-family:'Georgia',serif;font-size:22px;font-style:italic;color:#fff;font-weight:bold;">KroshaPatterns</div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <h2 style="font-family:'Georgia',serif;font-size:22px;color:#3A1E2E;margin:0 0 8px;">
+              ¡Hola ${customerName || 'amiga'}! Aquí está tu patrón 🎀
+            </h2>
+            <p style="font-size:14px;color:#7A4D65;line-height:1.7;margin:0 0 24px;">
+              Te enviamos tu acceso al patrón que adquiriste. Pedido <strong>#${ref}</strong>.
+            </p>
+            ${deliverySection}
+            <div style="text-align:center;padding:16px 0 0;">
+              <p style="font-size:13px;color:#7A4D65;margin:0 0 10px;">¿Tienes alguna duda? ¡Escríbeme! 🎀</p>
+              <a href="https://www.instagram.com/kro_shaa/" style="display:inline-block;background:#C06090;color:#fff;text-decoration:none;padding:10px 24px;border-radius:20px;font-size:13px;font-weight:bold;margin:4px;">◎ @kro_shaa</a>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="background:#F5D0E0;padding:16px;text-align:center;">
+            <p style="font-size:12px;color:#8B3565;margin:0;">© 2026 KroshaPatterns · kroshapatterns.com</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
     await resend.emails.send({
       from: 'KroshaPatterns <hola@kroshapatterns.com>',
       to: customerEmail,
       bcc: ['kroshapatterns@gmail.com'],
-      subject: `🎀 ¡Pedido confirmado! #${ref} — KroshaPatterns`,
-      html: emailHtml,
+      subject: accessOnly ? `🎀 Tu acceso al patrón #${ref} — KroshaPatterns` : `🎀 ¡Pedido confirmado! #${ref} — KroshaPatterns`,
+      html: accessOnly ? accessEmailHtml : emailHtml,
       ...(attachments.length ? { attachments } : {}),
     });
 
