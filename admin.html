@@ -1315,9 +1315,11 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     </div>
     <div style="font-size:13px;color:var(--text-light);margin-bottom:14px;">Filtra los pedidos y reenvía el correo de acceso a todas las clientas del grupo.</div>
     <div class="form-grid" style="margin-bottom:12px;">
-      <div class="field">
-        <label>Buscar en producto</label>
-        <input type="text" id="mr-keyword" placeholder="ej. preventa, ramo, kit..." oninput="previewMassResend()">
+      <div class="field" style="grid-column:1/-1;">
+        <label>Producto</label>
+        <select id="mr-product" onchange="previewMassResend()" style="width:100%;">
+          <option value="">— Todos los productos —</option>
+        </select>
       </div>
       <div class="field">
         <label>Estado del pedido</label>
@@ -3634,14 +3636,18 @@ let _massResendAborted=false;
 
 function openMassResendModal(){
   _massResendAborted=false;
-  document.getElementById('mr-keyword').value='';
+  // Poblar selector de productos
+  const sel=document.getElementById('mr-product');
+  const prods=getProds().filter(p=>p.status!=='draft');
+  sel.innerHTML='<option value="">— Todos los productos —</option>'+
+    prods.map(p=>`<option value="${(p.nameEs||p.title||'').replace(/"/g,'&quot;')}">${p.nameEs||p.title||'Producto'}</option>`).join('');
   document.getElementById('mr-status').value='paid';
   document.getElementById('mr-from').value='';
   document.getElementById('mr-to').value='';
   document.getElementById('mr-progress-wrap').style.display='none';
   document.getElementById('mr-send-btn').disabled=true;
   document.getElementById('mr-send-count').textContent='0';
-  document.getElementById('mr-preview').innerHTML='<span style="color:var(--text-light);">Escribe una palabra clave o selecciona filtros para previsualizar.</span>';
+  document.getElementById('mr-preview').innerHTML='<span style="color:var(--text-light);">Selecciona un producto o filtros para previsualizar.</span>';
   document.getElementById('mr-cancel-btn').textContent='Cancelar';
   document.getElementById('mr-send-btn').style.display='';
   document.getElementById('mass-resend-modal').classList.add('open');
@@ -3653,20 +3659,20 @@ function closeMassResendModal(){
 }
 
 function _getMassResendOrders(){
-  const kw=(document.getElementById('mr-keyword').value||'').toLowerCase().trim();
+  const prodName=(document.getElementById('mr-product').value||'').toLowerCase().trim();
   const st=document.getElementById('mr-status').value;
   const from=document.getElementById('mr-from').value;
   const to=document.getElementById('mr-to').value;
   const orders=getOrders();
   return orders.filter(o=>{
+    if(!o.email)return false;
     if(st&&o.status!==st)return false;
     if(from&&o.date&&o.date.slice(0,10)<from)return false;
     if(to&&o.date&&o.date.slice(0,10)>to)return false;
-    if(kw){
-      const haystack=(o.products||''+(o.itemsRaw||[]).map(i=>i.title).join(' ')).toLowerCase();
-      if(!haystack.includes(kw))return false;
+    if(prodName){
+      const haystack=((o.products||'')+' '+((o.itemsRaw||[]).map(i=>i.title).join(' '))).toLowerCase();
+      if(!haystack.includes(prodName))return false;
     }
-    if(!o.email)return false;
     return true;
   });
 }
