@@ -385,6 +385,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <button class="btn btn-outline" onclick="exportOrdersCsv()">⬇️ Exportar CSV</button>
           <button class="btn btn-outline" onclick="loadServerOrders().then(()=>showToast('Pedidos actualizados'))">🔄 Recargar</button>
           <button class="btn btn-outline" onclick="openOrderModal()">+ Agregar manual</button>
+          <button class="btn btn-outline" onclick="openMassResendModal()" style="background:#FFF8EC;border-color:#F59E0B;color:#92400E;">📧 Reenvío masivo</button>
         </div>
       </div>
       <!-- Mini resumen de ingresos -->
@@ -1301,6 +1302,57 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
       <button class="btn btn-outline" onclick="closeOrderModal()">Cancelar</button>
       <button class="btn btn-pink" onclick="saveOrder()">💾 Guardar pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- MASS RESEND MODAL -->
+<div class="modal-overlay" id="mass-resend-modal">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <div class="modal-title">📧 Reenvío masivo de acceso</div>
+      <button class="modal-close" onclick="closeMassResendModal()">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:14px;">Filtra los pedidos y reenvía el correo de acceso a todas las clientas del grupo.</div>
+    <div class="form-grid" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Buscar en producto</label>
+        <input type="text" id="mr-keyword" placeholder="ej. preventa, ramo, kit..." oninput="previewMassResend()">
+      </div>
+      <div class="field">
+        <label>Estado del pedido</label>
+        <select id="mr-status" onchange="previewMassResend()">
+          <option value="">Todos</option>
+          <option value="paid">Pagado</option>
+          <option value="pending">Pendiente</option>
+          <option value="shipped">Enviado</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Desde (fecha)</label>
+        <input type="date" id="mr-from" onchange="previewMassResend()">
+      </div>
+      <div class="field">
+        <label>Hasta (fecha)</label>
+        <input type="date" id="mr-to" onchange="previewMassResend()">
+      </div>
+    </div>
+    <div id="mr-preview" style="background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px;max-height:200px;overflow-y:auto;font-size:12px;margin-bottom:14px;">
+      <span style="color:var(--text-light);">Escribe una palabra clave o selecciona filtros para previsualizar.</span>
+    </div>
+    <div id="mr-progress-wrap" style="display:none;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+        <span id="mr-progress-label">Enviando...</span>
+        <span id="mr-progress-count">0 / 0</span>
+      </div>
+      <div style="background:var(--border);border-radius:20px;height:8px;overflow:hidden;">
+        <div id="mr-progress-bar" style="height:100%;background:var(--pink-dark);border-radius:20px;width:0%;transition:width .3s;"></div>
+      </div>
+      <div id="mr-log" style="margin-top:8px;max-height:100px;overflow-y:auto;font-size:11px;color:var(--text-light);"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-outline" id="mr-cancel-btn" onclick="closeMassResendModal()">Cancelar</button>
+      <button class="btn btn-pink" id="mr-send-btn" onclick="startMassResend()" disabled>📧 Enviar a <span id="mr-send-count">0</span> clientas</button>
     </div>
   </div>
 </div>
@@ -3577,6 +3629,129 @@ async function resendOrderAccess(){
   }finally{btn.textContent='📧 Reenviar acceso';btn.disabled=false;}
 }
 
+// ── REENVÍO MASIVO ──
+let _massResendAborted=false;
+
+function openMassResendModal(){
+  _massResendAborted=false;
+  document.getElementById('mr-keyword').value='';
+  document.getElementById('mr-status').value='paid';
+  document.getElementById('mr-from').value='';
+  document.getElementById('mr-to').value='';
+  document.getElementById('mr-progress-wrap').style.display='none';
+  document.getElementById('mr-send-btn').disabled=true;
+  document.getElementById('mr-send-count').textContent='0';
+  document.getElementById('mr-preview').innerHTML='<span style="color:var(--text-light);">Escribe una palabra clave o selecciona filtros para previsualizar.</span>';
+  document.getElementById('mr-cancel-btn').textContent='Cancelar';
+  document.getElementById('mr-send-btn').style.display='';
+  document.getElementById('mass-resend-modal').classList.add('open');
+  previewMassResend();
+}
+function closeMassResendModal(){
+  _massResendAborted=true;
+  document.getElementById('mass-resend-modal').classList.remove('open');
+}
+
+function _getMassResendOrders(){
+  const kw=(document.getElementById('mr-keyword').value||'').toLowerCase().trim();
+  const st=document.getElementById('mr-status').value;
+  const from=document.getElementById('mr-from').value;
+  const to=document.getElementById('mr-to').value;
+  const orders=getOrders();
+  return orders.filter(o=>{
+    if(st&&o.status!==st)return false;
+    if(from&&o.date&&o.date.slice(0,10)<from)return false;
+    if(to&&o.date&&o.date.slice(0,10)>to)return false;
+    if(kw){
+      const haystack=(o.products||''+(o.itemsRaw||[]).map(i=>i.title).join(' ')).toLowerCase();
+      if(!haystack.includes(kw))return false;
+    }
+    if(!o.email)return false;
+    return true;
+  });
+}
+
+function previewMassResend(){
+  const orders=_getMassResendOrders();
+  const btn=document.getElementById('mr-send-btn');
+  document.getElementById('mr-send-count').textContent=orders.length;
+  btn.disabled=orders.length===0;
+  const prev=document.getElementById('mr-preview');
+  if(!orders.length){
+    prev.innerHTML='<span style="color:var(--text-light);">Ningún pedido coincide con los filtros.</span>';
+    return;
+  }
+  prev.innerHTML=orders.map(o=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <span style="font-weight:700;color:var(--text);">${o.name||'—'}</span>
+        <span style="color:var(--text-light);margin-left:6px;">${o.email}</span>
+      </div>
+      <div style="font-size:11px;color:var(--pink-dark);">${o.ref||('#'+String(o.id).slice(-6))}</div>
+    </div>`).join('');
+}
+
+async function startMassResend(){
+  const orders=_getMassResendOrders();
+  if(!orders.length)return;
+  _massResendAborted=false;
+  const sendBtn=document.getElementById('mr-send-btn');
+  const cancelBtn=document.getElementById('mr-cancel-btn');
+  const wrap=document.getElementById('mr-progress-wrap');
+  const bar=document.getElementById('mr-progress-bar');
+  const label=document.getElementById('mr-progress-label');
+  const countEl=document.getElementById('mr-progress-count');
+  const log=document.getElementById('mr-log');
+  sendBtn.style.display='none';
+  cancelBtn.textContent='⛔ Cancelar envío';
+  wrap.style.display='';
+  log.innerHTML='';
+  let sent=0,errors=0;
+  const prods=getProds();
+  for(let i=0;i<orders.length;i++){
+    if(_massResendAborted){label.textContent='⛔ Cancelado';break;}
+    const o=orders[i];
+    label.textContent='Enviando a '+( o.name||o.email)+'...';
+    countEl.textContent=(i+1)+' / '+orders.length;
+    bar.style.width=Math.round(((i+1)/orders.length)*100)+'%';
+    try{
+      let items=(o.itemsRaw||[{title:o.products||'Patrón',price:o.total,qty:1}]);
+      items=items.map(item=>{
+        if(item.patternSlug||item.pdfUrl)return item;
+        const p=prods.find(x=>String(x.id)===String(item.id));
+        if(p)return{...item,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''};
+        return item;
+      });
+      const r=await fetch('/api/send-confirmation',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          customerEmail:o.email,customerName:o.name||'Cliente',
+          items,total:o.total,currency:o.currency||'MXN',
+          payMethod:o.method||'stripe',
+          orderRef:o.ref||String(o.id),
+          forceResend:true,
+        })
+      });
+      const d=await r.json();
+      if(!r.ok)throw new Error(d.error||'Error');
+      sent++;
+      log.innerHTML+=`<div style="color:#059669;">✅ ${o.email}</div>`;
+    }catch(e){
+      errors++;
+      log.innerHTML+=`<div style="color:#DC2626;">❌ ${o.email}: ${e.message}</div>`;
+    }
+    log.scrollTop=log.scrollHeight;
+    // Pausa 600ms entre envíos para no saturar Resend
+    if(i<orders.length-1&&!_massResendAborted)await new Promise(res=>setTimeout(res,600));
+  }
+  if(!_massResendAborted){
+    label.textContent=`✅ Terminado: ${sent} enviados${errors?' — '+errors+' error(es)':''}`;
+    bar.style.width='100%';
+  }
+  cancelBtn.textContent='Cerrar';
+  sendBtn.style.display='none';
+}
+
 async function deleteOrder(){
   if(!_viewingOrder)return;
   const label=_viewingOrder.name||_viewingOrder.email||'este pedido';
@@ -4498,7 +4673,7 @@ function toggleMobileMenu(){const m=document.getElementById('mobile-menu');m.sty
 function closeMobileMenu(){document.getElementById('mobile-menu').style.display='none';}
 
 // ── CLOSE MODALS ON BG CLICK ──
-['prod-modal','order-modal','cust-modal','confirm-modal'].forEach(id=>{
+['prod-modal','order-modal','cust-modal','confirm-modal','mass-resend-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
 });
 </script>
