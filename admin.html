@@ -3723,18 +3723,26 @@ async function startMassResend(){
   log.innerHTML='';
   let sent=0,errors=0;
   const prods=getProds();
+  // Producto seleccionado en el filtro (fallback para pedidos sin itemsRaw completo)
+  const rawVal=document.getElementById('mr-product').value||'';
+  const [selProdId]=rawVal.includes('|||')?rawVal.split('|||'):['',''];
+  const selProd=selProdId?prods.find(p=>String(p.id)===String(selProdId)):null;
+
   for(let i=0;i<orders.length;i++){
     if(_massResendAborted){label.textContent='⛔ Cancelado';break;}
     const o=orders[i];
-    label.textContent='Enviando a '+( o.name||o.email)+'...';
+    label.textContent='Enviando a '+(o.name||o.email)+'...';
     countEl.textContent=(i+1)+' / '+orders.length;
     bar.style.width=Math.round(((i+1)/orders.length)*100)+'%';
     try{
-      let items=(o.itemsRaw||[{title:o.products||'Patrón',price:o.total,qty:1}]);
+      let items=(o.itemsRaw&&o.itemsRaw.length?o.itemsRaw:[{title:o.products||selProd?.nameEs||'Patrón',price:o.total,qty:1,id:selProd?.id||null}]);
       items=items.map(item=>{
         if(item.patternSlug||item.pdfUrl)return item;
-        const p=prods.find(x=>String(x.id)===String(item.id));
+        // Buscar por ID en catálogo
+        const p=item.id?prods.find(x=>String(x.id)===String(item.id)):null;
         if(p)return{...item,patternSlug:p.patternSlug||'',pdfUrl:p.pdfUrl||''};
+        // Fallback: usar el producto seleccionado en el filtro
+        if(selProd)return{...item,patternSlug:selProd.patternSlug||'',pdfUrl:selProd.pdfUrl||''};
         return item;
       });
       const r=await fetch('/api/send-confirmation',{
