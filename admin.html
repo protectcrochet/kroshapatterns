@@ -3636,11 +3636,16 @@ let _massResendAborted=false;
 
 function openMassResendModal(){
   _massResendAborted=false;
-  // Poblar selector de productos
+  // Poblar selector de productos con id:nombre para match robusto
   const sel=document.getElementById('mr-product');
   const prods=getProds().filter(p=>p.status!=='draft');
   sel.innerHTML='<option value="">— Todos los productos —</option>'+
-    prods.map(p=>`<option value="${(p.nameEs||p.title||'').replace(/"/g,'&quot;')}">${p.nameEs||p.title||'Producto'}</option>`).join('');
+    prods.map(p=>{
+      const name=p.nameEs||p.title||'Producto';
+      // valor = "id|||nombre" para buscar por ambos
+      const val=p.id+'|||'+name;
+      return `<option value="${val.replace(/"/g,'&quot;')}">${name}</option>`;
+    }).join('');
   document.getElementById('mr-status').value='paid';
   document.getElementById('mr-from').value='';
   document.getElementById('mr-to').value='';
@@ -3659,7 +3664,8 @@ function closeMassResendModal(){
 }
 
 function _getMassResendOrders(){
-  const prodName=(document.getElementById('mr-product').value||'').toLowerCase().trim();
+  const rawVal=document.getElementById('mr-product').value||'';
+  const [prodId,prodName]= rawVal.includes('|||') ? rawVal.split('|||') : ['',rawVal];
   const st=document.getElementById('mr-status').value;
   const from=document.getElementById('mr-from').value;
   const to=document.getElementById('mr-to').value;
@@ -3669,9 +3675,12 @@ function _getMassResendOrders(){
     if(st&&o.status!==st)return false;
     if(from&&o.date&&o.date.slice(0,10)<from)return false;
     if(to&&o.date&&o.date.slice(0,10)>to)return false;
-    if(prodName){
-      const haystack=((o.products||'')+' '+((o.itemsRaw||[]).map(i=>i.title).join(' '))).toLowerCase();
-      if(!haystack.includes(prodName))return false;
+    if(prodId||prodName){
+      // Buscar por ID en itemsRaw (match exacto) o por nombre parcial en products/itemsRaw
+      const matchById=prodId&&(o.itemsRaw||[]).some(i=>String(i.id)===String(prodId));
+      const hay=((o.products||'')+' '+((o.itemsRaw||[]).map(i=>i.title).join(' '))).toLowerCase();
+      const matchByName=prodName&&hay.includes(prodName.toLowerCase());
+      if(!matchById&&!matchByName)return false;
     }
     return true;
   });
