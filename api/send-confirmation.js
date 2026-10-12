@@ -43,7 +43,7 @@ export default async function handler(req, res) {
     const clientRef = orderRef; // ref del cliente, solo para dedup
 
     // Para forceResend (reenvío desde admin) usar el ref original tal cual
-    let ref = forceResend ? (clientRef || `KP-${Date.now().toString().slice(-6)}`) : null;
+    let ref = forceResend ? (clientRef || `KRO-${Date.now().toString().slice(-6)}`) : null;
 
     // ── Dedup + asignación de ref consecutivo ──
     if (!forceResend) {
@@ -68,11 +68,12 @@ export default async function handler(req, res) {
         }
 
         // Asignar número consecutivo
+        await redis.set('krosha:order_seq', 1000, { nx: true });
         const seq = await redis.incr('krosha:order_seq');
-        ref = 'KP-' + String(seq).padStart(4, '0');
+        ref = 'KRO-' + seq;
       } catch (e) {
         // Fallback si Redis falla
-        ref = `KP-${Date.now().toString().slice(-6)}`;
+        ref = `KRO-${Date.now().toString().slice(-6)}`;
       }
     }
 

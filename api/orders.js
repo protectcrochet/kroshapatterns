@@ -39,8 +39,9 @@ export default async function handler(req, res) {
     } else {
       // Asignar ref consecutivo si no viene uno
       if (!order.ref) {
+        await redis.set('krosha:order_seq', 1000, { nx: true });
         const seq = await redis.incr('krosha:order_seq');
-        order.ref = 'KP-' + String(seq).padStart(4, '0');
+        order.ref = 'KRO-' + seq;
       }
       if (!order.id) order.id = Date.now();
       orders.unshift(order);

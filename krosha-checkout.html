@@ -1299,7 +1299,7 @@ function enrichItemsWithDownloads(items){
 // ── SEND EMAIL ──
 async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef,_savedShipData){
   try{
-    const ref=orderRef||`KP-${Date.now().toString().slice(-6)}`;
+    const ref=orderRef||`KRO-${Date.now().toString().slice(-6)}`;
     const isPhys=hasPhysicalItems();
     const shipRate=_savedShipData?.rate||(isPhys?(_shipRates[_selRateIdx]||null):null);
     const shipPkg=_savedShipData?.pkg||(isPhys?_lastShipPackage:null);
@@ -1335,7 +1335,7 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef,_
     return{ref:d.orderRef||ref,downloadToken:d.downloadToken||null};
   }catch(e){
     console.log('Email error:',e);
-    return{ref:`KP-${Date.now().toString().slice(-6)}`,downloadToken:null};
+    return{ref:`KRO-${Date.now().toString().slice(-6)}`,downloadToken:null};
   }
 }
 
