@@ -299,6 +299,7 @@ PREMIER_BASIX_CATALOG.forEach(x=>{ CATALOG_MAP[x.b]=x.c; });
 let pin='', scanPin='', inventory={}, barcodes={}, mode='scan';
 let camStream=null, camActive=false, camActiveCount=false, detector=null;
 let lastScan=null, scanCooldown=false;
+let zxingReader=null, zxingControls=null;
 const history=[];
 
 // ── PIN ──
@@ -388,8 +389,7 @@ async function toggleCamera(panel){
   const active=isCount?camActiveCount:camActive;
   if(active){stopCamera(panel);return;}
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
-    video.srcObject=stream;
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
     wrap.style.display='block';
     btn.textContent='⏹ Detener cámara';btn.classList.add('active');
     if(isCount) camActiveCount=true; else {camActive=true;camStream=stream;}
@@ -399,8 +399,28 @@ async function toggleCamera(panel){
       if(track&&track.getCapabilities&&track.getCapabilities().torch) torchBtn.style.display='';
     }
     if('BarcodeDetector' in window){
+      video.srcObject=stream;
       if(!detector) detector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
       scanLoop(video,isCount);
+    } else if(window.ZXing){
+      if(!zxingReader) zxingReader=new ZXing.BrowserMultiFormatReader(null,300);
+      zxingControls=await zxingReader.decodeFromStream(stream,video,(result,err)=>{
+        if(!result||scanCooldown) return;
+        const code=result.getText();
+        scanCooldown=true;
+        setTimeout(()=>scanCooldown=false,2000);
+        if(isCount){
+          const color=barcodes[code]||CATALOG_MAP[code];
+          if(color) document.getElementById('count-color-sel').value=color;
+          else{pendingBarcode=code;openColorModal(code);}
+        }else{
+          document.getElementById('barcode-input').value=code;
+          processBarcode(code);
+        }
+      });
+    }else{
+      video.srcObject=stream;
+      alert('Tu navegador no detecta códigos de barras automáticamente.\nEscribe el código manualmente o usa el escáner Bluetooth.');
     }
   }catch(e){alert('No se pudo acceder a la cámara: '+e.message);}
 }
@@ -409,6 +429,7 @@ function stopCamera(panel){
   const wrap=document.getElementById(isCount?'cam-wrap-count':'cam-wrap');
   const video=document.getElementById(isCount?'cam-video-count':'cam-video');
   const btn=document.getElementById(isCount?'btn-cam-count':'btn-cam');
+  if(zxingControls){try{zxingControls.stop();}catch(e){}zxingControls=null;}
   if(video.srcObject){video.srcObject.getTracks().forEach(t=>t.stop());video.srcObject=null;}
   wrap.style.display='none';
   if(btn){btn.textContent=isCount?'📷 Escanear color':'📷 Activar cámara';btn.classList.remove('active');}
@@ -486,7 +507,7 @@ async function processBarcode(code){
           inventory[d2.color]=d2.newQty;
           addHistory(d2.color,'−1',d2.prev,d2.newQty);
           document.getElementById('barcode-input').value='';
-          vibrate();
+          vibrate();beep();
         }
         return;
       }
@@ -498,7 +519,7 @@ async function processBarcode(code){
       inventory[data.color]=data.newQty;
       addHistory(data.color,'−1',data.prev,data.newQty);
       document.getElementById('barcode-input').value='';
-      vibrate();
+      vibrate();beep();
     }
   }catch(e){showCard('Error de red','','','err');}
 }
@@ -556,7 +577,7 @@ async function saveCount(){
     card.style.display='block';
     addHistory(color,'=',data.prev,qty);
     buildColorSel();
-    vibrate();
+    vibrate();beep();
     setTimeout(()=>{card.style.display='none';},2500);
   }
 }
@@ -620,6 +641,20 @@ function renderHistory(){
 function clearHistory(){history.length=0;renderHistory();}
 
 function vibrate(){if(navigator.vibrate) navigator.vibrate(80);}
+function beep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.frequency.value=880;
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.25);
+    osc.start();osc.stop(ctx.currentTime+0.25);
+    setTimeout(()=>{try{ctx.close();}catch(e){}},400);
+  }catch(e){}
+}
 </script>
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 </body>
 </html>
