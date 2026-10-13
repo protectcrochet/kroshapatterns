@@ -10,9 +10,10 @@ export default async function handler(req, res) {
     token: process.env.UPSTASH_REDIS_REST_TOKEN,
   });
 
-  const expectedPin = process.env.SCAN_PIN || process.env.ADMIN_KEY || '';
+  const pinList = (process.env.SCAN_PINS || process.env.SCAN_PIN || process.env.ADMIN_KEY || '')
+    .split(',').map(p => p.trim()).filter(Boolean);
   const pin = req.headers['x-scan-pin'] || (req.body && req.body.pin) || '';
-  if (!expectedPin || pin !== expectedPin) return res.status(401).json({ error: 'PIN incorrecto' });
+  if (!pinList.length || !pinList.includes(pin)) return res.status(401).json({ error: 'PIN incorrecto' });
 
   const getInv = async () => {
     const raw = await redis.get('krosha:inventory');
