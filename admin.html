@@ -610,6 +610,32 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
         <div id="inv-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;"></div>
       </div>
+
+      <!-- Historial de movimientos -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <span style="font-size:16px;font-weight:700;color:var(--text);">📋 Historial de movimientos</span>
+          <input type="text" id="mov-color-f" placeholder="🔍 Color..." oninput="filterMovements()"
+            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-family:'Nunito',sans-serif;font-size:13px;width:150px;">
+          <select id="mov-op-f" onchange="filterMovements()"
+            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+            <option value="">Todos los tipos</option>
+            <option value="scan">⬇ Salida escaneo</option>
+            <option value="adjust">📦 Conteo manual</option>
+            <option value="undo">↩ Deshacer</option>
+          </select>
+          <select id="mov-pin-f" onchange="filterMovements()"
+            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
+            <option value="">Todos los PINs</option>
+          </select>
+          <button class="btn btn-outline btn-sm" onclick="loadMovements()">🔄 Cargar</button>
+          <button class="btn btn-outline btn-sm" onclick="exportMovementsCSV()">📥 CSV</button>
+          <span id="mov-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
+        </div>
+        <div id="mov-list" style="color:var(--text-light);font-size:13px;padding:12px 0;text-align:center;">
+          Clic en "Cargar" para ver el historial completo
+        </div>
+      </div>
     </div>
 
     <!-- ── ANÁLISIS ── -->
@@ -4797,6 +4823,94 @@ function closeMobileMenu(){document.getElementById('mobile-menu').style.display=
 ['prod-modal','order-modal','cust-modal','confirm-modal','mass-resend-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget){e.currentTarget.classList.remove('open');confirmCallback=null;}});
 });
+
+// ── HISTORIAL DE MOVIMIENTOS ──
+let allMovements=[];
+async function loadMovements(){
+  document.getElementById('mov-list').innerHTML='<div style="padding:20px;text-align:center;">Cargando...</div>';
+  try{
+    const r=await fetch('/api/inventory-movements',{headers:{'x-admin-key':getApiKey()}});
+    const data=await r.json();
+    allMovements=data.movements||[];
+    // Llenar filtro de PINs
+    const pins=[...new Set(allMovements.map(m=>m.pin).filter(Boolean))].sort();
+    const sel=document.getElementById('mov-pin-f');
+    sel.innerHTML='<option value="">Todos los PINs</option>'+pins.map(p=>`<option value="${p}">${p}</option>`).join('');
+    filterMovements();
+  }catch(e){
+    document.getElementById('mov-list').innerHTML='<div style="padding:12px;text-align:center;color:var(--red);">Error al cargar historial</div>';
+  }
+}
+function filterMovements(){
+  const colorQ=(document.getElementById('mov-color-f')?.value||'').toLowerCase();
+  const opQ=document.getElementById('mov-op-f')?.value||'';
+  const pinQ=document.getElementById('mov-pin-f')?.value||'';
+  let f=allMovements;
+  if(colorQ) f=f.filter(m=>m.color?.toLowerCase().includes(colorQ));
+  if(opQ) f=f.filter(m=>m.op===opQ);
+  if(pinQ) f=f.filter(m=>m.pin===pinQ);
+  renderMovements(f);
+}
+function renderMovements(movements){
+  document.getElementById('mov-summary').textContent=movements.length+' movimientos';
+  const opLabel={scan:'⬇ Salida',adjust:'📦 Conteo',undo:'↩ Deshecho'};
+  const opBg={scan:'#fee2e2',adjust:'#dcfce7',undo:'#fef9c3'};
+  const opFg={scan:'#dc2626',adjust:'#16a34a',undo:'#d97706'};
+  if(!movements.length){
+    document.getElementById('mov-list').innerHTML='<div style="padding:20px;text-align:center;color:var(--text-light);">Sin movimientos</div>';
+    return;
+  }
+  document.getElementById('mov-list').innerHTML=`
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="padding:8px 12px;text-align:left;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Fecha / Hora</th>
+          <th style="padding:8px 12px;text-align:left;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Color</th>
+          <th style="padding:8px 12px;text-align:left;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Tipo</th>
+          <th style="padding:8px 12px;text-align:right;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Antes</th>
+          <th style="padding:8px 12px;text-align:right;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Después</th>
+          <th style="padding:8px 12px;text-align:right;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">Cambio</th>
+          <th style="padding:8px 12px;text-align:left;color:var(--text-light);font-size:11px;text-transform:uppercase;font-weight:700;">PIN</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${movements.map(m=>{
+          const d=new Date(m.ts);
+          const fecha=d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'2-digit'});
+          const hora=d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+          const delta=(m.delta??0);
+          const deltaStr=(delta>0?'+':'')+delta;
+          const deltaColor=delta<0?'var(--red)':delta>0?'var(--green)':'var(--text-mid)';
+          return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:9px 12px;color:var(--text-light);white-space:nowrap;">${fecha} ${hora}</td>
+            <td style="padding:9px 12px;font-weight:600;">${m.color||'—'}</td>
+            <td style="padding:9px 12px;"><span style="background:${opBg[m.op]||'#f3f4f6'};color:${opFg[m.op]||'#666'};border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;">${opLabel[m.op]||m.op}</span></td>
+            <td style="padding:9px 12px;text-align:right;color:var(--text-light);">${m.prev??'—'}</td>
+            <td style="padding:9px 12px;text-align:right;font-weight:700;">${m.newQty??'—'}</td>
+            <td style="padding:9px 12px;text-align:right;font-weight:700;color:${deltaColor};">${deltaStr}</td>
+            <td style="padding:9px 12px;font-family:monospace;font-size:12px;color:var(--text-mid);">${m.pin||'—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>`;
+}
+function exportMovementsCSV(){
+  if(!allMovements.length) return alert('Carga el historial primero');
+  const hdr='Fecha,Hora,Color,Tipo,Anterior,Nuevo,Cambio,PIN';
+  const rows=allMovements.map(m=>{
+    const d=new Date(m.ts);
+    return[
+      d.toLocaleDateString('es-MX'),
+      d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}),
+      m.color||'',m.op||'',m.prev??'',m.newQty??'',m.delta??'',m.pin||''
+    ].join(',');
+  });
+  const csv=hdr+'\n'+rows.join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='movimientos-inventario.csv';a.click();
+}
 </script>
 <script type="module">
   try {

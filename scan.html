@@ -223,10 +223,24 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-
   <!-- HISTORY -->
   <div class="history-wrap" style="margin-top:12px;">
     <div class="history-header">
-      <span>Últimos movimientos</span>
-      <span class="history-clear" onclick="clearHistory()">Limpiar</span>
+      <span>Historial de movimientos</span>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="history-clear" onclick="loadServerHistory()" style="color:var(--pink);">🔄</span>
+        <span class="history-clear" onclick="clearHistoryView()">Limpiar vista</span>
+      </div>
     </div>
-    <div id="history-list"><div class="history-empty">Sin movimientos aún</div></div>
+    <div style="padding:8px 14px;border-bottom:1px solid var(--border);display:flex;gap:8px;">
+      <input type="text" id="hist-color-filter" placeholder="Filtrar color..." oninput="renderHistory()"
+        style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:12px;font-family:'Nunito',sans-serif;outline:none;">
+      <select id="hist-op-filter" onchange="renderHistory()"
+        style="border:1.5px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;font-family:'Nunito',sans-serif;">
+        <option value="">Todo</option>
+        <option value="−1">Salidas</option>
+        <option value="=">Conteos</option>
+        <option value="↩">Deshecho</option>
+      </select>
+    </div>
+    <div id="history-list"><div class="history-empty">Cargando historial...</div></div>
   </div>
 </div>
 
@@ -330,8 +344,8 @@ async function checkPin(silent){
       buildColorSel();
       renderHistory();
       document.getElementById('top-sub').textContent=Object.keys(inventory).length+' colores en inventario';
-      // Si el catálogo Premier Basix no está cargado, cargarlo antes de entrar
       if(Object.keys(barcodes).length < 90) await seedCatalog(scanPin);
+      loadServerHistory();
     }else{
       if(!silent) document.getElementById('pin-err').style.display='block';
       try{ localStorage.removeItem('krosha_scan_pin'); }catch(e){}
@@ -624,13 +638,39 @@ function pinSuffix(){return scanPin.length>=2?'**'+scanPin.slice(-2):'';}
 function addHistory(color,op,prev,newQty){
   const time=new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
   history.unshift({color,op,prev,newQty,time,pin:pinSuffix()});
-  if(history.length>20) history.pop();
+  renderHistory();
+}
+function serverToLocal(m){
+  const d=new Date(m.ts);
+  const today=new Date().toDateString()===d.toDateString();
+  const time=(today?'':d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'})+' ')+
+    d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+  const op=m.op==='scan'?'−1':m.op==='undo'?'↩':'=';
+  return{color:m.color,op,prev:m.prev,newQty:m.newQty,time,pin:m.pin};
+}
+async function loadServerHistory(){
+  document.getElementById('history-list').innerHTML='<div class="history-empty">Cargando...</div>';
+  try{
+    const r=await fetch('/api/scan-inventory',{method:'POST',
+      headers:{'Content-Type':'application/json','x-scan-pin':scanPin},
+      body:JSON.stringify({action:'history',limit:100})});
+    const data=await r.json();
+    if(data.movements){
+      history.length=0;
+      data.movements.forEach(m=>history.push(serverToLocal(m)));
+    }
+  }catch(e){}
   renderHistory();
 }
 function renderHistory(){
+  const colorQ=(document.getElementById('hist-color-filter')?.value||'').toLowerCase();
+  const opQ=document.getElementById('hist-op-filter')?.value||'';
   const el=document.getElementById('history-list');
-  if(!history.length){el.innerHTML='<div class="history-empty">Sin movimientos aún</div>';return;}
-  el.innerHTML=history.map(h=>`<div class="history-item">
+  let filtered=history;
+  if(colorQ) filtered=filtered.filter(h=>h.color?.toLowerCase().includes(colorQ));
+  if(opQ) filtered=filtered.filter(h=>h.op===opQ);
+  if(!filtered.length){el.innerHTML='<div class="history-empty">Sin movimientos</div>';return;}
+  el.innerHTML=filtered.slice(0,80).map(h=>`<div class="history-item">
     <div>
       <div class="history-color">${h.color}</div>
       <div class="history-meta">${h.time}${h.pin?' · '+h.pin:''}</div>
@@ -638,7 +678,7 @@ function renderHistory(){
     <div class="history-qty ${h.op==='='?'set':'minus'}">${h.op==='='?'= '+h.newQty:h.op+' → '+h.newQty}</div>
   </div>`).join('');
 }
-function clearHistory(){history.length=0;renderHistory();}
+function clearHistoryView(){history.length=0;renderHistory();}
 
 function vibrate(){if(navigator.vibrate) navigator.vibrate(80);}
 function beep(){
