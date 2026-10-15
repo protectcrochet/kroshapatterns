@@ -615,13 +615,20 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
           <span style="font-size:16px;font-weight:700;color:var(--text);">📋 Historial de movimientos</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <button class="btn btn-sm" id="mov-quick-today" onclick="setMovDay('today')" style="background:var(--pink-dark);color:#fff;border:none;">Hoy</button>
+            <button class="btn btn-sm" id="mov-quick-week" onclick="setMovDay('week')" style="background:var(--white);border:1.5px solid var(--border);">7 días</button>
+            <button class="btn btn-sm" id="mov-quick-all" onclick="setMovDay('all')" style="background:var(--white);border:1.5px solid var(--border);">Todo</button>
+          </div>
+          <input type="date" id="mov-date-f" onchange="filterMovements()"
+            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
           <input type="text" id="mov-color-f" placeholder="🔍 Color..." oninput="filterMovements()"
-            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-family:'Nunito',sans-serif;font-size:13px;width:150px;">
+            style="border:1.5px solid var(--border);border-radius:10px;padding:7px 12px;font-family:'Nunito',sans-serif;font-size:13px;width:140px;">
           <select id="mov-op-f" onchange="filterMovements()"
             style="border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;font-family:'Nunito',sans-serif;font-size:13px;">
             <option value="">Todos los tipos</option>
-            <option value="scan">⬇ Salida escaneo</option>
-            <option value="adjust">📦 Conteo manual</option>
+            <option value="scan">⬇ Salida</option>
+            <option value="adjust">📦 Conteo</option>
             <option value="undo">↩ Deshacer</option>
           </select>
           <select id="mov-pin-f" onchange="filterMovements()"
@@ -4825,27 +4832,49 @@ function closeMobileMenu(){document.getElementById('mobile-menu').style.display=
 });
 
 // ── HISTORIAL DE MOVIMIENTOS ──
-let allMovements=[];
+let allMovements=[], movDayMode='today';
 async function loadMovements(){
   document.getElementById('mov-list').innerHTML='<div style="padding:20px;text-align:center;">Cargando...</div>';
   try{
     const r=await fetch('/api/inventory-movements',{headers:{'x-admin-key':getApiKey()}});
     const data=await r.json();
     allMovements=data.movements||[];
-    // Llenar filtro de PINs
     const pins=[...new Set(allMovements.map(m=>m.pin).filter(Boolean))].sort();
     const sel=document.getElementById('mov-pin-f');
     sel.innerHTML='<option value="">Todos los PINs</option>'+pins.map(p=>`<option value="${p}">${p}</option>`).join('');
-    filterMovements();
+    // Poner fecha de hoy en el datepicker
+    const today=new Date().toISOString().slice(0,10);
+    document.getElementById('mov-date-f').value=today;
+    setMovDay('today');
   }catch(e){
     document.getElementById('mov-list').innerHTML='<div style="padding:12px;text-align:center;color:var(--red);">Error al cargar historial</div>';
   }
+}
+function setMovDay(mode){
+  movDayMode=mode;
+  const today=new Date().toISOString().slice(0,10);
+  ['today','week','all'].forEach(k=>{
+    const btn=document.getElementById('mov-quick-'+k);
+    if(btn) btn.style.background=k===mode?'var(--pink-dark)':'var(--white)';
+    if(btn) btn.style.color=k===mode?'#fff':'var(--text)';
+  });
+  if(mode==='today') document.getElementById('mov-date-f').value=today;
+  if(mode!=='today') document.getElementById('mov-date-f').value='';
+  filterMovements();
 }
 function filterMovements(){
   const colorQ=(document.getElementById('mov-color-f')?.value||'').toLowerCase();
   const opQ=document.getElementById('mov-op-f')?.value||'';
   const pinQ=document.getElementById('mov-pin-f')?.value||'';
+  const dateV=document.getElementById('mov-date-f')?.value||'';
   let f=allMovements;
+  if(movDayMode==='today'||dateV){
+    const target=dateV||new Date().toISOString().slice(0,10);
+    f=f.filter(m=>new Date(m.ts).toISOString().slice(0,10)===target);
+  } else if(movDayMode==='week'){
+    const since=Date.now()-7*24*60*60*1000;
+    f=f.filter(m=>m.ts>=since);
+  }
   if(colorQ) f=f.filter(m=>m.color?.toLowerCase().includes(colorQ));
   if(opQ) f=f.filter(m=>m.op===opQ);
   if(pinQ) f=f.filter(m=>m.pin===pinQ);
