@@ -67,6 +67,17 @@ export default async function handler(req, res) {
           }
         }
 
+        // Dedup por email+total en ventana de 5 minutos (captura carreras entre solicitudes simultáneas)
+        const fiveMin = 5 * 60 * 1000;
+        const recentDup = orders.find(o =>
+          o.email === customerEmail &&
+          String(o.total) === String(total) &&
+          new Date(o.date || 0) > new Date(Date.now() - fiveMin)
+        );
+        if (recentDup) {
+          return res.status(200).json({ success: true, orderRef: recentDup.ref, duplicate: true });
+        }
+
         // Asignar número consecutivo
         await redis.set('krosha:order_seq', 1000, { nx: true });
         const seq = await redis.incr('krosha:order_seq');
@@ -326,7 +337,13 @@ export default async function handler(req, res) {
 
       const raw = await redis.get('krosha:orders');
       const orders = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
-      const isNewOrder = !orders.find(o => o.ref === ref);
+      const fiveMin2 = 5 * 60 * 1000;
+      const isNewOrder = !orders.find(o =>
+        o.ref === ref ||
+        (clientRef && (o.clientRef === clientRef || o.ref === clientRef)) ||
+        (o.email === customerEmail && String(o.total) === String(total) &&
+          new Date(o.date || 0) > new Date(Date.now() - fiveMin2))
+      );
       if (isNewOrder) {
         orders.unshift({
           id: Date.now(),

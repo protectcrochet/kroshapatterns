@@ -1297,9 +1297,17 @@ function enrichItemsWithDownloads(items){
 }
 
 // ── SEND EMAIL ──
+// Guard: prevents duplicate confirmation calls within the same page session
+let _emailSentRef=null;
 async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef,_savedShipData){
+  if(_emailSentRef){
+    // Already sent in this session — return the ref we already have
+    console.warn('[krosha] Duplicate confirmation prevented, ref:',_emailSentRef);
+    return{ref:_emailSentRef,downloadToken:null};
+  }
+  const ref=orderRef||`KRO-${Date.now().toString().slice(-6)}`;
+  _emailSentRef=ref; // lock before the async call to block any concurrent duplicate
   try{
-    const ref=orderRef||`KRO-${Date.now().toString().slice(-6)}`;
     const isPhys=hasPhysicalItems();
     const shipRate=_savedShipData?.rate||(isPhys?(_shipRates[_selRateIdx]||null):null);
     const shipPkg=_savedShipData?.pkg||(isPhys?_lastShipPackage:null);
@@ -1334,8 +1342,9 @@ async function sendConfirmationEmail(email,name,items,total,payMethod,orderRef,_
     }
     return{ref:d.orderRef||ref,downloadToken:d.downloadToken||null};
   }catch(e){
+    _emailSentRef=null; // unlock on network error so retry works
     console.log('Email error:',e);
-    return{ref:`KRO-${Date.now().toString().slice(-6)}`,downloadToken:null};
+    return{ref,downloadToken:null};
   }
 }
 
