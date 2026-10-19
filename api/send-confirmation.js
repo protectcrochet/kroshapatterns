@@ -370,6 +370,7 @@ export default async function handler(req, res) {
         const invRaw = await redis.get('krosha:inventory');
         let inv = invRaw ? (typeof invRaw === 'string' ? JSON.parse(invRaw) : invRaw) : {};
         let invChanged = false;
+        const saleMovements = [];
         for (const item of items) {
           // Use type from cart item first, fallback to Redis product data
           const prod = allProds.find(p => String(p.id) === String(item.id));
@@ -382,6 +383,7 @@ export default async function handler(req, res) {
             const cur = typeof inv[yarnColorName] === 'number' ? inv[yarnColorName] : parseInt(inv[yarnColorName]) || 0;
             inv[yarnColorName] = Math.max(0, cur - (item.qty || 1));
             invChanged = true;
+            saleMovements.push({ ts: Date.now(), color: yarnColorName, op: 'venta', delta: inv[yarnColorName] - cur, prev: cur, newQty: inv[yarnColorName], pin: 'Venta', note: ref });
             console.log(`[send-confirmation] Inventory -${item.qty||1} "${yarnColorName}" → ${inv[yarnColorName]}`);
             continue;
           }
@@ -393,6 +395,7 @@ export default async function handler(req, res) {
               const curStock = typeof inv[y.color] === 'number' ? inv[y.color] : parseInt(inv[y.color]) || 0;
               inv[y.color] = Math.max(0, curStock - (y.qty || 1));
               invChanged = true;
+              saleMovements.push({ ts: Date.now(), color: y.color, op: 'venta', delta: inv[y.color] - curStock, prev: curStock, newQty: inv[y.color], pin: 'Venta', note: ref });
               console.log(`[send-confirmation] Inventory -${y.qty||1} "${y.color}" (kit ${item.title}) → ${inv[y.color]}`);
             }
           }
@@ -408,6 +411,7 @@ export default async function handler(req, res) {
                   const curStock = typeof inv[color] === 'number' ? inv[color] : parseInt(inv[color]) || 0;
                   inv[color] = Math.max(0, curStock - qty);
                   invChanged = true;
+                  saleMovements.push({ ts: Date.now(), color, op: 'venta', delta: inv[color] - curStock, prev: curStock, newQty: inv[color], pin: 'Venta', note: ref });
                   console.log(`[send-confirmation] Inventory -${qty} "${color}" (customKit:${sectionKey}) → ${inv[color]}`);
                 }
               }
@@ -417,6 +421,14 @@ export default async function handler(req, res) {
         if (invChanged) {
           await redis.set('krosha:inventory', JSON.stringify(inv));
           console.log('[send-confirmation] Inventory saved for order', ref);
+        }
+        if (saleMovements.length > 0) {
+          const movRaw = await redis.get('krosha:movements');
+          const movements = movRaw ? (typeof movRaw === 'string' ? JSON.parse(movRaw) : movRaw) : [];
+          for (const m of saleMovements) movements.unshift(m);
+          if (movements.length > 1000) movements.length = 1000;
+          await redis.set('krosha:movements', JSON.stringify(movements));
+          console.log(`[send-confirmation] Logged ${saleMovements.length} sale movements for order ${ref}`);
         }
       }
     } catch (redisErr) {
