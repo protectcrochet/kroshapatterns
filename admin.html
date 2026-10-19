@@ -3212,8 +3212,11 @@ function viewOrder(refOrId){
             return null;
           };
           const isYarnItem=(item.img&&item.img.startsWith('yarn:'))||(item.title&&item.title.startsWith('Estambre '));
+          const isCK=item.type==='customkit';
           let imgHtml='';
-          if(isYarnItem){
+          if(isCK){
+            imgHtml=`<div style="width:38px;height:38px;border-radius:8px;background:#FFF0F5;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1.5px solid var(--border);">🎀</div>`;
+          } else if(isYarnItem){
             const colorName=extractColorName(item.title);
             const yarnFile=colorName&&ADMIN_COLOR_IMGS[colorName];
             if(yarnFile){
@@ -3229,13 +3232,37 @@ function viewOrder(refOrId){
           } else {
             imgHtml=`<div style="width:38px;height:38px;border-radius:8px;background:var(--pink-mid);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📦</div>`;
           }
-          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-            ${imgHtml}
-            <div style="flex:1;min-width:0;">
-              <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>
-              <div style="font-size:11px;color:var(--text-light);">×${qty}${price?' · '+price:''}</div>
+          // Detalle de colores del kit personalizado
+          const ckDetail=(isCK&&item.customKit)?`
+            <div style="margin-top:8px;padding:10px 12px;background:#FFF5F9;border-radius:10px;border:1px solid var(--border);">
+              ${['piel','cabello','vestido','forro','rosas'].map(sec=>{
+                const v=item.customKit[sec];if(!v)return'';
+                const arr=Array.isArray(v)?v:[v];
+                const valid=arr.filter(e=>e&&e.color);if(!valid.length)return'';
+                const ckHex={'White':'#FFFFFF','Cream':'#FFF8DC','Ecru':'#F5F0E8','Linen':'#FAF0E6','Aran':'#E8D5B7','Sand':'#E8D5B0','Warm Beige':'#D4B896','Camel':'#C19A6B','Hazel':'#8E7455','Nutmeg':'#8C4E2A','Gold':'#FFD700','Mustard':'#FFDB58','Orange':'#FF8C00','Coral':'#FF7F50','Peach':'#FFDAB9','Salmon':'#FA8072','Red':'#DC143C','Cherry Red':'#9B1B30','Crimson':'#B22222','Garnet':'#6D1A36','Burgundy':'#800020','Blush':'#FFB6C1','Pink':'#FFC0CB','Hot Pink':'#FF69B4','Taffy':'#FF8FAB','Rose':'#FF007F','Raspberry':'#E30B5C','Fuchsia':'#FF00FF','Orchid':'#DA70D6','Lilac':'#B57BCC','Mauve':'#D4869E','Purple':'#800080','Violet':'#8B00FF','Eggplant':'#614051','Navy':'#001F5B','Royal Blue':'#4169E1','Blue':'#2962FF','Sky Blue':'#87CEEB','Light Blue':'#ADD8E6','Powder Blue':'#B0E0E6','Teal':'#008080','Turquoise':'#40E0D0','Aqua':'#00CED1','Mint':'#98FF98','Sage':'#BCB88A','Green':'#008000','Forest':'#228B22','Chocolate':'#7B3F00','Cocoa':'#4A2C2A','Brown':'#8B4513','Charcoal':'#36454F','Grey':'#9E9E9E','Silver':'#C0C0C0','Black':'#1A1A1A'};
+                const labels={piel:'🎨 Piel',cabello:'💇 Cabello',vestido:'👗 Vestido',forro:'🪡 Forro',rosas:'🌸 Rosas'};
+                const dots=valid.map(e=>{
+                  const hex=ckHex[e.color]||'#ccc';
+                  return `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:20px;background:${hex}33;border:1px solid ${hex}88;font-size:11px;font-weight:700;color:var(--text);">
+                    <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${hex};border:1px solid rgba(0,0,0,.15);"></span>${e.color}${(e.qty||1)>1?' ×'+(e.qty):''}
+                  </span>`;
+                }).join(' ');
+                return `<div style="display:flex;align-items:flex-start;gap:8px;padding:3px 0;">
+                  <span style="min-width:65px;font-size:10px;font-weight:800;color:var(--text-light);text-transform:uppercase;padding-top:4px;flex-shrink:0;">${labels[sec]||sec}</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:4px;">${dots}</div>
+                </div>`;
+              }).filter(Boolean).join('')}
+            </div>`:'' ;
+          return `<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              ${imgHtml}
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:600;color:var(--text);">${title}</div>
+                <div style="font-size:11px;color:var(--text-light);">×${qty}${price?' · '+price:''}</div>
+              </div>
+              <div style="font-size:18px;cursor:pointer;color:var(--text-light);" onclick="this.textContent=this.textContent==='☑️'?'🔲':'☑️'" title="Marcar preparado">🔲</div>
             </div>
-            <div style="font-size:18px;cursor:pointer;color:var(--text-light);" onclick="this.textContent=this.textContent==='☑️'?'🔲':'☑️'" title="Marcar preparado">🔲</div>
+            ${ckDetail}
           </div>`;
         }).join('');
       })()}
