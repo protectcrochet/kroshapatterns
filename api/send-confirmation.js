@@ -65,6 +65,22 @@ export default async function handler(req, res) {
             if (updated) await redis.set('krosha:orders', JSON.stringify(orders));
             return res.status(200).json({ success: true, orderRef: existing.ref, duplicate: true });
           }
+
+          // Lock atómico: evita race condition entre webhook y browser redirect del mismo pago
+          // (p.ej. MP llama webhook Y redirige al browser casi simultáneamente con el mismo KP-ref)
+          const lockKey = `krosha:claimed:${clientRef}`;
+          const claimed = await redis.set(lockKey, 'processing', { nx: true, ex: 120 });
+          if (!claimed) {
+            // Otro request ya está procesando este ref — esperar hasta 4s para obtener el KRO asignado
+            for (let attempt = 0; attempt < 4; attempt++) {
+              await new Promise(r => setTimeout(r, 1000));
+              const winRef = await redis.get(lockKey);
+              if (winRef && winRef !== 'processing') {
+                return res.status(200).json({ success: true, orderRef: winRef, duplicate: true });
+              }
+            }
+            return res.status(200).json({ success: true, orderRef: clientRef, duplicate: true });
+          }
         }
 
         // Dedup por email+total en ventana de 5 minutos (captura carreras entre solicitudes simultáneas)
@@ -82,6 +98,10 @@ export default async function handler(req, res) {
         await redis.set('krosha:order_seq', 1000, { nx: true });
         const seq = await redis.incr('krosha:order_seq');
         ref = 'KRO-' + seq;
+        // Actualizar lock con el KRO real para que el proceso perdedor lo pueda leer
+        if (clientRef) {
+          await redis.set(`krosha:claimed:${clientRef}`, ref, { ex: 120 });
+        }
       } catch (e) {
         // Fallback si Redis falla
         ref = `KRO-${Date.now().toString().slice(-6)}`;
