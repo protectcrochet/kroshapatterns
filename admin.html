@@ -1643,12 +1643,12 @@ function yarnColorsToList(yc){
   return order.map(color=>({color,qty:counts[color]}));
 }
 
-function addYarnRow(color='',qty=1){
+function addYarnRow(color='',qty=1,optional=false){
   const list=document.getElementById('yarn-list-editor');
   document.getElementById('yarn-empty-hint').style.display='none';
   const row=document.createElement('div');
   row.setAttribute('data-yarn-row','1');
-  row.style.cssText='display:flex;align-items:center;gap:8px;';
+  row.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;';
   const img=color?getAdminYarnImg(color):null;
   const dotHtml=img?`<img src="${img}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" onerror="this.style.display='none'">`:'';
   const dotBg=img?'transparent':'#ddd';
@@ -1662,6 +1662,10 @@ function addYarnRow(color='',qty=1){
     <span style="font-size:13px;color:var(--text-light);">×</span>
     <input type="number" value="${qty}" min="1" max="20" style="width:58px;border:1.5px solid var(--border);border-radius:8px;padding:8px;text-align:center;font-family:'Nunito',sans-serif;font-size:13px;">
     <span style="font-size:12px;color:var(--text-light);white-space:nowrap;">ovillo(s)</span>
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-light);white-space:nowrap;cursor:pointer;user-select:none;" title="Marcar si se usa muy poco gramaje (solo para detalles pequeños)">
+      <input type="checkbox" class="yarn-optional-val" ${optional?'checked':''} style="cursor:pointer;">
+      Opcional*
+    </label>
     <button onclick="removeYarnRow(this)" style="background:var(--red-light);color:var(--red);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>`;
   list.appendChild(row);
 }
@@ -1675,7 +1679,8 @@ function removeYarnRow(btn){
 function getYarnList(){
   return Array.from(document.querySelectorAll('#yarn-list-editor > div')).map(row=>({
     color:row.querySelector('.yarn-color-val')?.value||row.querySelector('select')?.value||'',
-    qty:parseInt(row.querySelector('input[type=number]').value)||1
+    qty:parseInt(row.querySelector('input[type=number]').value)||1,
+    optional:!!(row.querySelector('.yarn-optional-val')?.checked)
   })).filter(i=>i.color);
 }
 
@@ -1933,7 +1938,7 @@ function openKitYarnEditor(kitId){
   if(targetProd){
     const yc=targetProd.yarnColors||(defaultYarnColors[targetProd.id])||{};
     const yl=targetProd.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
-    yl.forEach(item=>addKitYarnRow(item.color,item.qty,item.price||150));
+    yl.forEach(item=>addKitYarnRow(item.color,item.qty,item.price||150,item.optional||false));
     // Cargar configuración de ojos
     const eyesOn=!!(targetProd.eyesPrice>0);
     document.getElementById('kit-eyes-enabled').checked=eyesOn;
@@ -1954,7 +1959,7 @@ function closeKitYarnModal(){
   _editingKitPatternId=null;
 }
 
-function addKitYarnRow(color='',qty=1,price=150){
+function addKitYarnRow(color='',qty=1,price=150,optional=false){
   const container=document.getElementById('kit-yarn-list-editor');
   document.getElementById('kit-yarn-empty-hint').style.display='none';
   const row=document.createElement('div');
@@ -1977,6 +1982,10 @@ function addKitYarnRow(color='',qty=1,price=150){
       <option value="150" ${price===150?'selected':''}>Premier 200g — $150</option>
       <option value="65" ${price===65?'selected':''}>Sinfonía 100g — $65</option>
     </select>
+    <label style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--text-light);white-space:nowrap;cursor:pointer;user-select:none;" title="Marcar si se usa muy poco gramaje (solo para detalles pequeños)">
+      <input type="checkbox" class="yarn-optional-val" ${optional?'checked':''} style="cursor:pointer;">
+      Opcional*
+    </label>
     <button onclick="removeKitYarnRow(this)" style="background:var(--red-light);color:var(--red);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;flex-shrink:0;">✕</button>`;
   container.appendChild(row);
 }
@@ -2041,7 +2050,8 @@ function getKitYarnList(){
   return Array.from(document.querySelectorAll('#kit-yarn-list-editor > div')).map(row=>({
     color:row.querySelector('.yarn-color-val')?.value||'',
     qty:parseInt(row.querySelector('input[type=number]').value)||1,
-    price:parseInt(row.querySelector('.yarn-price-val')?.value||'150')||150
+    price:parseInt(row.querySelector('.yarn-price-val')?.value||'150')||150,
+    optional:!!(row.querySelector('.yarn-optional-val')?.checked)
   })).filter(i=>i.color);
 }
 
@@ -2413,7 +2423,7 @@ function editProd(id){
   document.getElementById('yarn-empty-hint').style.display='block';
   const yc=p.yarnColors||(defaultYarnColors[p.id])||{};
   const yl=p.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
-  yl.forEach(item=>addYarnRow(item.color,item.qty));
+  yl.forEach(item=>addYarnRow(item.color,item.qty,item.optional||false));
   (p.images||[]).forEach((url,i)=>{
     const inp=document.getElementById(`pf-img${i+1}`);
     const prev=document.getElementById(`img-prev-${i+1}`);

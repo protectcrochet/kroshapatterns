@@ -1310,19 +1310,22 @@ function openM(id){
         :stock<=3&&stock<999
         ?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Últimos ${stock}</span>`
         :'';
+      const optLabel=item.optional?`<span style="font-size:9.5px;background:var(--pink-mid);color:var(--pink-dark);padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;margin-left:4px;">Opcional*</span>`:'';
       return `<div class="addon-row${oos?' agotado':''}" id="yarn-addon-${key}" ${oos?'':`onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})"`} style="${oos?'opacity:.55;cursor:not-allowed;':''}">
         <div class="addon-cb" id="yarn-cb-${key}"></div>
         ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <div class="addon-info">
-          <strong>${item.color}</strong>
+          <strong>${item.color}</strong>${optLabel}
           <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · ${yarnGrams(item.color)}g</span>
         </div>
         ${stockBadge||`<span class="addon-price">+${f(price)}</span>`}
       </div>`;
     }).join('');
+    const hasOpt2=yl.some(i=>i.optional);
     yarnSec.innerHTML=`<div class="addon-section">
       <div class="addon-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
       ${rows}
+      ${hasOpt2?`<p style="font-size:10.5px;color:var(--text-light);margin-top:8px;font-style:italic;">*Se usa muy poco gramaje para detalles</p>`:''}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec){yarnSec.style.display='none';}
