@@ -1508,7 +1508,7 @@ function addToCart(){
   // Kit de estambres: agregar el kit, y opcionalmente el patrón digital
   if(curProd.isYarnKit){
     const existing=cart.find(i=>i.id===curProd.id);
-    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:'estambres',shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
+    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:'estambres',yarnList:curProd.yarnList||null,shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
     if(addPatternToKit&&curProd.patternId){
       const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd){
@@ -1535,7 +1535,7 @@ function addToCart(){
   if(addonKit&&curProd.kitPrice){
     const kitId=`${curProd.id}-kit`;
     const ekit=cart.find(i=>i.id===kitId);
-    if(ekit)ekit.qty++;else cart.push({id:kitId,title:`Kit Estambres — ${curProd.title}`,price:curProd.kitPrice,img:curProd.images[0]||'',qty:1,shipSubsidy:curProd.kitShipSubsidy||0});
+    if(ekit)ekit.qty++;else cart.push({id:kitId,title:`Kit Estambres — ${curProd.title}`,price:curProd.kitPrice,img:curProd.images[0]||'',qty:1,type:'estambres',yarnList:curProd.yarnList||null,shipSubsidy:curProd.kitShipSubsidy||0});
   }
   if(addonEyes&&curProd.eyesPrice){
     const eyesId=`${curProd.id}-eyes`;
