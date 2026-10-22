@@ -939,9 +939,8 @@ function generateYarnKits(patternProds){
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
-    const kitStock=getStock('kit_'+kitId);
-    const anyYarnOut=yl.some(i=>isOutOfStock(i.color));
-    const isSoldOut=kitStock===0||anyYarnOut;
+    const kitStockVal=_inventory['kit_'+kitId]; // undefined = no rastreado explícitamente
+    const isSoldOut=kitStockVal===0||(kitStockVal===undefined&&yl.some(i=>isOutOfStock(i.color)));
     result.push({
       id:kitId,
       title:`Kit Estambres ${shortName}`,
