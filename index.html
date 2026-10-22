@@ -885,7 +885,7 @@ function _mapProducts(arr){
       descEn:p.descEn||'',
       yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
       yarnList:p.yarnList||null,
-      isYarnKit:!!p.isYarnKit,
+      isYarnKit:!!(p.isYarnKit||(p.type==='kits'&&Array.isArray(p.yarnList)&&p.yarnList.length>0)),
       patternId:p.patternId||null,
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
@@ -1998,7 +1998,7 @@ function renderCustomKitSection(){
 function renderKitSectionGrid(){
   const grid=document.getElementById('kit-si-grid');
   if(!grid)return;
-  const kits=getProducts().filter(p=>p.type==='estambres'||p.type==='hilo').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  const kits=getProducts().filter(p=>p.type==='estambres'||p.type==='hilo'||(p.type==='kits'&&Array.isArray(p.yarnList)&&p.yarnList.length>0)).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   const wish=getWish();
   if(!kits.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:14px;">Próximamente kits disponibles 🧶</div>';
