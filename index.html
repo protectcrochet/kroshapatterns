@@ -415,6 +415,17 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 .order-card .oc-ref{font-weight:700;color:var(--pink-dark);margin-bottom:4px;}
 .order-card .oc-items{color:var(--text-mid);margin-bottom:4px;}
 .order-card .oc-date{color:var(--text-light);font-size:11px;}
+/* KIT ESTAMBRES INLINE SECTION */
+.ksi-section{background:linear-gradient(180deg,var(--blush) 0%,var(--white) 100%);padding:48px 2rem 56px;}
+.ksi-inner{max-width:1200px;margin:0 auto;}
+.ksi-header{text-align:center;margin-bottom:36px;}
+.ksi-title{font-family:'Fraunces',serif;font-size:32px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.ksi-title em{color:var(--pink-dark);font-style:italic;}
+.ksi-sub{font-size:14px;color:var(--text-light);}
+.ksi-grid{margin-bottom:8px;}
+.ksi-divider{text-align:center;margin:40px 0 32px;position:relative;}
+.ksi-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border);}
+.ksi-divider span{position:relative;background:linear-gradient(180deg,var(--blush) 0%,var(--white) 100%);padding:0 20px;font-size:13px;color:var(--text-light);font-weight:700;}
 </style>
 </head>
 <body>
@@ -530,7 +541,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
       <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Krosha.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha.</p>
       <div class="hero-btns">
         <a href="#productos" onclick="navFilter('patrones')" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
-        <a href="#productos" onclick="navFilter('estambres')" class="btn-sec" data-es="Kit Estambres 🧶" data-en="Yarn Kits 🧶">Kit Estambres 🧶</a>
+        <a href="#kit-estambres-section" class="btn-sec" data-es="Kit Estambres 🧶" data-en="Yarn Kits 🧶">Kit Estambres 🧶</a>
         <button onclick="openKitModal()" class="btn-sec" data-es="Crea tu Kit ✨" data-en="Build Your Kit ✨">Crea tu Kit ✨</button>
       </div>
     </div>
@@ -570,15 +581,34 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
   <div id="novedades-wrap" class="nov-wrap" style="position:relative;z-index:1;"></div>
 </div>
 
-<!-- KIT CTA -->
-<div id="kit-cta-section" style="display:none;">
-  <div class="kit-cta-band">
-    <div class="bow-tag" style="margin:0 auto 14px;">🎨 <span data-es="Kit Personalizado" data-en="Custom Kit">Kit Personalizado</span></div>
-    <h2 data-es="Diseña tu muñeca ideal" data-en="Design your perfect doll">Diseña tu muñeca ideal</h2>
-    <p data-es="Elige cada color y crea tu kit único de estambres" data-en="Choose each color and create your unique yarn kit">Elige cada color y crea tu kit único de estambres</p>
-    <button class="ckit-start-btn" onclick="openKitModal()" data-es="✨ Arma tu Kit" data-en="✨ Build Your Kit">✨ Arma tu Kit</button>
+<!-- KIT ESTAMBRES SECTION -->
+<section id="kit-estambres-section" class="ksi-section">
+  <div class="ksi-inner">
+    <div class="ksi-header">
+      <div class="bow-tag" style="display:inline-flex;margin-bottom:14px;">🧶 <span data-es="Kit de Estambres" data-en="Yarn Kits">Kit de Estambres</span></div>
+      <h2 class="ksi-title">Elige tu <em>kit</em> favorito</h2>
+      <p class="ksi-sub" data-es="Todos los hilos del personaje en un solo paquete — listo para tejer" data-en="All character yarns in one package — ready to crochet">Todos los hilos del personaje en un solo paquete — listo para tejer</p>
+    </div>
+    <div id="kit-si-grid" class="pgrid ksi-grid"></div>
+    <div id="kit-cta-section" style="display:none;">
+      <div class="ksi-divider"><span data-es="¿Tu personaje no está? Crea un kit a tu medida" data-en="Don't see your character? Build a custom kit">¿Tu personaje no está? Crea un kit a tu medida</span></div>
+      <div class="ckit-inner">
+        <div class="bow-tag" style="margin-bottom:14px;">🎨 <span data-es="Kit Personalizado" data-en="Custom Kit">Kit Personalizado</span></div>
+        <h2 class="ckit-section-title">Crea tu propio <em>Kit</em></h2>
+        <p class="ckit-section-sub">Personaliza tu muñeca eligiendo el color de cada parte — solo mostramos colores en stock</p>
+        <div id="ckit-start" class="ckit-start-card">
+          <div class="ckit-start-icon">🧶</div>
+          <h3 class="ckit-start-title">¡Diseña tu muñeca ideal!</h3>
+          <p class="ckit-start-desc">Elige el color de piel, cabello, vestido, forro y rosas. Solo mostramos colores disponibles en stock.</p>
+          <button class="ckit-start-btn" onclick="ckStartBuilder()" data-es="✨ Empezar a personalizar" data-en="✨ Start customizing">✨ Empezar a personalizar</button>
+        </div>
+        <div id="ckit-body" style="display:none;"></div>
+        <div id="ckit-summary" class="ckit-summary" style="display:none;"></div>
+        <button id="ckit-add-btn" class="ckit-btn" onclick="addCustomKitToCart()" style="display:none;">🛍 Agregar al carrito</button>
+      </div>
+    </div>
   </div>
-</div>
+</section>
 
 <!-- FILTER + PRODUCTS -->
 <div id="productos" class="filter-wrap">
@@ -598,27 +628,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 </div>
 
 <div class="pgrid" id="pgrid"></div>
-
-<!-- KIT MODAL -->
-<div id="ck-modal-overlay" class="ck-modal-overlay" style="display:none;" onclick="if(event.target===this)closeKitModal()">
-  <div class="ck-modal-panel">
-    <button class="ck-modal-close" onclick="closeKitModal()" aria-label="Cerrar">✕</button>
-    <div class="ckit-inner">
-      <div class="bow-tag" style="margin-bottom:14px;">🎨 <span>Kit Personalizado</span></div>
-      <h2 class="ckit-section-title">Crea tu propio <em>Kit</em></h2>
-      <p class="ckit-section-sub">Personaliza tu muñeca eligiendo el color de cada parte — solo mostramos colores en stock</p>
-      <div id="ckit-start" class="ckit-start-card">
-        <div class="ckit-start-icon">🧶</div>
-        <h3 class="ckit-start-title">¡Diseña tu muñeca ideal!</h3>
-        <p class="ckit-start-desc">Elige el color de piel, cabello, vestido, forro y rosas. Solo mostramos colores disponibles en stock.</p>
-        <button class="ckit-start-btn" onclick="ckStartBuilder()">✨ Empezar a personalizar</button>
-      </div>
-      <div id="ckit-body" style="display:none;"></div>
-      <div id="ckit-summary" class="ckit-summary" style="display:none;"></div>
-      <button id="ckit-add-btn" class="ckit-btn" onclick="addCustomKitToCart()" style="display:none;">🛍 Agregar al carrito</button>
-    </div>
-  </div>
-</div>
 
 <!-- NEWSLETTER -->
 <section class="newsletter reveal">
@@ -1035,6 +1044,13 @@ const defaultProducts=[
   {id:37,handle:'giraffe-pattern',title:'Giraffe Crochet Pattern',titleEn:'Giraffe Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/be0e8deb-3660-4651-abde-756e0ebc10cb.jpg?v=1700528145'],desc:'Patrón de crochet PDF. Jirafa. Disponible en español e inglés. 35cm.'},
   {id:38,handle:'bunny-pattern',title:'Bunny Crochet Pattern',titleEn:'Bunny Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/5a2a6f3d-0151-4168-8cde-d86e39a8e914.jpg?v=1700528072'],desc:'Patrón de crochet PDF. Conejito. Disponible en español e inglés. 35cm.'},
   {id:39,handle:'toby-puppy',title:'Toby Puppy Crochet Pattern',titleEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061'],desc:'Patrón de crochet PDF. Perrito Toby. Disponible en español e inglés. 35cm.'},
+  {id:40,handle:'ramo-magico-tinkerbell',title:'Ramo Magico Tinkerbell',titleEn:'Magic Bouquet Tinkerbell',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Tinkerbell 35cm. Disponible en español.'},
+  {id:41,handle:'ramo-magico-rosita-fresita',title:'Ramo Magico Rosita Fresita',titleEn:'Magic Bouquet Strawberry Shortcake',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Rosita Fresita 35cm. Disponible en español.'},
+  {id:42,handle:'ramo-magico-azul-rosas-rosas',title:'Ramo Magico Azul con Rosas Rosas',titleEn:'Magic Bouquet Blue with Pink Roses',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Ramo mágico azul con rosas rosas. Disponible en español.'},
+  {id:43,handle:'ramo-magico-hermione',title:'Ramo Magico Hermione',titleEn:'Magic Bouquet Hermione',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Hermione Granger 35cm. Disponible en español.'},
+  {id:44,handle:'ramo-magico-sofia',title:'Ramo Magico Sofia',titleEn:'Magic Bouquet Princess Sofia',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Princesa Sofía 35cm. Disponible en español.'},
+  {id:45,handle:'ramo-magico-moana',title:'Ramo Magico Moana',titleEn:'Magic Bouquet Moana',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Moana 35cm. Disponible en español.'},
+  {id:46,handle:'ramo-magico-coraline',title:'Ramo Magico Coraline',titleEn:'Magic Bouquet Coraline',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Coraline 35cm. Disponible en español.'},
 ];
 
 // Colores detectados por personaje (Premier Yarns Basix)
@@ -1069,6 +1085,13 @@ const defaultYarnColors={
   37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},                        // Jirafa
   38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},                        // Conejito
   39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},                        // Toby Puppy
+  40:{piel:'Almond',cabello:'Gold',vestido:'Forest',forro:'White',rosas:'Gold',detalles:'Gold'},           // Tinkerbell
+  41:{piel:'Almond',cabello:'Lemon',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Red'},             // Rosita Fresita
+  42:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'Pink',detalles:'Gold'},            // Ramo azul con rosas rosas
+  43:{piel:'Almond',cabello:'Brown',vestido:'Red',forro:'White',rosas:'Gold',detalles:'Black'},            // Hermione
+  44:{piel:'Almond',cabello:'Brown',vestido:'Purple',forro:'White',rosas:'Gold',detalles:'Gold'},          // Sofia
+  45:{piel:'Camel',cabello:'Black',vestido:'Red',forro:'Turquoise',rosas:'Coral',detalles:'Gold'},         // Moana
+  46:{piel:'White',cabello:'Blue',vestido:'Light Blue',forro:'White',rosas:'Blue',detalles:'Black'},       // Coraline
 };
 
 // ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
@@ -1921,6 +1944,7 @@ const _CK_WIZ_STEPS=[
 function renderCustomKitSection(){
   const cfg=_customKitConfig;
   const ctaSec=document.getElementById('kit-cta-section');
+  renderKitSectionGrid();
   if(!cfg||!cfg.enabled){if(ctaSec)ctaSec.style.display='none';return;}
   if(ctaSec)ctaSec.style.display='';
   _ckState={};_ckEyes=0;_ckPattern='';_ckWizStep=0;_ckActiveCombo=0;
@@ -1938,14 +1962,22 @@ function renderCustomKitSection(){
   if(sumEl)sumEl.style.display='none';
   if(addBtn)addBtn.style.display='none';
 }
+function renderKitSectionGrid(){
+  const grid=document.getElementById('kit-si-grid');
+  if(!grid)return;
+  const kits=getProducts().filter(p=>p.type==='estambres').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  const wish=getWish();
+  if(!kits.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:14px;">Próximamente kits disponibles 🧶</div>';
+    return;
+  }
+  grid.innerHTML=kits.map((p,i)=>renderCard(p,i,wish)).join('');
+}
 function openKitModal(){
-  const overlay=document.getElementById('ck-modal-overlay');
-  if(overlay){overlay.style.display='flex';document.body.style.overflow='hidden';}
+  const sec=document.getElementById('kit-estambres-section');
+  if(sec)sec.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function closeKitModal(){
-  const overlay=document.getElementById('ck-modal-overlay');
-  if(overlay){overlay.style.display='none';document.body.style.overflow='';}
-}
+function closeKitModal(){}
 
 function ckStartBuilder(){
   const startEl=document.getElementById('ckit-start');
