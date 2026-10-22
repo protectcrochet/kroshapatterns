@@ -932,6 +932,46 @@ function generateYarnKits(patternProds){
       sortOrder:pat.sortOrder!=null?pat.sortOrder:999,
     });
   });
+  // También generar kits para patrones de Redis que tengan yarnList pero no estén en defaultYarnColors
+  const defaultYarnColorIds=new Set(Object.keys(defaultYarnColors).map(Number));
+  patternProds.forEach(pat=>{
+    if(pat.type!=='patrones'&&pat.type!=='amigurumis')return;
+    if(defaultYarnColorIds.has(pat.id))return;
+    const yl=pat.yarnList;
+    if(!yl||!yl.length)return;
+    const kitId=1000+pat.id;
+    if(existingIds.has(kitId))return;
+    const totalQty=yl.filter(i=>!i.optional).reduce((s,i)=>s+i.qty,0);
+    const price=yl.filter(i=>!i.optional).reduce((s,i)=>s+(isSinfoniaColor(i.color)?65:(i.price||150))*i.qty,0);
+    const shortName=(pat.title||'')
+      .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
+      .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
+    const kitStockVal=_inventory['kit_'+kitId];
+    const isSoldOut=kitStockVal===0||(kitStockVal===undefined&&yl.some(i=>isOutOfStock(i.color)));
+    const hasSinfonia=yl.some(i=>isSinfoniaColor(i.color));
+    const hasPremier=yl.some(i=>!isSinfoniaColor(i.color));
+    const brandStr=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g y Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';
+    const brandStrEn=hasPremier&&hasSinfonia?'Premier Yarns Basix 200g and Sinfonía 100g':hasSinfonia?'Sinfonía 100g':'Premier Yarns Basix 200g';
+    result.push({
+      id:kitId,
+      title:`Kit Estambres ${shortName}`,
+      titleEn:`Yarn Kit ${shortName}`,
+      price,
+      type:'estambres',
+      status:isSoldOut?'soldOut':'active',
+      skill:'',
+      images:pat.images||[],
+      desc:`${totalQty} ovillos ${brandStr}. Todos los colores incluidos para el patrón ${pat.title}.`,
+      descEn:`${totalQty} ${brandStrEn} skeins. All colors for the ${pat.titleEn||pat.title} pattern.`,
+      yarnList:yl,
+      kitPrice:0,
+      eyesPrice:pat.eyesPrice||0,
+      eyesSize:pat.eyesSize||'',
+      isYarnKit:true,
+      patternId:pat.id,
+      sortOrder:pat.sortOrder!=null?pat.sortOrder:999,
+    });
+  });
   return result;
 }
 
