@@ -1528,7 +1528,7 @@ function closeM(){
 }
 function copyProductLink(){
   if(!curProd)return;
-  const url=`${location.origin}${location.pathname}?p=${curProd.id}`;
+  const url=`${location.origin}/p/${curProd.id}`;
   navigator.clipboard.writeText(url).then(()=>{
     showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
   }).catch(()=>{showToast(url);});
