@@ -850,7 +850,7 @@ function yarnColorsToList(yc){
   });
 }
 let cur='MXN', lang='es', curProd=null;
-let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false, addPatternToKit=false;
+let addonKit=false, addonEyes=false, addonYarns={}, skipPattern=false, addPatternToKit=false, addonKitOptionals={};
 
 // ── CART (persists across pages) ──
 function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
@@ -931,8 +931,8 @@ function generateYarnKits(patternProds){
     if(!yl||!yl.length)return;
     const kitId=1000+id;
     if(existingIds.has(kitId))return;
-    const totalQty=yl.reduce((s,i)=>s+i.qty,0);
-    const price=yl.reduce((s,i)=>s+(isSinfoniaColor(i.color)?65:(i.price||150))*i.qty,0);
+    const totalQty=yl.filter(i=>!i.optional).reduce((s,i)=>s+i.qty,0);
+    const price=yl.filter(i=>!i.optional).reduce((s,i)=>s+(isSinfoniaColor(i.color)?65:(i.price||150))*i.qty,0);
     const shortName=(pat.title||'')
       .replace(/^(Ramo M[aá]gico\s*|Muñeca Ramo M[aá]gico\s*|Muneca Ramo Magico\s*|Patr[oó]n\s*|Patron\s*|Mini Ramo\s*)/gi,'')
       .replace(/\s*\d+\s*cm\s*$/i,'').trim().split(/\s+/).slice(0,2).join(' ');
@@ -1224,7 +1224,7 @@ function openM(id){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
-  addonKit=false; addonEyes=false; addonYarns={}; skipPattern=false; addPatternToKit=false;
+  addonKit=false; addonEyes=false; addonYarns={}; skipPattern=false; addPatternToKit=false; addonKitOptionals={};
 
   const gallery=document.querySelector('.modal-gallery');
   if(curProd.yarnColorName){
@@ -1254,20 +1254,31 @@ function openM(id){
   const yc=curProd.yarnColors;
   const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
   if(yarnSec&&curProd.isYarnKit&&yl&&yl.length){
-    const hasOptional=yl.some(i=>i.optional);
-    const infoRows=yl.map(item=>{
+    const requiredYl=yl.filter(i=>!i.optional);
+    const optionalYl=yl.filter(i=>i.optional);
+    const infoRows=requiredYl.map(item=>{
       const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
       const itemPrice=item.price||150;
       const brandLabel=itemPrice>=150?'Premier 200g':'Sinfonía 100g';
-      const optBadge=item.optional?`<span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:2px 9px;border-radius:20px;font-weight:800;white-space:nowrap;flex-shrink:0;border:1px solid #FCD34D;letter-spacing:.02em;">⚠ Opcional</span>`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
         ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;color:var(--text);">${item.color}</div>
-          ${item.optional?`<div style="font-size:10px;color:#92400E;font-weight:700;margin-top:1px;">solo para detalles pequeños</div>`:''}
-        </div>
-        ${optBadge}
+        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
         <span style="font-size:11px;color:var(--text-light);white-space:nowrap;">×${item.qty} · ${brandLabel} · ${f(itemPrice*item.qty)}</span>
+      </div>`;
+    }).join('');
+    const optionalRows=optionalYl.map(item=>{
+      const key=item.color.replace(/[^a-zA-Z0-9]/g,'_');
+      const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
+      const itemPrice=item.price||150;
+      const brandLabel=itemPrice>=150?'Premier 200g':'Sinfonía 100g';
+      return `<div class="addon-row" id="kit-opt-${key}" onclick="toggleKitOptional('${item.color.replace(/'/g,"\\'")}',${item.qty},${itemPrice})">
+        <div class="addon-cb" id="kit-opt-cb-${key}"></div>
+        ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
+        <div class="addon-info">
+          <strong>${item.color}</strong>
+          <span>${lang==='es'?'Solo para detalles pequeños':'For small details only'}</span>
+        </div>
+        <span class="addon-price">+${f(itemPrice*item.qty)}</span>
       </div>`;
     }).join('');
     // Pattern add-on toggle
@@ -1294,7 +1305,7 @@ function openM(id){
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
       <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
       ${infoRows}
-      ${hasOptional?`<p style="font-size:11px;color:#92400E;margin-top:8px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:6px 10px;font-weight:600;">⚠ Los colores marcados como <strong>Opcional</strong> se usan en muy poca cantidad (solo para pequeños detalles).</p>`:''}
+      ${optionalYl.length?`<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#92400E;font-weight:700;margin:10px 0 6px;">⚠ ${lang==='es'?'Opcional — agrega si los necesitas':'Optional — add if needed'}</div>${optionalRows}`:''}
       ${patToggleHtml}
       ${eyesToggleHtml}
     </div>`;
@@ -1451,12 +1462,27 @@ function toggleAddPatternToKit(){
   updateModalPrice();
 }
 
+function toggleKitOptional(color,qty,price){
+  const key=color.replace(/[^a-zA-Z0-9]/g,'_');
+  if(addonKitOptionals[color]){
+    delete addonKitOptionals[color];
+    document.getElementById(`kit-opt-${key}`)?.classList.remove('checked');
+    const cb=document.getElementById(`kit-opt-cb-${key}`);if(cb)cb.textContent='';
+  } else {
+    addonKitOptionals[color]={qty,price};
+    document.getElementById(`kit-opt-${key}`)?.classList.add('checked');
+    const cb=document.getElementById(`kit-opt-cb-${key}`);if(cb)cb.textContent='✓';
+  }
+  updateModalPrice();
+}
+
 function updateModalPrice(){
   if(!curProd)return;
   let total=skipPattern?0:curProd.price;
   // Para kit de estambres, el precio base ya es solo estambres; opcionalmente agregar patrón
   if(curProd.isYarnKit){
     total=curProd.price;
+    Object.values(addonKitOptionals).forEach(({qty,price})=>total+=price*qty);
     if(addPatternToKit){
       const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd)total+=patProd.price;
@@ -1542,8 +1568,15 @@ function addToCart(){
   const cart=getCart();
   // Kit de estambres: agregar el kit, y opcionalmente el patrón digital
   if(curProd.isYarnKit){
+    const optExtras=Object.values(addonKitOptionals).reduce((s,{qty,price})=>s+price*qty,0);
+    const kitPrice=curProd.price+optExtras;
+    const kitYarnList=[
+      ...(curProd.yarnList||[]).filter(i=>!i.optional),
+      ...(curProd.yarnList||[]).filter(i=>i.optional&&addonKitOptionals[i.color])
+    ];
     const existing=cart.find(i=>i.id===curProd.id);
-    if(existing)existing.qty++;else cart.push({id:curProd.id,title:curProd.title,price:curProd.price,img:curProd.images[0]||'',qty:1,type:'estambres',yarnList:curProd.yarnList||null,shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
+    if(existing){existing.qty++;existing.price=kitPrice;existing.yarnList=kitYarnList;}
+    else cart.push({id:curProd.id,title:curProd.title,price:kitPrice,img:curProd.images[0]||'',qty:1,type:'estambres',yarnList:kitYarnList,shipSubsidy:curProd.shipSubsidy||0,boxLargo:curProd.boxLargo||0,boxAncho:curProd.boxAncho||0,boxAlto:curProd.boxAlto||0,boxPeso:curProd.boxPeso||0});
     if(addPatternToKit&&curProd.patternId){
       const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
       if(patProd){
