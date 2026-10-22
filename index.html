@@ -541,8 +541,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
       <p class="hero-sub" id="hero-sub-text" data-es="Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha." data-en="Exclusive patterns with protected access via ProtectCrochet, complete kits with materials and premium yarn — all designed by Krosha.">Patrones exclusivos con acceso protegido vía ProtectCrochet, kits completos con materiales y hilos premium — todo diseñado por Krosha.</p>
       <div class="hero-btns">
         <a href="#productos" onclick="navFilter('patrones')" class="btn-main" data-es="Ver Patrones 🎀" data-en="See Patterns 🎀">Ver Patrones 🎀</a>
-        <a href="#kit-estambres-section" class="btn-sec" data-es="Kit Estambres 🧶" data-en="Yarn Kits 🧶">Kit Estambres 🧶</a>
-        <button onclick="openKitModal()" class="btn-sec" data-es="Crea tu Kit ✨" data-en="Build Your Kit ✨">Crea tu Kit ✨</button>
+        <a href="#productos" onclick="navFilter('all')" class="btn-sec" data-es="Ver todo 🛍" data-en="See all 🛍">Ver todo 🛍</a>
       </div>
     </div>
     <div class="hero-imgs" id="hero-imgs-wrap">
@@ -581,34 +580,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
   <div id="novedades-wrap" class="nov-wrap" style="position:relative;z-index:1;"></div>
 </div>
 
-<!-- KIT ESTAMBRES SECTION -->
-<section id="kit-estambres-section" class="ksi-section">
-  <div class="ksi-inner">
-    <div class="ksi-header">
-      <div class="bow-tag" style="display:inline-flex;margin-bottom:14px;">🧶 <span data-es="Kit de Estambres" data-en="Yarn Kits">Kit de Estambres</span></div>
-      <h2 class="ksi-title">Elige tu <em>kit</em> favorito</h2>
-      <p class="ksi-sub" data-es="Todos los hilos del personaje en un solo paquete — listo para tejer" data-en="All character yarns in one package — ready to crochet">Todos los hilos del personaje en un solo paquete — listo para tejer</p>
-    </div>
-    <div id="kit-si-grid" class="pgrid ksi-grid"></div>
-    <div id="kit-cta-section" style="display:none;">
-      <div class="ksi-divider"><span data-es="¿Tu personaje no está? Crea un kit a tu medida" data-en="Don't see your character? Build a custom kit">¿Tu personaje no está? Crea un kit a tu medida</span></div>
-      <div class="ckit-inner">
-        <div class="bow-tag" style="margin-bottom:14px;">🎨 <span data-es="Kit Personalizado" data-en="Custom Kit">Kit Personalizado</span></div>
-        <h2 class="ckit-section-title">Crea tu propio <em>Kit</em></h2>
-        <p class="ckit-section-sub">Personaliza tu muñeca eligiendo el color de cada parte — solo mostramos colores en stock</p>
-        <div id="ckit-start" class="ckit-start-card">
-          <div class="ckit-start-icon">🧶</div>
-          <h3 class="ckit-start-title">¡Diseña tu muñeca ideal!</h3>
-          <p class="ckit-start-desc">Elige el color de piel, cabello, vestido, forro y rosas. Solo mostramos colores disponibles en stock.</p>
-          <button class="ckit-start-btn" onclick="ckStartBuilder()" data-es="✨ Empezar a personalizar" data-en="✨ Start customizing">✨ Empezar a personalizar</button>
-        </div>
-        <div id="ckit-body" style="display:none;"></div>
-        <div id="ckit-summary" class="ckit-summary" style="display:none;"></div>
-        <button id="ckit-add-btn" class="ckit-btn" onclick="addCustomKitToCart()" style="display:none;">🛍 Agregar al carrito</button>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- FILTER + PRODUCTS -->
 <div id="productos" class="filter-wrap">
