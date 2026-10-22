@@ -912,10 +912,13 @@ function getProducts(){
   let base;
   if(_publishedProducts&&_publishedProducts.length){
     base=_mapProducts(_publishedProducts);
+    // Siempre incluir defaultProducts que no estén en Redis (nuevos productos hardcodeados)
+    const publishedIds=new Set(base.map(p=>p.id));
+    const missing=defaultProducts.filter(p=>!publishedIds.has(p.id)).map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
+    if(missing.length)base=[...base,...missing];
   } else {
     base=defaultProducts.map(p=>({...p,yarnColors:p.yarnColors||defaultYarnColors[p.id]||null}));
   }
-  const ids=new Set(base.map(p=>p.id));
   const yarnKits=generateYarnKits(base);
   return [...base,...yarnKits];
 }
