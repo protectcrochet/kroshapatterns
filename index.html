@@ -1259,12 +1259,15 @@ function openM(id){
       const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
       const itemPrice=item.price||150;
       const brandLabel=itemPrice>=150?'Premier 200g':'Sinfonía 100g';
-      const optBadge=item.optional?`<span style="font-size:9.5px;background:var(--pink-mid);color:var(--pink-dark);padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;flex-shrink:0;">Opcional*</span>`:'';
+      const optBadge=item.optional?`<span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:2px 9px;border-radius:20px;font-weight:800;white-space:nowrap;flex-shrink:0;border:1px solid #FCD34D;letter-spacing:.02em;">⚠ Opcional</span>`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
         ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
-        <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--text);">${item.color}</div>
+          ${item.optional?`<div style="font-size:10px;color:#92400E;font-weight:700;margin-top:1px;">solo para detalles pequeños</div>`:''}
+        </div>
         ${optBadge}
-        <span style="font-size:11px;color:var(--text-light);">×${item.qty} · ${brandLabel} · ${f(itemPrice*item.qty)}</span>
+        <span style="font-size:11px;color:var(--text-light);white-space:nowrap;">×${item.qty} · ${brandLabel} · ${f(itemPrice*item.qty)}</span>
       </div>`;
     }).join('');
     // Pattern add-on toggle
@@ -1291,7 +1294,7 @@ function openM(id){
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
       <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
       ${infoRows}
-      ${hasOptional?`<p style="font-size:10.5px;color:var(--text-light);margin-top:8px;font-style:italic;">*Se usa muy poco gramaje para detalles</p>`:''}
+      ${hasOptional?`<p style="font-size:11px;color:#92400E;margin-top:8px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:6px 10px;font-weight:600;">⚠ Los colores marcados como <strong>Opcional</strong> se usan en muy poca cantidad (solo para pequeños detalles).</p>`:''}
       ${patToggleHtml}
       ${eyesToggleHtml}
     </div>`;
@@ -1310,13 +1313,12 @@ function openM(id){
         :stock<=3&&stock<999
         ?`<span style="font-size:10px;background:#fef9c3;color:#b45309;padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;">Últimos ${stock}</span>`
         :'';
-      const optLabel=item.optional?`<span style="font-size:9.5px;background:var(--pink-mid);color:var(--pink-dark);padding:2px 7px;border-radius:20px;font-weight:700;white-space:nowrap;margin-left:4px;">Opcional*</span>`:'';
       return `<div class="addon-row${oos?' agotado':''}" id="yarn-addon-${key}" ${oos?'':`onclick="toggleYarnAddon('${item.color.replace(/'/g,"\\'")}',${item.qty})"`} style="${oos?'opacity:.55;cursor:not-allowed;':''}">
         <div class="addon-cb" id="yarn-cb-${key}"></div>
         ${yimg?`<img src="${yimg}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:28px;height:28px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <div class="addon-info">
-          <strong>${item.color}</strong>${optLabel}
-          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · ${yarnGrams(item.color)}g</span>
+          <strong>${item.color}</strong>${item.optional?`<span style="font-size:10px;background:#FEF3C7;color:#92400E;padding:1px 7px;border-radius:20px;font-weight:800;white-space:nowrap;margin-left:6px;border:1px solid #FCD34D;vertical-align:middle;">⚠ Opcional</span>`:''}
+          <span>×${item.qty} ${lang==='es'?'ovillo':'skein'}${item.qty>1?'s':''} · ${yarnGrams(item.color)}g${item.optional?` <em style="color:#92400E;">(solo detalles)</em>`:''}</span>
         </div>
         ${stockBadge||`<span class="addon-price">+${f(price)}</span>`}
       </div>`;
@@ -1325,7 +1327,7 @@ function openM(id){
     yarnSec.innerHTML=`<div class="addon-section">
       <div class="addon-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
       ${rows}
-      ${hasOpt2?`<p style="font-size:10.5px;color:var(--text-light);margin-top:8px;font-style:italic;">*Se usa muy poco gramaje para detalles</p>`:''}
+      ${hasOpt2?`<p style="font-size:11px;color:#92400E;margin-top:8px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:6px 10px;font-weight:600;">⚠ Los colores marcados como <strong>Opcional</strong> se usan en muy poca cantidad (solo para pequeños detalles).</p>`:''}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec){yarnSec.style.display='none';}
