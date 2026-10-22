@@ -1219,10 +1219,11 @@ function navFilter(type){
   renderGrid(type);
 }
 
-function openM(id){
+function openM(id,updateUrl=true){
   const products=getProducts();
   curProd=products.find(x=>x.id===id);
   if(!curProd)return;
+  if(updateUrl)history.pushState({pid:id},'','?p='+id);
   addonKit=false; addonEyes=false; addonYarns={}; skipPattern=false; addPatternToKit=false; addonKitOptionals={};
 
   const gallery=document.querySelector('.modal-gallery');
@@ -1520,15 +1521,23 @@ function switchImg(el,src){
   document.getElementById('mimg-main').src=src;
 }
 
-function closeM(){document.getElementById('ov').classList.remove('open');}
+function closeM(){
+  document.getElementById('ov').classList.remove('open');
+  if(new URLSearchParams(location.search).has('p'))
+    history.pushState(null,'',location.pathname);
+}
 function copyProductLink(){
   if(!curProd)return;
-  const url=`${location.origin}/p/${curProd.id}`;
+  const url=`${location.origin}${location.pathname}?p=${curProd.id}`;
   navigator.clipboard.writeText(url).then(()=>{
     showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
   }).catch(()=>{showToast(url);});
 }
 document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM();});
+window.addEventListener('popstate',()=>{
+  if(!new URLSearchParams(location.search).has('p'))
+    document.getElementById('ov').classList.remove('open');
+});
 
 function qAdd(id){
   const products=getProducts();
@@ -1719,6 +1728,13 @@ let _publishedHero=null;
   ]);
   applyHero();
   renderCustomKitSection();
+  // Abrir producto directo desde URL: ?p=ID
+  const _pParam=new URLSearchParams(window.location.search).get('p');
+  if(_pParam){
+    const _pid=isNaN(_pParam)?null:parseInt(_pParam);
+    if(_pid&&getProducts().find(x=>x.id===_pid))
+      setTimeout(()=>openM(_pid,false),300);
+  }
   // Si viene de carrito a editar kit
   const _editParam=new URLSearchParams(window.location.search).get('editkit');
   if(_editParam){setTimeout(()=>{openKitModal();ckLoadEditKit(_editParam);},400);}
