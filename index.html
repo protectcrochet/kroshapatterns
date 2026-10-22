@@ -835,15 +835,18 @@ function isSinfoniaColor(n){return n==='Arena S'||n==='Sky Blue'||n==='Camel';}
 function yarnGrams(n){return isSinfoniaColor(n)?100:200;}
 function yarnPrice(n){return isSinfoniaColor(n)?130:150;}
 function yarnColorsToList(yc){
-  const counts={},order=[];
-  Object.values(yc).forEach(color=>{
+  const counts={},order=[],detallesSet=new Set();
+  Object.entries(yc).forEach(([key,color])=>{
     if(!color)return;
+    if(key==='detalles')detallesSet.add(color);
     if(counts[color])counts[color]++;
     else{counts[color]=1;order.push(color);}
   });
+  const nonDetalles=new Set(Object.entries(yc).filter(([k,v])=>v&&k!=='detalles').map(([,v])=>v));
   return order.map(color=>{
     const physQty=isSinfoniaColor(color)?counts[color]*2:counts[color];
-    return {color,qty:physQty,price:isSinfoniaColor(color)?65:150};
+    const optional=detallesSet.has(color)&&!nonDetalles.has(color);
+    return {color,qty:physQty,price:isSinfoniaColor(color)?65:150,optional};
   });
 }
 let cur='MXN', lang='es', curProd=null;
@@ -1251,13 +1254,16 @@ function openM(id){
   const yc=curProd.yarnColors;
   const yl=curProd.yarnList||(yc&&Object.values(yc).some(v=>v)?yarnColorsToList(yc):null);
   if(yarnSec&&curProd.isYarnKit&&yl&&yl.length){
+    const hasOptional=yl.some(i=>i.optional);
     const infoRows=yl.map(item=>{
       const yimg=getYarnImg(item.color);const hex=getYarnHex(item.color);
       const itemPrice=item.price||150;
       const brandLabel=itemPrice>=150?'Premier 200g':'Sinfonía 100g';
+      const optBadge=item.optional?`<span style="font-size:9.5px;background:var(--pink-mid);color:var(--pink-dark);padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap;flex-shrink:0;">Opcional*</span>`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
         ${yimg?`<img src="${yimg}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`:`<div style="width:26px;height:26px;border-radius:50%;background:${hex};flex-shrink:0;"></div>`}
         <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${item.color}</span>
+        ${optBadge}
         <span style="font-size:11px;color:var(--text-light);">×${item.qty} · ${brandLabel} · ${f(itemPrice*item.qty)}</span>
       </div>`;
     }).join('');
@@ -1285,6 +1291,7 @@ function openM(id){
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
       <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
       ${infoRows}
+      ${hasOptional?`<p style="font-size:10.5px;color:var(--text-light);margin-top:8px;font-style:italic;">*Se usa muy poco gramaje para detalles</p>`:''}
       ${patToggleHtml}
       ${eyesToggleHtml}
     </div>`;
