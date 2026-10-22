@@ -1049,13 +1049,6 @@ const defaultProducts=[
   {id:37,handle:'giraffe-pattern',title:'Giraffe Crochet Pattern',titleEn:'Giraffe Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/be0e8deb-3660-4651-abde-756e0ebc10cb.jpg?v=1700528145'],desc:'Patrón de crochet PDF. Jirafa. Disponible en español e inglés. 35cm.'},
   {id:38,handle:'bunny-pattern',title:'Bunny Crochet Pattern',titleEn:'Bunny Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/5a2a6f3d-0151-4168-8cde-d86e39a8e914.jpg?v=1700528072'],desc:'Patrón de crochet PDF. Conejito. Disponible en español e inglés. 35cm.'},
   {id:39,handle:'toby-puppy',title:'Toby Puppy Crochet Pattern',titleEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061'],desc:'Patrón de crochet PDF. Perrito Toby. Disponible en español e inglés. 35cm.'},
-  {id:40,handle:'ramo-magico-tinkerbell',title:'Ramo Magico Tinkerbell',titleEn:'Magic Bouquet Tinkerbell',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Tinkerbell 35cm. Disponible en español.'},
-  {id:41,handle:'ramo-magico-rosita-fresita',title:'Ramo Magico Rosita Fresita',titleEn:'Magic Bouquet Strawberry Shortcake',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Rosita Fresita 35cm. Disponible en español.'},
-  {id:42,handle:'ramo-magico-azul-rosas-rosas',title:'Ramo Magico Azul con Rosas Rosas',titleEn:'Magic Bouquet Blue with Pink Roses',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Ramo mágico azul con rosas rosas. Disponible en español.'},
-  {id:43,handle:'ramo-magico-hermione',title:'Ramo Magico Hermione',titleEn:'Magic Bouquet Hermione',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Hermione Granger 35cm. Disponible en español.'},
-  {id:44,handle:'ramo-magico-sofia',title:'Ramo Magico Sofia',titleEn:'Magic Bouquet Princess Sofia',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Princesa Sofía 35cm. Disponible en español.'},
-  {id:45,handle:'ramo-magico-moana',title:'Ramo Magico Moana',titleEn:'Magic Bouquet Moana',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Moana 35cm. Disponible en español.'},
-  {id:46,handle:'ramo-magico-coraline',title:'Ramo Magico Coraline',titleEn:'Magic Bouquet Coraline',price:290,type:'patrones',skill:'Intermedio',images:[],desc:'Patrón de crochet PDF. Coraline 35cm. Disponible en español.'},
 ];
 
 // Colores detectados por personaje (Premier Yarns Basix)
@@ -1090,13 +1083,6 @@ const defaultYarnColors={
   37:{piel:'Wheat',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Brown'},                        // Jirafa
   38:{piel:'White',cabello:'',vestido:'',forro:'White',rosas:'',detalles:'Blush'},                        // Conejito
   39:{piel:'Brown',cabello:'',vestido:'',forro:'Wheat',rosas:'',detalles:'Black'},                        // Toby Puppy
-  40:{piel:'Almond',cabello:'Gold',vestido:'Forest',forro:'White',rosas:'Gold',detalles:'Gold'},           // Tinkerbell
-  41:{piel:'Almond',cabello:'Lemon',vestido:'Pink',forro:'White',rosas:'Rose',detalles:'Red'},             // Rosita Fresita
-  42:{piel:'Almond',cabello:'Brown',vestido:'Blue',forro:'White',rosas:'Pink',detalles:'Gold'},            // Ramo azul con rosas rosas
-  43:{piel:'Almond',cabello:'Brown',vestido:'Red',forro:'White',rosas:'Gold',detalles:'Black'},            // Hermione
-  44:{piel:'Almond',cabello:'Brown',vestido:'Purple',forro:'White',rosas:'Gold',detalles:'Gold'},          // Sofia
-  45:{piel:'Camel',cabello:'Black',vestido:'Red',forro:'Turquoise',rosas:'Coral',detalles:'Gold'},         // Moana
-  46:{piel:'White',cabello:'Blue',vestido:'Light Blue',forro:'White',rosas:'Blue',detalles:'Black'},       // Coraline
 };
 
 // ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
@@ -2012,7 +1998,7 @@ function renderCustomKitSection(){
 function renderKitSectionGrid(){
   const grid=document.getElementById('kit-si-grid');
   if(!grid)return;
-  const kits=getProducts().filter(p=>p.type==='estambres').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  const kits=getProducts().filter(p=>p.type==='estambres'||p.type==='hilo').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   const wish=getWish();
   if(!kits.length){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-light);font-size:14px;">Próximamente kits disponibles 🧶</div>';

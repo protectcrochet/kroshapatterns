@@ -2165,9 +2165,6 @@ async function initApp(){
   // Only seed hardcoded defaults if Redis AND localStorage are both empty (truly first run)
   if(!getProds().length) seedDefaultProds();
 
-  // Merge missing default products so new hardcoded entries appear in admin for editing
-  mergeDefaultProds();
-
   loadServerOrders().then(()=>renderDashboard());
   renderProdsTable();
   renderCustomersTable();
@@ -2218,22 +2215,6 @@ function seedDefaultProds(){
     {id:39,nameEs:'Toby Puppy Crochet Pattern',nameEn:'Toby Puppy Crochet Pattern',price:150,type:'patrones',skill:'Básico',status:'active',descEs:'Patrón Perrito Toby 35cm. ES/EN.',descEn:'Toby puppy pattern 35cm.',images:['https://cdn.shopify.com/s/files/1/0846/4806/7370/files/FscePuppy.jpg?v=1700456061']},
   ];
   saveProds(defaults);
-}
-
-function mergeDefaultProds(){
-  const knownDefaults=[
-    {id:40,nameEs:'Ramo Magico Tinkerbell',nameEn:'Magic Bouquet Tinkerbell',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Tinkerbell 35cm. Disponible en español.',descEn:'Tinkerbell crochet pattern 35cm.',images:[]},
-    {id:41,nameEs:'Ramo Magico Rosita Fresita',nameEn:'Magic Bouquet Strawberry Shortcake',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Rosita Fresita 35cm. Disponible en español.',descEn:'Strawberry Shortcake crochet pattern 35cm.',images:[]},
-    {id:42,nameEs:'Ramo Magico Azul con Rosas Rosas',nameEn:'Magic Bouquet Blue with Pink Roses',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Ramo Azul con Rosas Rosas 35cm. Disponible en español.',descEn:'Blue bouquet with pink roses pattern 35cm.',images:[]},
-    {id:43,nameEs:'Ramo Magico Hermione',nameEn:'Magic Bouquet Hermione',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Hermione 35cm. Disponible en español.',descEn:'Hermione crochet pattern 35cm.',images:[]},
-    {id:44,nameEs:'Ramo Magico Sofia',nameEn:'Magic Bouquet Sofia',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Sofia 35cm. Disponible en español.',descEn:'Sofia crochet pattern 35cm.',images:[]},
-    {id:45,nameEs:'Ramo Magico Moana',nameEn:'Magic Bouquet Moana',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Moana 35cm. Disponible en español.',descEn:'Moana crochet pattern 35cm.',images:[]},
-    {id:46,nameEs:'Ramo Magico Coraline',nameEn:'Magic Bouquet Coraline',price:290,type:'patrones',skill:'Intermedio',status:'active',descEs:'Patrón de crochet Coraline 35cm. Disponible en español.',descEn:'Coraline crochet pattern 35cm.',images:[]},
-  ];
-  const prods=getProds();
-  const existingIds=new Set(prods.map(p=>p.id));
-  const toAdd=knownDefaults.filter(p=>!existingIds.has(p.id));
-  if(toAdd.length){saveProds([...prods,...toAdd]);}
 }
 
 // ── DASHBOARD ──
