@@ -604,6 +604,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
           <span style="font-size:16px;font-weight:700;color:var(--text);">🧶 Stock de Estambres</span>
           <input type="text" id="inv-search" placeholder="🔍 Buscar color..." oninput="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;width:200px;">
+          <select id="inv-sort" onchange="renderInventory()" style="border:1.5px solid var(--border);border-radius:10px;padding:8px 12px;font-family:'Nunito',sans-serif;font-size:13px;">
+            <option value="name">A → Z</option>
+            <option value="asc">↑ Menos stock primero</option>
+            <option value="desc">↓ Más stock primero</option>
+            <option value="out">🚫 Agotados primero</option>
+          </select>
           <button class="btn btn-outline btn-sm" onclick="setAllStock()">Ajustar todos</button>
           <button class="btn btn-sm" style="background:#DC2626;color:#fff;border:none;" onclick="setTodoAgotado()">🚫 Todo agotado</button>
           <span id="inv-summary" style="font-size:12px;color:var(--text-light);margin-left:auto;"></span>
@@ -4515,7 +4521,11 @@ function renderInventory(){
   const q=(document.getElementById('inv-search')?.value||'').toLowerCase();
   const grid=document.getElementById('inv-grid');
   if(!grid)return;
-  const colors=YARN_COLORS.filter(c=>c.toLowerCase().includes(q));
+  const sortMode=(document.getElementById('inv-sort')?.value)||'name';
+  let colors=YARN_COLORS.filter(c=>c.toLowerCase().includes(q));
+  if(sortMode==='asc')colors=colors.slice().sort((a,b)=>(inv[a]??0)-(inv[b]??0));
+  else if(sortMode==='desc')colors=colors.slice().sort((a,b)=>(inv[b]??0)-(inv[a]??0));
+  else if(sortMode==='out')colors=colors.slice().sort((a,b)=>{const sa=inv[a]??0,sb=inv[b]??0;return sa===sb?a.localeCompare(b):sa-sb;});
   let agotados=0,total=0;
   grid.innerHTML=colors.map(color=>{
     const stock=inv[color]??0;
