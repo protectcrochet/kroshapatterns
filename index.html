@@ -603,6 +603,34 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 
 <div class="pgrid" id="pgrid"></div>
 
+<!-- KIT ESTAMBRES + PERSONALIZA TU KIT -->
+<section id="kit-estambres-section" class="ckit-section reveal" style="padding:60px 2rem;">
+  <div class="ckit-inner">
+    <h2 class="ckit-section-title" data-es="Kits de <em>Estambres</em>" data-en="Yarn <em>Kits</em>">Kits de <em>Estambres</em></h2>
+    <p class="ckit-section-sub" data-es="Todo lo que necesitas para tejer, ya reunido para ti 🧶" data-en="Everything you need to knit, already gathered for you 🧶">Todo lo que necesitas para tejer, ya reunido para ti 🧶</p>
+    <div id="kit-si-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;margin-bottom:48px;"></div>
+
+    <!-- Personaliza tu kit -->
+    <div id="kit-cta-section">
+      <div id="ckit-start" class="ckit-start-card">
+        <div class="ckit-start-icon">🎀</div>
+        <div class="ckit-start-title" data-es="Personaliza tu kit" data-en="Customize your kit">Personaliza tu kit</div>
+        <div class="ckit-start-desc" data-es="Elige exactamente los colores que quieres: piel, cabello, vestido y más. Nosotras te enviamos todo listo para tejer." data-en="Pick exactly the colors you want: skin, hair, dress and more. We ship everything ready to knit.">Elige exactamente los colores que quieres: piel, cabello, vestido y más. Nosotras te enviamos todo listo para tejer.</div>
+        <button class="ckit-start-btn" onclick="ckStartBuilder()" data-es="¡Comenzar! 🧶" data-en="Let's start! 🧶">¡Comenzar! 🧶</button>
+      </div>
+      <div id="ckit-body" style="display:none;"></div>
+      <div id="ckit-summary" style="display:none;" class="ckit-summary">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;" data-es="Tu kit personalizado" data-en="Your custom kit">Tu kit personalizado</div>
+          <div class="ckit-summary-detail" id="ckit-summary-detail"></div>
+        </div>
+        <div class="ckit-summary-price" id="ckit-summary-price"></div>
+      </div>
+      <button id="ckit-add-btn" style="display:none;" class="ckit-start-btn" onclick="ckAddToCart()" data-es="Agregar al carrito 🛒" data-en="Add to cart 🛒">Agregar al carrito 🛒</button>
+    </div>
+  </div>
+</section>
+
 <!-- NEWSLETTER -->
 <section class="newsletter reveal">
   <div class="nl-inner">
