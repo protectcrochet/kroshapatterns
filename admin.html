@@ -2450,6 +2450,8 @@ function editProd(id){
   const yc=p.yarnColors||(defaultYarnColors[p.id])||{};
   const yl=p.yarnList||(Object.values(yc).some(v=>v)?yarnColorsToList(yc):[]);
   yl.forEach(item=>addYarnRow(item.color,item.qty,item.optional||false));
+  ['pf-img1','pf-img2','pf-img3','pf-img4'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['img-prev-1','img-prev-2','img-prev-3','img-prev-4'].forEach(id=>{const el=document.getElementById(id);if(el){el.src='';el.style.display='none';}});
   (p.images||[]).forEach((url,i)=>{
     const inp=document.getElementById(`pf-img${i+1}`);
     const prev=document.getElementById(`img-prev-${i+1}`);
