@@ -884,7 +884,7 @@ function _mapProducts(arr){
       descEn:p.descEn||'',
       yarnColors:p.yarnColors||defaultYarnColors[p.id]||null,
       yarnList:p.yarnList||null,
-      isYarnKit:!!(p.isYarnKit||(p.type==='kits'&&Array.isArray(p.yarnList)&&p.yarnList.length>0)),
+      isYarnKit:!!(p.isYarnKit||(p.type==='kits'&&Array.isArray(p.yarnList)&&p.yarnList.length>0)||(p.type==='kits'&&(p.patternId||(Array.isArray(p.includedAccessories)&&p.includedAccessories.length>0)))),
       patternId:p.patternId||null,
       includedAccessories:Array.isArray(p.includedAccessories)?p.includedAccessories:[],
       kitPrice:p.kitPrice||0,
@@ -1542,10 +1542,6 @@ function updateModalPrice(){
   if(curProd.isYarnKit){
     total=curProd.price;
     Object.values(addonKitOptionals).forEach(({qty,price})=>total+=price*qty);
-    if(addPatternToKit){
-      const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
-      if(patProd)total+=patProd.price;
-    }
     if(addonEyes&&curProd.eyesPrice)total+=curProd.eyesPrice;
   } else {
     if(addonKit&&curProd.kitPrice)total+=curProd.kitPrice;
@@ -1554,6 +1550,10 @@ function updateModalPrice(){
       const yp=yarnProducts.find(p=>p.yarnColorName===color);
       total+=(yp?yp.price:150)*qty;
     });
+  }
+  if(addPatternToKit&&curProd.patternId){
+    const patProd=getProducts().find(p=>parseInt(p.id)===parseInt(curProd.patternId));
+    if(patProd)total+=patProd.price;
   }
   document.getElementById('mbuy-price').textContent=f(total);
   document.getElementById('mbtn-buy').textContent=`${lang==='es'?'Comprar ahora':'Buy now'} — ${f(total)}`;
