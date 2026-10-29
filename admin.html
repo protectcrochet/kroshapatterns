@@ -2305,9 +2305,16 @@ let _sortDragSrc=null;
 function openSortModal(){
   const prods=getProds();
   const patrones=prods.filter(p=>p.type==='patrones'||p.type==='amigurumis').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
-  const kits=prods.filter(p=>p.type==='kits').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  // Kits físicos que NO son de estambres (no tienen patternId ni includedAccessories)
+  const kits=prods.filter(p=>p.type==='kits'&&!p.patternId&&!(Array.isArray(p.includedAccessories)&&p.includedAccessories.length)).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  // Kits tipo Osito/Galleta: type==='kits' con patternId o includedAccessories
+  const storedYarnKits=prods
+    .filter(p=>p.type==='kits'&&(p.patternId||(Array.isArray(p.includedAccessories)&&p.includedAccessories.length)))
+    .map(p=>({...p,nameEs:p.nameEs||p.nameEn||'Kit '+p.id}));
+  // Kits auto-generados desde patrones con yarnList (id virtual = 1000+pat.id)
+  const storedAutoIds=new Set(storedYarnKits.map(p=>p.id));
   const autoKits=prods
-    .filter(p=>(p.type==='patrones'||p.type==='amigurumis')&&Array.isArray(p.yarnList)&&p.yarnList.length>0)
+    .filter(p=>(p.type==='patrones'||p.type==='amigurumis')&&Array.isArray(p.yarnList)&&p.yarnList.length>0&&!storedAutoIds.has(1000+p.id))
     .map(p=>({
       id:1000+p.id,
       nameEs:`Kit ${p.nameEs||p.nameEn||'Patrón '+p.id}`,
@@ -2315,10 +2322,10 @@ function openSortModal(){
       price:p.price||0,
       images:p.images||[],
       sortOrder:p.kitSortOrder!=null?p.kitSortOrder:(p.sortOrder!=null?p.sortOrder:999)
-    }))
-    .sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+    }));
+  const allEstambres=[...storedYarnKits,...autoKits].sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   _renderSortList('sort-list-patrones',patrones);
-  _renderSortList('sort-list-estambres',autoKits);
+  _renderSortList('sort-list-estambres',allEstambres);
   _renderSortList('sort-list-kits',kits);
   document.getElementById('sort-modal').classList.add('open');
 }
@@ -2399,9 +2406,16 @@ async function saveSortOrder(){
     if(p)p.sortOrder=i+1;
   });
   [...document.querySelectorAll('#sort-list-estambres [data-sort-id]')].forEach((row,i)=>{
-    const patId=parseInt(row.getAttribute('data-sort-id'))-1000;
-    const p=prods.find(x=>x.id===patId);
-    if(p)p.kitSortOrder=i+1;
+    const id=parseInt(row.getAttribute('data-sort-id'));
+    if(id>=1000){
+      // Auto-generated kit: save kitSortOrder on the parent pattern
+      const p=prods.find(x=>x.id===id-1000);
+      if(p)p.kitSortOrder=i+1;
+    } else {
+      // Stored yarn kit (Osito/Galleta): save sortOrder directly
+      const p=prods.find(x=>x.id===id);
+      if(p)p.sortOrder=i+1;
+    }
   });
   saveProds(prods);
   closeSortModal();
