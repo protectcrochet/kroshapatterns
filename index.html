@@ -1330,9 +1330,15 @@ function openM(id,updateUrl=true){
       </div>
       <span style="font-size:13px;font-weight:700;color:var(--pink-dark);">+${f(curProd.eyesPrice)}</span>
     </div>`:'';
+    const accessoryRows=(curProd.includedAccessories||[]).map(acc=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;flex-shrink:0;">🎁</span>
+      <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${acc}</span>
+      <span style="font-size:11px;color:#16A34A;font-weight:700;">${lang==='es'?'Incluido':'Included'}</span>
+    </div>`).join('');
     yarnSec.innerHTML=`<div style="margin-bottom:14px;">
       <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
       ${infoRows}
+      ${accessoryRows}
       ${optionalYl.length?`<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#92400E;font-weight:700;margin:10px 0 6px;">⚠ ${lang==='es'?'Opcional — agrega si los necesitas':'Optional — add if needed'}</div>${optionalRows}`:''}
       ${patToggleHtml}
       ${eyesToggleHtml}

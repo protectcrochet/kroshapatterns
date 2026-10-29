@@ -1122,6 +1122,10 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             <option value="">Sin patrón opcional</option>
           </select>
         </div>
+        <div class="field" style="grid-column:1/-1;">
+          <label>🎁 Accesorios incluidos <span style="font-weight:400;color:var(--text-light);">— uno por línea, ej: Par de ojos de seguridad 15mm / Nariz de seguridad</span></label>
+          <textarea id="pf-included-accessories" rows="3" placeholder="Par de ojos de seguridad 15mm&#10;Nariz de seguridad" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-family:'Nunito',sans-serif;font-size:13px;resize:vertical;"></textarea>
+        </div>
         <div class="field">
           <label>Foto Ojos de Seguridad (URL)</label>
           <input type="text" id="pf-eyes-img" placeholder="https://... (imagen del par de ojos)">
@@ -2396,7 +2400,7 @@ function openProdModal(id){
   fillPatternSelect('');
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
-  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy','pf-box-largo','pf-box-ancho','pf-box-alto','pf-box-peso','pf-box-largo-val','pf-box-ancho-val','pf-box-alto-val','pf-box-peso-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy','pf-box-largo','pf-box-ancho','pf-box-alto','pf-box-peso','pf-box-largo-val','pf-box-ancho-val','pf-box-alto-val','pf-box-peso-val','pf-included-accessories'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('pf-box-template').value='';
   document.getElementById('pf-box-custom').style.display='none';
   setImgPos('50% 20%',1);
@@ -2429,6 +2433,7 @@ function editProd(id){
   document.getElementById('pf-kit-price').value=p.kitPrice||'';
   document.getElementById('pf-eyes-price').value=p.eyesPrice||'';
   document.getElementById('pf-eyes-img').value=p.eyesImg||'';
+  document.getElementById('pf-included-accessories').value=(p.includedAccessories||[]).join('\n');
   document.getElementById('pf-ship-subsidy').value=p.shipSubsidy!=null?p.shipSubsidy:'';
   document.getElementById('pf-box-template').value=p.boxTemplate||'';
   applyBoxTemplate(p.boxTemplate||'',p);
@@ -2476,6 +2481,7 @@ function saveProd(){
     eyesImg:document.getElementById('pf-eyes-img').value.trim(),
     shipSubsidy:parseFloat(document.getElementById('pf-ship-subsidy').value)||0,
     patternId:parseInt(document.getElementById('pf-pattern-id').value)||null,
+    includedAccessories:(document.getElementById('pf-included-accessories').value||'').split('\n').map(s=>s.trim()).filter(Boolean),
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
     imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',
