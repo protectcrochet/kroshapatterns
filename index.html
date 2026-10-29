@@ -584,25 +584,6 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
 </div>
 
 
-<!-- FILTER + PRODUCTS -->
-<div id="productos" class="filter-wrap">
-  <h2 class="filter-title" data-es="Nuestros <em>patrones</em>" data-en="Our <em>patterns</em>">Nuestros <em>patrones</em></h2>
-  <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
-  <div class="prod-search-wrap">
-    <input type="search" id="prod-search" class="prod-search-input" placeholder="Buscar patrones, kits, accesorios..." oninput="searchProds(this.value)" autocomplete="off" />
-  </div>
-  <div class="filter-tabs">
-    <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
-    <button class="ftab" onclick="filterProds('estambres',this)" data-es="Kit Estambres" data-en="Yarn Kits">Kit Estambres</button>
-    <button class="ftab" onclick="filterProds('accesorios',this)" data-es="Accesorios" data-en="Accessories">Accesorios</button>
-    <button class="ftab" onclick="filterProds('amigurumis',this)" data-es="Muñequitas" data-en="Dolls">Muñequitas</button>
-    <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
-    <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
-  </div>
-</div>
-
-<div class="pgrid" id="pgrid"></div>
-
 <!-- KIT ESTAMBRES + PERSONALIZA TU KIT -->
 <section id="kit-estambres-section" class="ckit-section reveal" style="padding:60px 2rem;">
   <div class="ckit-inner">
@@ -630,6 +611,25 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
     </div>
   </div>
 </section>
+
+<!-- FILTER + PRODUCTS -->
+<div id="productos" class="filter-wrap">
+  <h2 class="filter-title" data-es="Nuestros <em>patrones</em>" data-en="Our <em>patterns</em>">Nuestros <em>patrones</em></h2>
+  <p class="filter-sub" data-es="Haz clic en cualquier producto para ver detalles y comprarlo" data-en="Click any product to see details and buy it">Haz clic en cualquier producto para ver detalles y comprarlo</p>
+  <div class="prod-search-wrap">
+    <input type="search" id="prod-search" class="prod-search-input" placeholder="Buscar patrones, kits, accesorios..." oninput="searchProds(this.value)" autocomplete="off" />
+  </div>
+  <div class="filter-tabs">
+    <button class="ftab active" onclick="filterProds('patrones',this)" data-es="Patrones" data-en="Patterns">Patrones</button>
+    <button class="ftab" onclick="filterProds('estambres',this)" data-es="Kit Estambres" data-en="Yarn Kits">Kit Estambres</button>
+    <button class="ftab" onclick="filterProds('accesorios',this)" data-es="Accesorios" data-en="Accessories">Accesorios</button>
+    <button class="ftab" onclick="filterProds('amigurumis',this)" data-es="Muñequitas" data-en="Dolls">Muñequitas</button>
+    <button class="ftab" onclick="filterProds('all',this)" data-es="Todos" data-en="All">Todos</button>
+    <button class="ftab" id="tab-wish" onclick="filterProds('wish',this)" data-es="♥ Favoritos" data-en="♥ Wishlist">♥ Favoritos <span id="wish-count" style="background:var(--pink-dark);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;margin-left:3px;display:none;">0</span></button>
+  </div>
+</div>
+
+<div class="pgrid" id="pgrid"></div>
 
 <!-- NEWSLETTER -->
 <section class="newsletter reveal">
