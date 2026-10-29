@@ -939,10 +939,14 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <button class="modal-close" onclick="closeSortModal()">✕</button>
     </div>
     <div style="padding:0 24px 24px;">
-      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;">Arrastra las filas o usa ▲▼ para cambiar el orden en la tienda. Los Kits Estambres siguen el orden de sus patrones.</p>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:20px;">Arrastra las filas o usa ▲▼ para cambiar el orden en la tienda.</p>
       <div style="margin-bottom:24px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--text-light);margin-bottom:8px;">📋 Patrones</div>
         <div id="sort-list-patrones" style="display:flex;flex-direction:column;gap:4px;min-height:40px;"></div>
+      </div>
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--text-light);margin-bottom:8px;">🧶 Kits Estambres</div>
+        <div id="sort-list-estambres" style="display:flex;flex-direction:column;gap:4px;min-height:40px;"></div>
       </div>
       <div style="margin-bottom:24px;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--text-light);margin-bottom:8px;">🎁 Kits físicos / Amigurumis</div>
@@ -2302,7 +2306,19 @@ function openSortModal(){
   const prods=getProds();
   const patrones=prods.filter(p=>p.type==='patrones'||p.type==='amigurumis').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   const kits=prods.filter(p=>p.type==='kits').sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
+  const autoKits=prods
+    .filter(p=>(p.type==='patrones'||p.type==='amigurumis')&&Array.isArray(p.yarnList)&&p.yarnList.length>0)
+    .map(p=>({
+      id:1000+p.id,
+      nameEs:`Kit ${p.nameEs||p.nameEn||'Patrón '+p.id}`,
+      type:'kits',
+      price:p.price||0,
+      images:p.images||[],
+      sortOrder:p.kitSortOrder!=null?p.kitSortOrder:(p.sortOrder!=null?p.sortOrder:999)
+    }))
+    .sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999));
   _renderSortList('sort-list-patrones',patrones);
+  _renderSortList('sort-list-estambres',autoKits);
   _renderSortList('sort-list-kits',kits);
   document.getElementById('sort-modal').classList.add('open');
 }
@@ -2381,6 +2397,11 @@ async function saveSortOrder(){
   [...document.querySelectorAll('#sort-list-kits [data-sort-id]')].forEach((row,i)=>{
     const p=prods.find(x=>x.id===parseInt(row.getAttribute('data-sort-id')));
     if(p)p.sortOrder=i+1;
+  });
+  [...document.querySelectorAll('#sort-list-estambres [data-sort-id]')].forEach((row,i)=>{
+    const patId=parseInt(row.getAttribute('data-sort-id'))-1000;
+    const p=prods.find(x=>x.id===patId);
+    if(p)p.kitSortOrder=i+1;
   });
   saveProds(prods);
   closeSortModal();

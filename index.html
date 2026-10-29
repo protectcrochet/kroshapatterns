@@ -958,7 +958,7 @@ function generateYarnKits(patternProds){
       eyesSize:pat.eyesSize||'',
       isYarnKit:true,
       patternId:id,
-      sortOrder:pat.sortOrder!=null?pat.sortOrder:999,
+      sortOrder:pat.kitSortOrder!=null?pat.kitSortOrder:(pat.sortOrder!=null?pat.sortOrder:999),
     });
   });
   // También generar kits para patrones de Redis que tengan yarnList pero no estén en defaultYarnColors
@@ -998,7 +998,7 @@ function generateYarnKits(patternProds){
       eyesSize:pat.eyesSize||'',
       isYarnKit:true,
       patternId:pat.id,
-      sortOrder:pat.sortOrder!=null?pat.sortOrder:999,
+      sortOrder:pat.kitSortOrder!=null?pat.kitSortOrder:(pat.sortOrder!=null?pat.sortOrder:999),
     });
   });
   return result;
