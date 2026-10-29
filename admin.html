@@ -1117,6 +1117,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
           <input type="number" id="pf-eyes-price" placeholder="0 = sin ojos">
         </div>
         <div class="field">
+          <label>📄 Patrón incluible <span style="font-weight:400;color:var(--text-light);">— cliente puede agregar este patrón al comprar el kit</span></label>
+          <select id="pf-pattern-id" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-family:'Nunito',sans-serif;font-size:13px;">
+            <option value="">Sin patrón opcional</option>
+          </select>
+        </div>
+        <div class="field">
           <label>Foto Ojos de Seguridad (URL)</label>
           <input type="text" id="pf-eyes-img" placeholder="https://... (imagen del par de ojos)">
         </div>
@@ -2378,8 +2384,16 @@ async function saveSortOrder(){
   showToast('✅ Orden guardado');
 }
 
+function fillPatternSelect(selectedId){
+  const sel=document.getElementById('pf-pattern-id');
+  if(!sel)return;
+  const prods=getProds().filter(p=>p.type==='patrones'||p.type==='amigurumis').sort((a,b)=>((a.nameEs||a.title||'').localeCompare(b.nameEs||b.title||'')));
+  sel.innerHTML='<option value="">Sin patrón opcional</option>'+prods.map(p=>`<option value="${p.id}"${parseInt(selectedId)===p.id?' selected':''}>${p.nameEs||p.title||'Patrón '+p.id}</option>`).join('');
+}
+
 function openProdModal(id){
   fillYarnSelects();
+  fillPatternSelect('');
   document.getElementById('prod-edit-id').value='';
   document.getElementById('prod-modal-title').textContent='Nuevo producto';
   ['pf-name-es','pf-name-en','pf-price','pf-img1','pf-img2','pf-img3','pf-img4','pf-desc-es','pf-desc-en','pf-kit-price','pf-eyes-price','pf-eyes-img','pf-pattern-slug','pf-pdf-url','pf-ship-subsidy','pf-box-largo','pf-box-ancho','pf-box-alto','pf-box-peso','pf-box-largo-val','pf-box-ancho-val','pf-box-alto-val','pf-box-peso-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -2399,6 +2413,7 @@ function openProdModal(id){
 function editProd(id){
   fillYarnSelects();
   const p=getProds().find(x=>x.id===id);if(!p)return;
+  fillPatternSelect(p.patternId||'');
   document.getElementById('prod-edit-id').value=id;
   document.getElementById('prod-modal-title').textContent='Editar producto';
   document.getElementById('pf-name-es').value=p.nameEs||'';
@@ -2460,6 +2475,7 @@ function saveProd(){
     eyesPrice:parseFloat(document.getElementById('pf-eyes-price').value)||0,
     eyesImg:document.getElementById('pf-eyes-img').value.trim(),
     shipSubsidy:parseFloat(document.getElementById('pf-ship-subsidy').value)||0,
+    patternId:parseInt(document.getElementById('pf-pattern-id').value)||null,
     patternSlug:document.getElementById('pf-pattern-slug').value.trim(),
     pdfUrl:document.getElementById('pf-pdf-url').value.trim(),
     imagePosition:document.getElementById('pf-img-pos').value||'50% 20%',
