@@ -594,6 +594,7 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <div class="ckit-start-title" data-es="Personaliza tu kit" data-en="Customize your kit">Personaliza tu kit</div>
         <div class="ckit-start-desc" data-es="Elige exactamente los colores que quieres: piel, cabello, vestido y más. Nosotras te enviamos todo listo para tejer." data-en="Pick exactly the colors you want: skin, hair, dress and more. We ship everything ready to knit.">Elige exactamente los colores que quieres: piel, cabello, vestido y más. Nosotras te enviamos todo listo para tejer.</div>
         <button class="ckit-start-btn" onclick="ckStartBuilder()" data-es="¡Comenzar! 🧶" data-en="Let's start! 🧶">¡Comenzar! 🧶</button>
+        <button onclick="copyKitLink()" style="margin-top:12px;background:none;border:1.5px solid var(--pink-deep);color:var(--pink-dark);padding:9px 22px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;" data-es="🔗 Copiar enlace" data-en="🔗 Copy link">🔗 Copiar enlace</button>
       </div>
       <div id="ckit-body" style="display:none;"></div>
       <div id="ckit-summary" style="display:none;" class="ckit-summary">
@@ -1560,6 +1561,12 @@ function copyProductLink(){
     showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
   }).catch(()=>{showToast(url);});
 }
+function copyKitLink(){
+  const url=`${location.origin}/?kit=start`;
+  navigator.clipboard.writeText(url).then(()=>{
+    showToast(lang==='en'?'🔗 Link copied!':'🔗 ¡Enlace copiado!');
+  }).catch(()=>{showToast(url);});
+}
 document.getElementById('ov').addEventListener('click',e=>{if(e.target===e.currentTarget)closeM();});
 window.addEventListener('popstate',()=>{
   if(!new URLSearchParams(location.search).has('p'))
@@ -1767,7 +1774,7 @@ let _publishedHero=null;
   if(_editParam){setTimeout(()=>{openKitModal();ckLoadEditKit(_editParam);},400);}
   // Abrir modal de kit desde URL: ?kit=1 o #kit-personalizado
   const _kitParam=new URLSearchParams(window.location.search).get('kit');
-  if(_kitParam||window.location.hash==='#kit-personalizado'){setTimeout(()=>openKitModal(),500);}
+  if(_kitParam||window.location.hash==='#kit-personalizado'){setTimeout(()=>{openKitModal();if(_kitParam==='start')ckStartBuilder();},600);}
   // If applyHero didn't populate the hero cards, fill with first 2 published products
   const heroWrap=document.getElementById('hero-imgs-wrap');
   if(heroWrap&&heroWrap.querySelector('img')==null&&_publishedProducts&&_publishedProducts.length){
