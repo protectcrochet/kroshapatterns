@@ -886,6 +886,7 @@ function _mapProducts(arr){
       yarnList:p.yarnList||null,
       isYarnKit:!!(p.isYarnKit||(p.type==='kits'&&Array.isArray(p.yarnList)&&p.yarnList.length>0)),
       patternId:p.patternId||null,
+      includedAccessories:Array.isArray(p.includedAccessories)?p.includedAccessories:[],
       kitPrice:p.kitPrice||0,
       eyesPrice:p.eyesPrice||0,
       eyesSize:p.eyesSize||'',
@@ -1373,6 +1374,30 @@ function openM(id,updateUrl=true){
       <div class="addon-title">🧶 ${lang==='es'?'Estambres que uso':'Yarn I use'}</div>
       ${rows}
       ${hasOpt2?`<p style="font-size:11px;color:#92400E;margin-top:8px;background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:6px 10px;font-weight:600;">⚠ Los colores marcados como <strong>Opcional</strong> se usan en muy poca cantidad (solo para pequeños detalles).</p>`:''}
+    </div>`;
+    yarnSec.style.display='block';
+  } else if(yarnSec&&(curProd.includedAccessories?.length||curProd.patternId)){
+    // Kit con accesorios incluidos y/o patrón opcional pero sin yarnList
+    const products2=getProducts();
+    const patProd2=products2.find(p=>parseInt(p.id)===parseInt(curProd.patternId));
+    const patPrice2=patProd2?patProd2.price:0;
+    const accRows=(curProd.includedAccessories||[]).map(acc=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;flex-shrink:0;">🎁</span>
+      <span style="flex:1;font-size:13px;font-weight:600;color:var(--text);">${acc}</span>
+      <span style="font-size:11px;color:#16A34A;font-weight:700;">${lang==='es'?'Incluido':'Included'}</span>
+    </div>`).join('');
+    const patToggle2=patProd2?`<div onclick="toggleAddPatternToKit()" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--blush);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;margin-top:10px;">
+      <div id="cb-add-pattern" style="width:18px;height:18px;border-radius:5px;border:2px solid var(--pink-dark);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--pink-dark);flex-shrink:0;background:#fff;"></div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);">📄 ${lang==='es'?'Agregar patrón digital':'Add digital pattern'}</div>
+        <div style="font-size:11px;color:var(--text-light);">${patProd2.title||patProd2.nameEs||''}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--pink-dark);">+${f(patPrice2)}</span>
+    </div>`:'';
+    yarnSec.innerHTML=`<div style="margin-bottom:14px;">
+      <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-light);font-weight:700;margin-bottom:6px;">📦 ${lang==='es'?'Incluye':'Includes'}</div>
+      ${accRows}
+      ${patToggle2}
     </div>`;
     yarnSec.style.display='block';
   } else if(yarnSec){yarnSec.style.display='none';}
