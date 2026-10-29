@@ -1164,7 +1164,7 @@ function searchProds(q){
 function renderNovedades(){
   const wrap=document.getElementById('novedades-wrap');
   if(!wrap)return;
-  const all=getProducts().filter(p=>['patrones','accesorios','amigurumis'].includes(p.type));
+  const all=getProducts().filter(p=>p.status!=='draft');
   const featured=all.filter(p=>p.featured).sort((a,b)=>(a.sortOrder||999)-(b.sortOrder||999)).slice(0,3);
   const show=featured.length?featured:[...all].sort((a,b)=>b.id-a.id).slice(0,3);
   if(!show.length){wrap.innerHTML='';return;}
