@@ -4884,12 +4884,18 @@ function renderYarnUsage(){
   const totalAllTime=rows.reduce((s,r)=>s+r.total,0);
   const totalAvgMes=rows.reduce((s,r)=>s+r.avgLast3,0);
   const totalAvgSem=+(totalAvgMes/4.33).toFixed(1);
+  // Desglose por tipo de operación (meses cerrados = excluye mes en curso)
+  const closedMovs=salidaMovs.filter(m=>incompleteLastMonth?(m.ts<new Date(today.getFullYear(),today.getMonth(),1).getTime()?true:false):true);
+  const totalVentas=closedMovs.filter(m=>m.op==='venta').reduce((s,m)=>s+Math.abs(m.delta||1),0);
+  const totalScans=closedMovs.filter(m=>m.op==='scan').reduce((s,m)=>s+Math.abs(m.delta||1),0);
   const fmtDate=d=>d?`${d.getDate()} ${MONTH_NAMES_ES[d.getMonth()].substring(0,3)} ${d.getFullYear()}`:'—';
   const sumEl=document.getElementById('yu-summary');
   sumEl.innerHTML=[
-    {icon:'📦',label:'Madejas vendidas (histórico)',val:totalAllTime,bg:'var(--pink-bg)'},
-    {icon:'📅',label:'Prom/mes (últimos 3m)',val:totalAvgMes.toFixed(1),bg:'var(--pink-bg)'},
-    {icon:'📆',label:'Prom/semana (últimos 3m)',val:totalAvgSem,bg:'var(--pink-bg)'},
+    {icon:'📦',label:'Salidas reales (histórico)',val:totalAllTime,bg:'var(--pink-bg)'},
+    {icon:'🛒',label:'Ventas online (meses cerrados)',val:totalVentas,bg:'var(--pink-bg)'},
+    {icon:'📲',label:'Escaneos físicos (meses cerrados)',val:totalScans,bg:'var(--pink-bg)'},
+    {icon:'📅',label:'Prom/mes (meses cerrados)',val:totalAvgMes.toFixed(1),bg:'var(--pink-bg)'},
+    {icon:'📆',label:'Prom/semana (meses cerrados)',val:totalAvgSem,bg:'var(--pink-bg)'},
     {icon:'🚨',label:'Pedir YA',val:critical.length,bg:'#FEE2E2'},
     {icon:'⚠️',label:'Pedir pronto',val:warn.length,bg:'#FEF3C7'},
     {icon:'✅',label:'Colores OK',val:rows.filter(r=>r.status==='✅ OK').length,bg:'#D1FAE5'},
