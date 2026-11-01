@@ -953,7 +953,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </table>
       </div>
       <div style="margin-top:12px;font-size:12px;color:var(--text-light);">
-        Fuente: movimientos de venta del inventario · 🚨 Pedir YA = &lt;1 mes · ⚠️ Pedir pronto = 1–2 meses · ✅ OK = más de 2 meses · Prom/sem = Prom/mes ÷ 4.33 · Lead time: ~1 mes
+        Fuente: movimientos de venta del inventario · 🚨 Pedir YA = &lt;1 mes · ⚠️ Pedir pronto = 1–2 meses · ✅ OK = más de 2 meses · Prom/sem = Prom/mes ÷ 4.33 · Lead time: ~1 mes · <span style="color:#7C3AED;font-weight:700;">~X</span> = valor proyectado (mes con datos parciales)
       </div>
     </div>
 
@@ -4793,6 +4793,16 @@ function renderYarnUsage(){
   const firstDate=salidaMovs.length?new Date(Math.min(...salidaMovs.map(m=>m.ts))):null;
   const lastDate=salidaMovs.length?new Date(Math.max(...salidaMovs.map(m=>m.ts))):null;
 
+  // Detect first incomplete month and compute projection factor
+  // e.g. records start Oct 15 → only 17/31 days → multiply by 31/17
+  let incompleteMonth=null,projFactor=1;
+  if(firstDate&&firstDate.getDate()>1){
+    incompleteMonth=firstDate.getFullYear()+'-'+String(firstDate.getMonth()+1).padStart(2,'0');
+    const daysInMonth=new Date(firstDate.getFullYear(),firstDate.getMonth()+1,0).getDate();
+    const daysWithData=daysInMonth-firstDate.getDate()+1;
+    projFactor=daysInMonth/daysWithData;
+  }
+
   // All months sorted ascending (oldest → newest)
   const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
   // Last 3 months for status/average
@@ -4801,8 +4811,11 @@ function renderYarnUsage(){
   // Build rows: all YARN_COLORS that have any usage OR stock
   const rows=YARN_COLORS.map(c=>{
     const bm=usage[c]||{};
-    const total=Object.values(bm).reduce((s,v)=>s+v,0);
-    const avgLast3=last3.length?+(last3.reduce((s,m)=>s+(bm[m]||0),0)/last3.length).toFixed(1):0;
+    // Apply projection to incomplete first month for totals/averages
+    const bmAdj={...bm};
+    if(incompleteMonth&&bmAdj[incompleteMonth])bmAdj[incompleteMonth]=Math.round(bmAdj[incompleteMonth]*projFactor);
+    const total=Object.values(bmAdj).reduce((s,v)=>s+v,0);
+    const avgLast3=last3.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3.length).toFixed(1):0;
     const stock=inv[c]??0;
     const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
@@ -4811,7 +4824,7 @@ function renderYarnUsage(){
     else if(monthsLeft!==null&&monthsLeft<1){status='🚨 Pedir YA';statusBg='#FEE2E2';statusColor='#991B1B';}
     else if(monthsLeft!==null&&monthsLeft<2){status='⚠️ Pedir pronto';statusBg='#FEF3C7';statusColor='#92400E';}
     else{status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
-    return{name:c,bm,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
+    return{name:c,bm,bmAdj,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
   }).filter(r=>r.total>0||r.stock>0);
 
   // Sort: critical → warn → ok
@@ -4900,7 +4913,8 @@ function renderYarnUsage(){
   const monthHeads=monthsDesc.map(m=>{
     const[y,mo]=m.split('-');
     const isLast3=last3.includes(m);
-    return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span></th>`;
+    const isIncomp=m===incompleteMonth;
+    return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}${isIncomp?'border-bottom:2px dashed #A78BFA;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span>${isIncomp?`<br><span style="font-size:9px;color:#7C3AED;font-weight:700;">~proy.</span>`:''}</th>`;
   }).join('');
   thead.innerHTML=`<tr style="background:var(--white);">
     <th style="${stickyA}background:var(--white);"></th>
@@ -4922,9 +4936,12 @@ function renderYarnUsage(){
       ?`<img src="images/colores/${imgFile}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" onerror="this.style.display='none'">`
       :`<div style="width:28px;height:28px;border-radius:50%;background:#d4b8c8;border:2px solid var(--border);"></div>`;
     const monthCells=monthsDesc.map(m=>{
-      const v=r.bm[m]||0;
       const isLast3=last3.includes(m);
-      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${v>0?'font-weight:700;':'color:#ccc;'}">${v||'—'}</td>`;
+      const isIncomp=m===incompleteMonth;
+      const raw=r.bm[m]||0;
+      const v=isIncomp?(r.bmAdj[m]||0):raw;
+      const display=v>0?(isIncomp?`~${v}`:v):'—';
+      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${isIncomp?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${v>0?'font-weight:700;':'color:#ccc;'}${isIncomp&&v>0?'color:#7C3AED;':''}">${display}</td>`;
     }).join('');
     const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
     const stockColor=r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)';
@@ -4944,9 +4961,11 @@ function renderYarnUsage(){
 
   // Footer totals row
   const monthTotals=monthsDesc.map(m=>{
-    const t=rows.reduce((s,r)=>s+(r.bm[m]||0),0);
     const isLast3=last3.includes(m);
-    return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}color:var(--text);">${t||'—'}</td>`;
+    const isIncomp=m===incompleteMonth;
+    const t=rows.reduce((s,r)=>s+(isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
+    const display=t>0?(isIncomp?`~${t}`:t):'—';
+    return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${isIncomp?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
   }).join('');
   tfoot.innerHTML=`<tr style="background:#FAF9FF;">
     <td style="${stickyA}background:#FAF9FF;border-top:2px solid var(--border);"></td>
