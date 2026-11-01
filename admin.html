@@ -935,9 +935,6 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="page-header">
         <div class="page-title">Consumo de Estambres <em>🧶</em></div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-          <select id="yu-month" class="filter-sel" style="min-width:160px;" onchange="renderYarnUsage()">
-            <option value="">📅 Promedio mensual</option>
-          </select>
           <button class="btn btn-outline" onclick="loadYarnUsage()">🔄 Actualizar</button>
         </div>
       </div>
@@ -945,24 +942,16 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div id="yu-alerts" style="margin-bottom:20px;"></div>
       <!-- Resumen -->
       <div id="yu-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;"></div>
-      <!-- Tabla principal -->
-      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;">
-        <table class="data-table" style="min-width:600px;">
-          <thead>
-            <tr>
-              <th style="width:36px;"></th>
-              <th>Color</th>
-              <th style="text-align:center;">Uso / mes</th>
-              <th style="text-align:center;">Stock actual</th>
-              <th style="text-align:center;">Meses restantes</th>
-              <th style="text-align:center;">Estado</th>
-            </tr>
-          </thead>
+      <!-- Tabla matriz color × mes -->
+      <div id="yu-table-wrap" style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow-x:auto;position:relative;">
+        <table class="data-table" id="yu-table" style="border-collapse:collapse;white-space:nowrap;">
+          <thead id="yu-thead"></thead>
           <tbody id="yu-tbody"></tbody>
+          <tfoot id="yu-tfoot"></tfoot>
         </table>
       </div>
       <div style="margin-top:12px;font-size:12px;color:var(--text-light);">
-        🚨 Pedir YA = stock &lt; 1 mes · ⚠️ Pedir pronto = 1–2 meses · ✅ OK = más de 2 meses · Lead time: ~1 mes
+        🚨 Pedir YA = stock &lt; 1 mes · ⚠️ Pedir pronto = 1–2 meses · ✅ OK = más de 2 meses · Prom/mes = últimos 3 meses · Lead time: ~1 mes
       </div>
     </div>
 
@@ -4731,7 +4720,6 @@ function goTab(name,el){
 const MONTH_NAMES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 function _calcYarnUsage(orders){
-  // Returns {colorName: {monthKey: skeinsUsed}}
   const usage={};
   orders.forEach(o=>{
     if(o.status!=='paid'&&o.status!=='shipped')return;
@@ -4740,13 +4728,11 @@ function _calcYarnUsage(orders){
     const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     (o.itemsRaw||[]).forEach(it=>{
       const qty=parseInt(it.qty)||1;
-      // Individual yarn by yarnColorName
       if(it.yarnColorName){
         const c=it.yarnColorName;
         if(!usage[c])usage[c]={};
         usage[c][mk]=(usage[c][mk]||0)+qty;
       }
-      // Kit estambres with yarnList
       if(Array.isArray(it.yarnList)){
         it.yarnList.forEach(yl=>{
           const c=yl.color;
@@ -4755,7 +4741,6 @@ function _calcYarnUsage(orders){
           usage[c][mk]=(usage[c][mk]||0)+ylQty;
         });
       }
-      // Title-based fallback: "Estambre Sky Blue 200g" → extract color
       if(!it.yarnColorName&&!it.yarnList){
         const m=(it.title||it.name||'').match(/^Estambre\s+(.+?)\s+\d+g$/i);
         if(m){
@@ -4771,17 +4756,6 @@ function _calcYarnUsage(orders){
 
 async function loadYarnUsage(){
   if(!_serverOrders.length) await loadServerOrders();
-  const orders=getAllOrders();
-  const usage=_calcYarnUsage(orders);
-  // Populate month selector
-  const allMonths=new Set();
-  Object.values(usage).forEach(byMonth=>Object.keys(byMonth).forEach(m=>allMonths.add(m)));
-  const sortedMonths=[...allMonths].sort().reverse();
-  const sel=document.getElementById('yu-month');
-  const prev=sel.value;
-  sel.innerHTML='<option value="">📅 Promedio mensual (últimos 3m)</option>'+
-    sortedMonths.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}">${MONTH_NAMES_ES[parseInt(mo)-1]} ${y}</option>`;}).join('');
-  if(prev&&allMonths.has(prev))sel.value=prev;
   renderYarnUsage();
 }
 
@@ -4789,49 +4763,38 @@ function renderYarnUsage(){
   const orders=getAllOrders();
   const usage=_calcYarnUsage(orders);
   const inv=getInventory();
-  const selMonth=document.getElementById('yu-month')?.value||'';
 
-  // All months present
+  // All months sorted ascending (oldest → newest)
   const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
-  // Last 3 months for average
+  // Last 3 months for status/average
   const last3=allMonths.slice(-3);
 
-  // Build rows: all YARN_COLORS that have usage OR stock
+  // Build rows: all YARN_COLORS that have any usage OR stock
   const rows=YARN_COLORS.map(c=>{
-    const name=c;
-    const bm=usage[name]||{};
-    let usePerMonth;
-    if(selMonth){
-      usePerMonth=bm[selMonth]||0;
-    } else {
-      // Average of last 3 months
-      const s=last3.reduce((a,m)=>a+(bm[m]||0),0);
-      usePerMonth=last3.length?+(s/last3.length).toFixed(1):0;
-    }
-    const stock=inv[name]??0;
-    const monthsLeft=usePerMonth>0?+(stock/usePerMonth).toFixed(1):null;
-    // Status considering 1 month lead time
+    const bm=usage[c]||{};
+    const total=Object.values(bm).reduce((s,v)=>s+v,0);
+    const avgLast3=last3.length?+(last3.reduce((s,m)=>s+(bm[m]||0),0)/last3.length).toFixed(1):0;
+    const stock=inv[c]??0;
+    const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
-    if(usePerMonth===0&&stock===0){status=null;}
-    else if(usePerMonth===0){status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
+    if(avgLast3===0&&stock===0){status=null;}
+    else if(avgLast3===0){status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
     else if(monthsLeft!==null&&monthsLeft<1){status='🚨 Pedir YA';statusBg='#FEE2E2';statusColor='#991B1B';}
     else if(monthsLeft!==null&&monthsLeft<2){status='⚠️ Pedir pronto';statusBg='#FEF3C7';statusColor='#92400E';}
     else{status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
-    return{name,usePerMonth,stock,monthsLeft,status,statusBg,statusColor};
-  }).filter(r=>r.usePerMonth>0||r.stock>0);
+    return{name:c,bm,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
+  }).filter(r=>r.total>0||r.stock>0);
 
-  // Sort: critical → warn → ok → zero use
-  const order={'🚨 Pedir YA':0,'⚠️ Pedir pronto':1,'✅ OK':2};
+  // Sort: critical → warn → ok
+  const statusOrder={'🚨 Pedir YA':0,'⚠️ Pedir pronto':1,'✅ OK':2};
   rows.sort((a,b)=>{
-    const oa=a.status?order[a.status]??3:3;
-    const ob=b.status?order[b.status]??3:3;
+    const oa=a.status?statusOrder[a.status]??3:3;
+    const ob=b.status?statusOrder[b.status]??3:3;
     if(oa!==ob)return oa-ob;
-    // Within same status, sort by monthsLeft asc (most urgent first)
-    const ma=a.monthsLeft??999,mb=b.monthsLeft??999;
-    return ma-mb;
+    return(a.monthsLeft??999)-(b.monthsLeft??999);
   });
 
-  // Alerts banner
+  // ── Alerts banner ──
   const critical=rows.filter(r=>r.status==='🚨 Pedir YA');
   const warn=rows.filter(r=>r.status==='⚠️ Pedir pronto');
   const alertEl=document.getElementById('yu-alerts');
@@ -4843,62 +4806,112 @@ function renderYarnUsage(){
         const imgFile=YARN_IMG_MAP[r.name];
         const sw=imgFile?`<img src="images/colores/${imgFile}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display='none'">`:`<span style="width:12px;height:12px;border-radius:50%;background:#d4b8c8;display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>`;
         return`<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #FCA5A5;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:#991B1B;">${sw}${r.name} (${r.stock} madeja${r.stock!==1?'s':''})</span>`;
-      }).join('')}</div>
-    </div>`;
+      }).join('')}</div></div>`;
   }
   if(warn.length){
     alertEl.innerHTML+=`<div style="background:#FEF3C7;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 18px;margin-bottom:10px;">
       <div style="font-weight:800;color:#92400E;font-size:13px;margin-bottom:6px;">⚠️ Considera pedir pronto — ${warn.length} color${warn.length>1?'es':''} con 1–2 meses de stock</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">${warn.map(r=>{
-        const hex=getYarnHex(r.name);
-        return`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #FCD34D;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;color:#92400E;">
-          <span style="width:10px;height:10px;border-radius:50%;background:${hex};display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>
-          ${r.name}</span>`;
-      }).join('')}</div>
-    </div>`;
+        const imgFile=YARN_IMG_MAP[r.name];
+        const sw=imgFile?`<img src="images/colores/${imgFile}" style="width:12px;height:12px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display='none'">`:`<span style="width:10px;height:10px;border-radius:50%;background:#d4b8c8;display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>`;
+        return`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #FCD34D;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;color:#92400E;">${sw}${r.name}</span>`;
+      }).join('')}</div></div>`;
   }
   if(!critical.length&&!warn.length&&rows.length){
     alertEl.innerHTML='<div style="background:#D1FAE5;border:1.5px solid #6EE7B7;border-radius:12px;padding:12px 18px;margin-bottom:10px;font-weight:700;color:#065F46;font-size:13px;">✅ Todo en orden — ningún color necesita reabastecimiento urgente</div>';
   }
 
-  // Summary chips
+  // ── Summary chips ──
+  const totalAllTime=rows.reduce((s,r)=>s+r.total,0);
+  const totalAvgMes=rows.reduce((s,r)=>s+r.avgLast3,0);
   const sumEl=document.getElementById('yu-summary');
-  const totalUsed=rows.reduce((s,r)=>s+r.usePerMonth,0);
-  const label=selMonth?(()=>{const[y,mo]=selMonth.split('-');return MONTH_NAMES_ES[parseInt(mo)-1]+' '+y;})():'Promedio (últ. 3m)';
   sumEl.innerHTML=[
-    {icon:'🧶',label:'Madejas totales/mes',val:totalUsed.toFixed(1),bg:'var(--pink-bg)'},
+    {icon:'📦',label:'Madejas totales históricas',val:totalAllTime,bg:'var(--pink-bg)'},
+    {icon:'📅',label:'Promedio madejas/mes (últ. 3m)',val:totalAvgMes.toFixed(1),bg:'var(--pink-bg)'},
     {icon:'🚨',label:'Pedir YA',val:critical.length,bg:'#FEE2E2'},
     {icon:'⚠️',label:'Pedir pronto',val:warn.length,bg:'#FEF3C7'},
     {icon:'✅',label:'Colores OK',val:rows.filter(r=>r.status==='✅ OK').length,bg:'#D1FAE5'},
-  ].map(s=>`<div style="background:${s.bg};border:1.5px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;gap:2px;min-width:140px;">
+  ].map(s=>`<div style="background:${s.bg};border:1.5px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;gap:2px;min-width:130px;">
     <div style="font-size:20px;">${s.icon}</div>
     <div style="font-size:22px;font-weight:800;color:var(--text);">${s.val}</div>
-    <div style="font-size:11px;color:var(--text-light);font-weight:700;">${s.label}</div>
-    <div style="font-size:10px;color:var(--text-light);">${label}</div>
+    <div style="font-size:11px;color:var(--text-light);font-weight:700;line-height:1.3;">${s.label}</div>
   </div>`).join('');
 
-  // Table
+  // ── Matrix table ──
+  const thead=document.getElementById('yu-thead');
   const tbody=document.getElementById('yu-tbody');
+  const tfoot=document.getElementById('yu-tfoot');
+
   if(!rows.length){
+    thead.innerHTML='';tfoot.innerHTML='';
     tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">Sin datos — los pedidos pagados/enviados alimentan esta tabla</td></tr>';
     return;
   }
+
+  // Months newest→oldest for columns
+  const monthsDesc=[...allMonths].reverse();
+
+  // Sticky cell style helpers
+  const stickyA='position:sticky;left:0;z-index:2;background:inherit;min-width:36px;';
+  const stickyB='position:sticky;left:36px;z-index:2;background:inherit;min-width:130px;';
+
+  // Header
+  const monthHeads=monthsDesc.map(m=>{
+    const[y,mo]=m.split('-');
+    const isLast3=last3.includes(m);
+    return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span></th>`;
+  }).join('');
+  thead.innerHTML=`<tr style="background:var(--white);">
+    <th style="${stickyA}background:var(--white);"></th>
+    <th style="${stickyB}background:var(--white);">Color</th>
+    ${monthHeads}
+    <th style="text-align:center;min-width:62px;background:#EDE9FE;font-size:12px;">Total</th>
+    <th style="text-align:center;min-width:56px;font-size:12px;">Stock</th>
+    <th style="text-align:center;min-width:70px;font-size:12px;">Prom/mes</th>
+    <th style="text-align:center;min-width:76px;font-size:12px;">Meses rest.</th>
+    <th style="text-align:center;min-width:110px;font-size:12px;">Estado</th>
+  </tr>`;
+
+  // Body rows
+  const rowBg=r=>r.status==='🚨 Pedir YA'?'#FFF5F5':r.status==='⚠️ Pedir pronto'?'#FFFDF0':'var(--white)';
   tbody.innerHTML=rows.map(r=>{
     const imgFile=YARN_IMG_MAP[r.name];
     const swatch=imgFile
       ?`<img src="images/colores/${imgFile}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" onerror="this.style.display='none'">`
       :`<div style="width:28px;height:28px;border-radius:50%;background:#d4b8c8;border:2px solid var(--border);"></div>`;
-    const meses=r.monthsLeft!==null?r.monthsLeft+'m':'—';
+    const monthCells=monthsDesc.map(m=>{
+      const v=r.bm[m]||0;
+      const isLast3=last3.includes(m);
+      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${v>0?'font-weight:700;':'color:#ccc;'}">${v||'—'}</td>`;
+    }).join('');
     const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
-    return`<tr style="background:${r.status==='🚨 Pedir YA'?'#FFF5F5':r.status==='⚠️ Pedir pronto'?'#FFFDF0':''}">
-      <td>${swatch}</td>
-      <td><strong>${r.name}</strong></td>
-      <td style="text-align:center;font-weight:700;">${r.usePerMonth}</td>
-      <td style="text-align:center;font-weight:700;color:${r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)'};">${r.stock}</td>
-      <td style="text-align:center;font-weight:700;color:${r.monthsLeft!==null&&r.monthsLeft<1?'#DC2626':r.monthsLeft!==null&&r.monthsLeft<2?'#D97706':'var(--text)'};">${meses}</td>
-      <td style="text-align:center;">${statusHtml}</td>
+    const stockColor=r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)';
+    const mesesColor=r.monthsLeft!==null&&r.monthsLeft<1?'#DC2626':r.monthsLeft!==null&&r.monthsLeft<2?'#D97706':'var(--text)';
+    return`<tr style="background:${rowBg(r)};">
+      <td style="${stickyA}background:${rowBg(r)};padding:8px 6px;">${swatch}</td>
+      <td style="${stickyB}background:${rowBg(r)};padding:8px 8px;"><strong style="font-size:13px;">${r.name}</strong></td>
+      ${monthCells}
+      <td style="text-align:center;font-weight:800;background:#EDE9FE;font-size:14px;padding:8px 6px;">${r.total}</td>
+      <td style="text-align:center;font-weight:700;color:${stockColor};padding:8px 6px;">${r.stock}</td>
+      <td style="text-align:center;font-weight:700;padding:8px 6px;">${r.avgLast3}</td>
+      <td style="text-align:center;font-weight:700;color:${mesesColor};padding:8px 6px;">${r.monthsLeft!==null?r.monthsLeft+'m':'—'}</td>
+      <td style="text-align:center;padding:8px 6px;">${statusHtml}</td>
     </tr>`;
   }).join('');
+
+  // Footer totals row
+  const monthTotals=monthsDesc.map(m=>{
+    const t=rows.reduce((s,r)=>s+(r.bm[m]||0),0);
+    const isLast3=last3.includes(m);
+    return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}color:var(--text);">${t||'—'}</td>`;
+  }).join('');
+  tfoot.innerHTML=`<tr style="background:#FAF9FF;">
+    <td style="${stickyA}background:#FAF9FF;border-top:2px solid var(--border);"></td>
+    <td style="${stickyB}background:#FAF9FF;border-top:2px solid var(--border);padding:8px 8px;font-weight:800;font-size:12px;color:var(--text-light);">TOTAL / MES</td>
+    ${monthTotals}
+    <td style="text-align:center;font-weight:800;background:#EDE9FE;border-top:2px solid var(--border);padding:8px 6px;font-size:14px;">${totalAllTime}</td>
+    <td colspan="4" style="border-top:2px solid var(--border);"></td>
+  </tr>`;
 }
 
 // ── ANALYTICS ──
