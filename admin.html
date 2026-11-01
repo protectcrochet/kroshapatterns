@@ -4817,18 +4817,22 @@ function renderYarnUsage(){
   }
 
   const last3=allMonths.slice(-3);
+  // Averages/status use ONLY completed months (exclude current in-progress month)
+  const allMonthsForAvg=allMonths.filter(m=>m!==incompleteLastMonth);
+  const last3ForAvg=allMonthsForAvg.slice(-3);
 
   // Build rows: all YARN_COLORS that have any usage OR stock
   const rows=YARN_COLORS.map(c=>{
     const bm=usage[c]||{};
-    // Project both incomplete first month and current in-progress month
+    // bmAdj: project only the first incomplete month (e.g. Oct starting Oct 15)
     const bmAdj={...bm};
     if(incompleteMonth&&bmAdj[incompleteMonth])bmAdj[incompleteMonth]=Math.round(bmAdj[incompleteMonth]*projFactor);
-    if(incompleteLastMonth&&bmAdj[incompleteLastMonth])bmAdj[incompleteLastMonth]=Math.round(bmAdj[incompleteLastMonth]*projFactorLast);
+    // projLast: projected full-month value for current in-progress month (display only)
+    const projLast=incompleteLastMonth?Math.round((bm[incompleteLastMonth]||0)*projFactorLast):null;
     const total=Object.values(bmAdj).reduce((s,v)=>s+v,0);
-    // Average uses projected values (both first and current month projected to full month)
-    const last3WithData=last3.filter(m=>(bmAdj[m]||0)>0);
-    const avgLast3=last3WithData.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
+    // Averages/status use completed months only — keeps reorder alerts realistic
+    const last3WithData=last3ForAvg.filter(m=>(bmAdj[m]||0)>0);
+    const avgLast3=last3WithData.length?+(last3ForAvg.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
     const stock=inv[c]??0;
     const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
@@ -4837,7 +4841,7 @@ function renderYarnUsage(){
     else if(monthsLeft!==null&&monthsLeft<1){status='🚨 Pedir YA';statusBg='#FEE2E2';statusColor='#991B1B';}
     else if(monthsLeft!==null&&monthsLeft<2){status='⚠️ Pedir pronto';statusBg='#FEF3C7';statusColor='#92400E';}
     else{status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
-    return{name:c,bm,bmAdj,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
+    return{name:c,bm,bmAdj,projLast,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
   }).filter(r=>r.total>0||r.stock>0);
 
   // Sort: critical → warn → ok
@@ -4928,18 +4932,23 @@ function renderYarnUsage(){
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
     const isPartial=m===incompleteLastMonth;
-    const marker=isIncomp?'~proy.':isPartial?`~proy. día ${today.getDate()}`:'';
+    const marker=isIncomp?'~proy.':isPartial?`en curso`:'';
 
     return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}${(isIncomp||isPartial)?'border-bottom:2px dashed #A78BFA;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span>${marker?`<br><span style="font-size:9px;color:#7C3AED;font-weight:700;">${marker}</span>`:''}</th>`;
   }).join('');
+  const mo_=incompleteLastMonth?incompleteLastMonth.split('-')[1]:'';
+  const projColHead=incompleteLastMonth
+    ?`<th style="text-align:center;min-width:72px;background:#FDF4FF;border-left:2px dashed #A78BFA;font-size:11px;padding:8px 6px;">📈 Proy.<br><span style="font-weight:400;">${MONTH_NAMES_ES[parseInt(mo_)-1].substring(0,3)}<br style="display:none">(día ${today.getDate()})</span></th>`
+    :'';
   thead.innerHTML=`<tr style="background:var(--white);">
     <th style="${stickyA}background:var(--white);"></th>
     <th style="${stickyB}background:var(--white);">Color</th>
     ${monthHeads}
+    ${projColHead}
     <th style="text-align:center;min-width:62px;background:#EDE9FE;font-size:12px;">Total</th>
     <th style="text-align:center;min-width:56px;font-size:12px;">Stock</th>
-    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/mes<br><span style="font-weight:400;font-size:10px;">(últ. 3m)</span></th>
-    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/sem<br><span style="font-weight:400;font-size:10px;">(últ. 3m)</span></th>
+    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/mes<br><span style="font-weight:400;font-size:10px;">(meses cerrados)</span></th>
+    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/sem<br><span style="font-weight:400;font-size:10px;">(meses cerrados)</span></th>
     <th style="text-align:center;min-width:76px;font-size:12px;">Meses rest.</th>
     <th style="text-align:center;min-width:110px;font-size:12px;">Estado</th>
   </tr>`;
@@ -4955,12 +4964,17 @@ function renderYarnUsage(){
       const isLast3=last3.includes(m);
       const isIncomp=m===incompleteMonth;
       const isPartial=m===incompleteLastMonth;
-      // Both incomplete months use projected bmAdj; others use raw
-      const v=(isIncomp||isPartial)?(r.bmAdj[m]||0):(r.bm[m]||0);
-      const display=v>0?((isIncomp||isPartial)?`~${v}`:v):'—';
-      const violet=(isIncomp||isPartial)&&v>0;
-      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${(isIncomp||isPartial)?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${v>0?'font-weight:700;':'color:#ccc;'}${violet?'color:#7C3AED;':''}">${display}</td>`;
+      // First incomplete month uses projected bmAdj; current month shows raw
+      const v=isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0);
+      const display=v>0?(isIncomp?`~${v}`:v):'—';
+      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${isIncomp?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${isPartial?'color:#7C3AED;font-style:italic;':''}${v>0?'font-weight:700;':'color:#ccc;'}${isIncomp&&v>0?'color:#7C3AED;':''}">${display}</td>`;
     }).join('');
+    // Projected column for current month (display only, not used for status)
+    const projCell=incompleteLastMonth
+      ?(r.projLast>0
+        ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;background:#FDF4FF;border-left:2px dashed #A78BFA;color:#7C3AED;">~${r.projLast}</td>`
+        :`<td style="text-align:center;padding:8px 6px;background:#FDF4FF;border-left:2px dashed #A78BFA;color:#ccc;">—</td>`)
+      :'';
     const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
     const stockColor=r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)';
     const mesesColor=r.monthsLeft!==null&&r.monthsLeft<1?'#DC2626':r.monthsLeft!==null&&r.monthsLeft<2?'#D97706':'var(--text)';
@@ -4968,6 +4982,7 @@ function renderYarnUsage(){
       <td style="${stickyA}background:${rowBg(r)};padding:8px 6px;">${swatch}</td>
       <td style="${stickyB}background:${rowBg(r)};padding:8px 8px;"><strong style="font-size:13px;">${r.name}</strong></td>
       ${monthCells}
+      ${projCell}
       <td style="text-align:center;font-weight:800;background:#EDE9FE;font-size:14px;padding:8px 6px;">${r.total}</td>
       <td style="text-align:center;font-weight:700;color:${stockColor};padding:8px 6px;">${r.stock}</td>
       <td style="text-align:center;font-weight:700;padding:8px 6px;">${r.avgLast3}</td>
@@ -4981,15 +4996,20 @@ function renderYarnUsage(){
   const monthTotals=monthsDesc.map(m=>{
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
-    const isPartial=m===incompleteLastMonth;
-    const t=rows.reduce((s,r)=>s+((isIncomp||isPartial)?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
-    const display=t>0?((isIncomp||isPartial)?`~${t}`:t):'—';
-    return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${(isIncomp||isPartial)?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
+    // First incomplete month: projected; current month: raw
+    const t=rows.reduce((s,r)=>s+(isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
+    const display=t>0?(isIncomp?`~${t}`:t):'—';
+    return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${isIncomp?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
   }).join('');
+  const projTotalFoot=incompleteLastMonth
+    ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);background:#FDF4FF;border-left:2px dashed #A78BFA;color:#7C3AED;">~${rows.reduce((s,r)=>s+(r.projLast||0),0)}</td>`
+    :'';
+  const extraCols=incompleteLastMonth?5:5;
   tfoot.innerHTML=`<tr style="background:#FAF9FF;">
     <td style="${stickyA}background:#FAF9FF;border-top:2px solid var(--border);"></td>
     <td style="${stickyB}background:#FAF9FF;border-top:2px solid var(--border);padding:8px 8px;font-weight:800;font-size:12px;color:var(--text-light);">TOTAL / MES</td>
     ${monthTotals}
+    ${projTotalFoot}
     <td style="text-align:center;font-weight:800;background:#EDE9FE;border-top:2px solid var(--border);padding:8px 6px;font-size:14px;">${totalAllTime}</td>
     <td colspan="5" style="border-top:2px solid var(--border);"></td>
   </tr>`;
