@@ -4815,7 +4815,8 @@ function renderYarnUsage(){
     const bmAdj={...bm};
     if(incompleteMonth&&bmAdj[incompleteMonth])bmAdj[incompleteMonth]=Math.round(bmAdj[incompleteMonth]*projFactor);
     const total=Object.values(bmAdj).reduce((s,v)=>s+v,0);
-    const avgLast3=last3.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3.length).toFixed(1):0;
+    const last3WithData=last3.filter(m=>(bmAdj[m]||0)>0);
+    const avgLast3=last3WithData.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
     const stock=inv[c]??0;
     const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
