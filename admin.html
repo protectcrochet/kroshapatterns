@@ -4806,26 +4806,29 @@ function renderYarnUsage(){
   // All months sorted ascending (oldest → newest)
   const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
 
-  // Detect current in-progress month (e.g. Nov 1 = only 1 day, unreliable for averages)
+  // Detect current in-progress month and compute daily projection factor
   const today=new Date();
   const todayMk=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
   const incompleteLastMonth=allMonths.includes(todayMk)?todayMk:null;
+  let projFactorLast=1;
+  if(incompleteLastMonth){
+    const daysInMonthLast=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+    projFactorLast=daysInMonthLast/today.getDate();
+  }
 
-  // Months for display (all) vs averages (exclude current in-progress month)
   const last3=allMonths.slice(-3);
-  const allMonthsForAvg=allMonths.filter(m=>m!==incompleteLastMonth);
-  const last3ForAvg=allMonthsForAvg.slice(-3);
 
   // Build rows: all YARN_COLORS that have any usage OR stock
   const rows=YARN_COLORS.map(c=>{
     const bm=usage[c]||{};
-    // Apply projection to incomplete first month for totals/averages
+    // Project both incomplete first month and current in-progress month
     const bmAdj={...bm};
     if(incompleteMonth&&bmAdj[incompleteMonth])bmAdj[incompleteMonth]=Math.round(bmAdj[incompleteMonth]*projFactor);
+    if(incompleteLastMonth&&bmAdj[incompleteLastMonth])bmAdj[incompleteLastMonth]=Math.round(bmAdj[incompleteLastMonth]*projFactorLast);
     const total=Object.values(bmAdj).reduce((s,v)=>s+v,0);
-    // Average uses completed months only (excludes current in-progress month)
-    const last3WithData=last3ForAvg.filter(m=>(bmAdj[m]||0)>0);
-    const avgLast3=last3WithData.length?+(last3ForAvg.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
+    // Average uses projected values (both first and current month projected to full month)
+    const last3WithData=last3.filter(m=>(bmAdj[m]||0)>0);
+    const avgLast3=last3WithData.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
     const stock=inv[c]??0;
     const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
@@ -4925,7 +4928,8 @@ function renderYarnUsage(){
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
     const isPartial=m===incompleteLastMonth;
-    const marker=isIncomp?'~proy.':isPartial?'en curso':'';
+    const marker=isIncomp?'~proy.':isPartial?`~proy. día ${today.getDate()}`:'';
+
     return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}${(isIncomp||isPartial)?'border-bottom:2px dashed #A78BFA;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span>${marker?`<br><span style="font-size:9px;color:#7C3AED;font-weight:700;">${marker}</span>`:''}</th>`;
   }).join('');
   thead.innerHTML=`<tr style="background:var(--white);">
@@ -4951,9 +4955,8 @@ function renderYarnUsage(){
       const isLast3=last3.includes(m);
       const isIncomp=m===incompleteMonth;
       const isPartial=m===incompleteLastMonth;
-      const raw=r.bm[m]||0;
-      // First month: use projected value; current month: raw only (too early to project)
-      const v=isIncomp?(r.bmAdj[m]||0):raw;
+      // Both incomplete months use projected bmAdj; others use raw
+      const v=(isIncomp||isPartial)?(r.bmAdj[m]||0):(r.bm[m]||0);
       const display=v>0?((isIncomp||isPartial)?`~${v}`:v):'—';
       const violet=(isIncomp||isPartial)&&v>0;
       return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${(isIncomp||isPartial)?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${v>0?'font-weight:700;':'color:#ccc;'}${violet?'color:#7C3AED;':''}">${display}</td>`;
@@ -4979,8 +4982,7 @@ function renderYarnUsage(){
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
     const isPartial=m===incompleteLastMonth;
-    // First month uses projected bmAdj; current month uses raw bm (no 30x projection)
-    const t=rows.reduce((s,r)=>s+(isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
+    const t=rows.reduce((s,r)=>s+((isIncomp||isPartial)?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
     const display=t>0?((isIncomp||isPartial)?`~${t}`:t):'—';
     return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${(isIncomp||isPartial)?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
   }).join('');
