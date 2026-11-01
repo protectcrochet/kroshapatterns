@@ -4938,13 +4938,13 @@ function renderYarnUsage(){
   }).join('');
   const mo_=incompleteLastMonth?incompleteLastMonth.split('-')[1]:'';
   const projColHead=incompleteLastMonth
-    ?`<th style="text-align:center;min-width:72px;background:#FDF4FF;border-left:2px dashed #A78BFA;font-size:11px;padding:8px 6px;">📈 Proy.<br><span style="font-weight:400;">${MONTH_NAMES_ES[parseInt(mo_)-1].substring(0,3)}<br style="display:none">(día ${today.getDate()})</span></th>`
+    ?`<th style="text-align:center;min-width:72px;background:#FDF4FF;border-right:2px dashed #A78BFA;font-size:11px;padding:8px 6px;">📈 Proy.<br><span style="font-weight:400;">${MONTH_NAMES_ES[parseInt(mo_)-1].substring(0,3)} (día ${today.getDate()})</span></th>`
     :'';
   thead.innerHTML=`<tr style="background:var(--white);">
     <th style="${stickyA}background:var(--white);"></th>
     <th style="${stickyB}background:var(--white);">Color</th>
-    ${monthHeads}
     ${projColHead}
+    ${monthHeads}
     <th style="text-align:center;min-width:62px;background:#EDE9FE;font-size:12px;">Total</th>
     <th style="text-align:center;min-width:56px;font-size:12px;">Stock</th>
     <th style="text-align:center;min-width:68px;font-size:12px;">Prom/mes<br><span style="font-weight:400;font-size:10px;">(meses cerrados)</span></th>
@@ -4972,8 +4972,8 @@ function renderYarnUsage(){
     // Projected column for current month (display only, not used for status)
     const projCell=incompleteLastMonth
       ?(r.projLast>0
-        ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;background:#FDF4FF;border-left:2px dashed #A78BFA;color:#7C3AED;">~${r.projLast}</td>`
-        :`<td style="text-align:center;padding:8px 6px;background:#FDF4FF;border-left:2px dashed #A78BFA;color:#ccc;">—</td>`)
+        ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;background:#FDF4FF;border-right:2px dashed #A78BFA;color:#7C3AED;">~${r.projLast}</td>`
+        :`<td style="text-align:center;padding:8px 6px;background:#FDF4FF;border-right:2px dashed #A78BFA;color:#ccc;">—</td>`)
       :'';
     const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
     const stockColor=r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)';
@@ -4981,8 +4981,8 @@ function renderYarnUsage(){
     return`<tr style="background:${rowBg(r)};">
       <td style="${stickyA}background:${rowBg(r)};padding:8px 6px;">${swatch}</td>
       <td style="${stickyB}background:${rowBg(r)};padding:8px 8px;"><strong style="font-size:13px;">${r.name}</strong></td>
-      ${monthCells}
       ${projCell}
+      ${monthCells}
       <td style="text-align:center;font-weight:800;background:#EDE9FE;font-size:14px;padding:8px 6px;">${r.total}</td>
       <td style="text-align:center;font-weight:700;color:${stockColor};padding:8px 6px;">${r.stock}</td>
       <td style="text-align:center;font-weight:700;padding:8px 6px;">${r.avgLast3}</td>
@@ -5002,14 +5002,13 @@ function renderYarnUsage(){
     return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${isIncomp?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
   }).join('');
   const projTotalFoot=incompleteLastMonth
-    ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);background:#FDF4FF;border-left:2px dashed #A78BFA;color:#7C3AED;">~${rows.reduce((s,r)=>s+(r.projLast||0),0)}</td>`
+    ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);background:#FDF4FF;border-right:2px dashed #A78BFA;color:#7C3AED;">~${rows.reduce((s,r)=>s+(r.projLast||0),0)}</td>`
     :'';
-  const extraCols=incompleteLastMonth?5:5;
   tfoot.innerHTML=`<tr style="background:#FAF9FF;">
     <td style="${stickyA}background:#FAF9FF;border-top:2px solid var(--border);"></td>
     <td style="${stickyB}background:#FAF9FF;border-top:2px solid var(--border);padding:8px 8px;font-weight:800;font-size:12px;color:var(--text-light);">TOTAL / MES</td>
-    ${monthTotals}
     ${projTotalFoot}
+    ${monthTotals}
     <td style="text-align:center;font-weight:800;background:#EDE9FE;border-top:2px solid var(--border);padding:8px 6px;font-size:14px;">${totalAllTime}</td>
     <td colspan="5" style="border-top:2px solid var(--border);"></td>
   </tr>`;
