@@ -942,6 +942,8 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div id="yu-alerts" style="margin-bottom:20px;"></div>
       <!-- Resumen -->
       <div id="yu-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;"></div>
+      <!-- Indicador de carga independiente -->
+      <div id="yu-loading" style="display:none;text-align:center;padding:30px;color:var(--text-light);font-size:13px;">⏳ Cargando historial de ventas…</div>
       <!-- Tabla matriz color × mes -->
       <div id="yu-table-wrap" style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow-x:auto;position:relative;">
         <table class="data-table" id="yu-table" style="border-collapse:collapse;white-space:nowrap;">
@@ -4744,38 +4746,40 @@ function _calcYarnUsageFromMovements(movements){
 }
 
 async function loadYarnUsage(){
-  const tbody=document.getElementById('yu-tbody');
-  const thead=document.getElementById('yu-thead');
-  const tfoot=document.getElementById('yu-tfoot');
+  // Show spinner in dedicated div, don't touch thead/tbody
+  const loadEl=document.getElementById('yu-loading');
+  const wrapEl=document.getElementById('yu-table-wrap');
   const sumEl=document.getElementById('yu-summary');
   const alertEl=document.getElementById('yu-alerts');
-  if(tbody)tbody.innerHTML='<tr><td colspan="20" style="text-align:center;padding:40px;color:var(--text-light);">⏳ Cargando historial de ventas…</td></tr>';
-  if(thead)thead.innerHTML='';if(tfoot)tfoot.innerHTML='';
-  if(sumEl)sumEl.innerHTML='';if(alertEl)alertEl.innerHTML='';
+  if(loadEl)loadEl.style.display='block';
+  if(wrapEl)wrapEl.style.display='none';
+  if(sumEl)sumEl.innerHTML='';
+  if(alertEl)alertEl.innerHTML='';
+  let errMsg='';
   try{
     const r=await fetch('/api/inventory-movements',{headers:{'x-admin-key':getApiKey()}});
     if(r.ok){
       const d=await r.json();
-      console.log('[YarnUsage] Respuesta API:',d);
-      if(Array.isArray(d.movements)){_yarnMovements=d.movements;console.log('[YarnUsage] Movimientos cargados:',_yarnMovements.length);}
-      else{console.warn('[YarnUsage] d.movements no es array:',typeof d.movements,d);}
+      if(Array.isArray(d.movements)){_yarnMovements=d.movements;}
+      else{errMsg=`API devolvió formato inesperado (movements=${typeof d.movements})`;}
     }else{
-      const txt=await r.text().catch(()=>'');
-      console.warn('[YarnUsage] HTTP',r.status,txt);
-      const tbody=document.getElementById('yu-tbody');
-      if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error ${r.status} al cargar movimientos. Verifica que la clave admin sea correcta.</td></tr>`;
-      return;
+      errMsg=`Error HTTP ${r.status} al cargar movimientos`;
     }
   }catch(e){
-    console.error('[YarnUsage] Error red:',e);
+    errMsg=`Error de red: ${e.message}`;
+  }
+  if(loadEl)loadEl.style.display='none';
+  if(wrapEl)wrapEl.style.display='';
+  if(errMsg){
     const tbody=document.getElementById('yu-tbody');
-    if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error de red: ${e.message}</td></tr>`;
+    const thead=document.getElementById('yu-thead');
+    if(thead)thead.innerHTML='';
+    if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ ${errMsg}</td></tr>`;
     return;
   }
   try{
     renderYarnUsage();
   }catch(e){
-    console.error('[YarnUsage] Error al renderizar:',e);
     const tbody=document.getElementById('yu-tbody');
     if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error al renderizar: ${e.message}</td></tr>`;
   }
