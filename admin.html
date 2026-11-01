@@ -270,6 +270,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
     <div class="sb-item" onclick="goTab('customers',this);closeMobileMenu()"><span class="sb-icon">👥</span> Clientes</div>
     <div class="sb-item" onclick="goTab('hero',this);closeMobileMenu()"><span class="sb-icon">🎨</span> Hero & Banners</div>
     <div class="sb-item" onclick="goTab('inventory',this);closeMobileMenu()"><span class="sb-icon">🧶</span> Inventario</div>
+    <div class="sb-item" onclick="goTab('yarnusage',this);closeMobileMenu()"><span class="sb-icon">📊</span> Consumo Estambres</div>
     <div class="sb-item" onclick="goTab('analytics',this);closeMobileMenu()"><span class="sb-icon">📈</span> Análisis</div>
     <div class="sb-item" onclick="goTab('finance',this);closeMobileMenu()"><span class="sb-icon">💰</span> Finanzas</div>
     <div class="sb-item" onclick="goTab('customkit',this);closeMobileMenu()"><span class="sb-icon">🎨</span> Kit Personalizado</div>
@@ -287,6 +288,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
       <div class="sb-item" onclick="goTab('customers',this)"><span class="sb-icon">👥</span> Clientes</div>
       <div class="sb-item" onclick="goTab('hero',this)"><span class="sb-icon">🎨</span> Hero & Banners</div>
       <div class="sb-item" onclick="goTab('inventory',this)"><span class="sb-icon">🧶</span> Inventario</div>
+      <div class="sb-item" onclick="goTab('yarnusage',this)"><span class="sb-icon">📊</span> Consumo Estambres</div>
       <div class="sb-item" onclick="goTab('analytics',this)"><span class="sb-icon">📈</span> Análisis</div>
       <div class="sb-item" onclick="goTab('finance',this)"><span class="sb-icon">💰</span> Finanzas</div>
       <div class="sb-item" onclick="goTab('customkit',this)"><span class="sb-icon">🎨</span> Kit Personalizado</div>
@@ -925,6 +927,42 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Carga todos los PDFs subidos y arrástralos al producto correspondiente con un clic.</div>
         <button class="btn btn-outline btn-sm" onclick="loadBlobFiles()">🔄 Cargar archivos</button>
         <div id="blob-assign-wrap" style="margin-top:16px;"></div>
+      </div>
+    </div>
+
+    <!-- CONSUMO DE ESTAMBRES -->
+    <div class="tab-section" id="tab-yarnusage">
+      <div class="page-header">
+        <div class="page-title">Consumo de Estambres <em>🧶</em></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select id="yu-month" class="filter-sel" style="min-width:160px;" onchange="renderYarnUsage()">
+            <option value="">📅 Promedio mensual</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadYarnUsage()">🔄 Actualizar</button>
+        </div>
+      </div>
+      <!-- Alertas críticas -->
+      <div id="yu-alerts" style="margin-bottom:20px;"></div>
+      <!-- Resumen -->
+      <div id="yu-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;"></div>
+      <!-- Tabla principal -->
+      <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;">
+        <table class="data-table" style="min-width:600px;">
+          <thead>
+            <tr>
+              <th style="width:36px;"></th>
+              <th>Color</th>
+              <th style="text-align:center;">Uso / mes</th>
+              <th style="text-align:center;">Stock actual</th>
+              <th style="text-align:center;">Meses restantes</th>
+              <th style="text-align:center;">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="yu-tbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text-light);">
+        🚨 Pedir YA = stock &lt; 1 mes · ⚠️ Pedir pronto = 1–2 meses · ✅ OK = más de 2 meses · Lead time: ~1 mes
       </div>
     </div>
 
@@ -4686,6 +4724,181 @@ function goTab(name,el){
   if(name==='finance')loadFinance();
   if(name==='customkit')loadCustomKitAdmin();
   if(name==='settings')populateEmailTestSelector();
+  if(name==='yarnusage')loadYarnUsage();
+}
+
+// ── YARN USAGE ──
+const MONTH_NAMES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function _calcYarnUsage(orders){
+  // Returns {colorName: {monthKey: skeinsUsed}}
+  const usage={};
+  orders.forEach(o=>{
+    if(o.status!=='paid'&&o.status!=='shipped')return;
+    const d=new Date(o.date||o.id);
+    if(isNaN(d))return;
+    const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    (o.itemsRaw||[]).forEach(it=>{
+      const qty=parseInt(it.qty)||1;
+      // Individual yarn by yarnColorName
+      if(it.yarnColorName){
+        const c=it.yarnColorName;
+        if(!usage[c])usage[c]={};
+        usage[c][mk]=(usage[c][mk]||0)+qty;
+      }
+      // Kit estambres with yarnList
+      if(Array.isArray(it.yarnList)){
+        it.yarnList.forEach(yl=>{
+          const c=yl.color;
+          const ylQty=(parseInt(yl.qty)||1)*qty;
+          if(!usage[c])usage[c]={};
+          usage[c][mk]=(usage[c][mk]||0)+ylQty;
+        });
+      }
+      // Title-based fallback: "Estambre Sky Blue 200g" → extract color
+      if(!it.yarnColorName&&!it.yarnList){
+        const m=(it.title||it.name||'').match(/^Estambre\s+(.+?)\s+\d+g$/i);
+        if(m){
+          const c=m[1].trim();
+          if(!usage[c])usage[c]={};
+          usage[c][mk]=(usage[c][mk]||0)+qty;
+        }
+      }
+    });
+  });
+  return usage;
+}
+
+async function loadYarnUsage(){
+  if(!_serverOrders.length) await loadServerOrders();
+  const orders=getAllOrders();
+  const usage=_calcYarnUsage(orders);
+  // Populate month selector
+  const allMonths=new Set();
+  Object.values(usage).forEach(byMonth=>Object.keys(byMonth).forEach(m=>allMonths.add(m)));
+  const sortedMonths=[...allMonths].sort().reverse();
+  const sel=document.getElementById('yu-month');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">📅 Promedio mensual (últimos 3m)</option>'+
+    sortedMonths.map(m=>{const[y,mo]=m.split('-');return`<option value="${m}">${MONTH_NAMES_ES[parseInt(mo)-1]} ${y}</option>`;}).join('');
+  if(prev&&allMonths.has(prev))sel.value=prev;
+  renderYarnUsage();
+}
+
+function renderYarnUsage(){
+  const orders=getAllOrders();
+  const usage=_calcYarnUsage(orders);
+  const inv=getInventory();
+  const selMonth=document.getElementById('yu-month')?.value||'';
+
+  // All months present
+  const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
+  // Last 3 months for average
+  const last3=allMonths.slice(-3);
+
+  // Build rows: all YARN_COLORS that have usage OR stock
+  const rows=YARN_COLORS.map(c=>{
+    const name=c;
+    const bm=usage[name]||{};
+    let usePerMonth;
+    if(selMonth){
+      usePerMonth=bm[selMonth]||0;
+    } else {
+      // Average of last 3 months
+      const s=last3.reduce((a,m)=>a+(bm[m]||0),0);
+      usePerMonth=last3.length?+(s/last3.length).toFixed(1):0;
+    }
+    const stock=inv[name]??0;
+    const monthsLeft=usePerMonth>0?+(stock/usePerMonth).toFixed(1):null;
+    // Status considering 1 month lead time
+    let status,statusBg,statusColor;
+    if(usePerMonth===0&&stock===0){status=null;}
+    else if(usePerMonth===0){status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
+    else if(monthsLeft!==null&&monthsLeft<1){status='🚨 Pedir YA';statusBg='#FEE2E2';statusColor='#991B1B';}
+    else if(monthsLeft!==null&&monthsLeft<2){status='⚠️ Pedir pronto';statusBg='#FEF3C7';statusColor='#92400E';}
+    else{status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
+    return{name,usePerMonth,stock,monthsLeft,status,statusBg,statusColor};
+  }).filter(r=>r.usePerMonth>0||r.stock>0);
+
+  // Sort: critical → warn → ok → zero use
+  const order={'🚨 Pedir YA':0,'⚠️ Pedir pronto':1,'✅ OK':2};
+  rows.sort((a,b)=>{
+    const oa=a.status?order[a.status]??3:3;
+    const ob=b.status?order[b.status]??3:3;
+    if(oa!==ob)return oa-ob;
+    // Within same status, sort by monthsLeft asc (most urgent first)
+    const ma=a.monthsLeft??999,mb=b.monthsLeft??999;
+    return ma-mb;
+  });
+
+  // Alerts banner
+  const critical=rows.filter(r=>r.status==='🚨 Pedir YA');
+  const warn=rows.filter(r=>r.status==='⚠️ Pedir pronto');
+  const alertEl=document.getElementById('yu-alerts');
+  alertEl.innerHTML='';
+  if(critical.length){
+    alertEl.innerHTML+=`<div style="background:#FEE2E2;border:1.5px solid #FCA5A5;border-radius:12px;padding:14px 18px;margin-bottom:10px;">
+      <div style="font-weight:800;color:#991B1B;font-size:14px;margin-bottom:8px;">🚨 Necesitas pedir YA — ${critical.length} color${critical.length>1?'es':''} con menos de 1 mes de stock</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">${critical.map(r=>{
+        const imgFile=YARN_IMG_MAP[r.name];
+        const sw=imgFile?`<img src="images/colores/${imgFile}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display='none'">`:`<span style="width:12px;height:12px;border-radius:50%;background:#d4b8c8;display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>`;
+        return`<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #FCA5A5;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:#991B1B;">${sw}${r.name} (${r.stock} madeja${r.stock!==1?'s':''})</span>`;
+      }).join('')}</div>
+    </div>`;
+  }
+  if(warn.length){
+    alertEl.innerHTML+=`<div style="background:#FEF3C7;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 18px;margin-bottom:10px;">
+      <div style="font-weight:800;color:#92400E;font-size:13px;margin-bottom:6px;">⚠️ Considera pedir pronto — ${warn.length} color${warn.length>1?'es':''} con 1–2 meses de stock</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">${warn.map(r=>{
+        const hex=getYarnHex(r.name);
+        return`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #FCD34D;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;color:#92400E;">
+          <span style="width:10px;height:10px;border-radius:50%;background:${hex};display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>
+          ${r.name}</span>`;
+      }).join('')}</div>
+    </div>`;
+  }
+  if(!critical.length&&!warn.length&&rows.length){
+    alertEl.innerHTML='<div style="background:#D1FAE5;border:1.5px solid #6EE7B7;border-radius:12px;padding:12px 18px;margin-bottom:10px;font-weight:700;color:#065F46;font-size:13px;">✅ Todo en orden — ningún color necesita reabastecimiento urgente</div>';
+  }
+
+  // Summary chips
+  const sumEl=document.getElementById('yu-summary');
+  const totalUsed=rows.reduce((s,r)=>s+r.usePerMonth,0);
+  const label=selMonth?(()=>{const[y,mo]=selMonth.split('-');return MONTH_NAMES_ES[parseInt(mo)-1]+' '+y;})():'Promedio (últ. 3m)';
+  sumEl.innerHTML=[
+    {icon:'🧶',label:'Madejas totales/mes',val:totalUsed.toFixed(1),bg:'var(--pink-bg)'},
+    {icon:'🚨',label:'Pedir YA',val:critical.length,bg:'#FEE2E2'},
+    {icon:'⚠️',label:'Pedir pronto',val:warn.length,bg:'#FEF3C7'},
+    {icon:'✅',label:'Colores OK',val:rows.filter(r=>r.status==='✅ OK').length,bg:'#D1FAE5'},
+  ].map(s=>`<div style="background:${s.bg};border:1.5px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;gap:2px;min-width:140px;">
+    <div style="font-size:20px;">${s.icon}</div>
+    <div style="font-size:22px;font-weight:800;color:var(--text);">${s.val}</div>
+    <div style="font-size:11px;color:var(--text-light);font-weight:700;">${s.label}</div>
+    <div style="font-size:10px;color:var(--text-light);">${label}</div>
+  </div>`).join('');
+
+  // Table
+  const tbody=document.getElementById('yu-tbody');
+  if(!rows.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">Sin datos — los pedidos pagados/enviados alimentan esta tabla</td></tr>';
+    return;
+  }
+  tbody.innerHTML=rows.map(r=>{
+    const imgFile=YARN_IMG_MAP[r.name];
+    const swatch=imgFile
+      ?`<img src="images/colores/${imgFile}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" onerror="this.style.display='none'">`
+      :`<div style="width:28px;height:28px;border-radius:50%;background:#d4b8c8;border:2px solid var(--border);"></div>`;
+    const meses=r.monthsLeft!==null?r.monthsLeft+'m':'—';
+    const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
+    return`<tr style="background:${r.status==='🚨 Pedir YA'?'#FFF5F5':r.status==='⚠️ Pedir pronto'?'#FFFDF0':''}">
+      <td>${swatch}</td>
+      <td><strong>${r.name}</strong></td>
+      <td style="text-align:center;font-weight:700;">${r.usePerMonth}</td>
+      <td style="text-align:center;font-weight:700;color:${r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)'};">${r.stock}</td>
+      <td style="text-align:center;font-weight:700;color:${r.monthsLeft!==null&&r.monthsLeft<1?'#DC2626':r.monthsLeft!==null&&r.monthsLeft<2?'#D97706':'var(--text)'};">${meses}</td>
+      <td style="text-align:center;">${statusHtml}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── ANALYTICS ──
