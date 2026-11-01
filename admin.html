@@ -4723,17 +4723,20 @@ const MONTH_NAMES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','
 let _yarnMovements=[];
 
 function _calcYarnUsageFromMovements(movements){
-  // Returns {colorName: {monthKey: skeinsUsed}} using sale movements
+  // Returns {colorName: {monthKey: skeinsUsed}} for all outflow movements
+  // Includes: venta (online sale), scan (physical scan-out), adjust (negative manual)
+  // Excludes: undo (reversal), adjust with delta >= 0 (restock)
   const usage={};
   movements.forEach(m=>{
-    if(m.op!=='venta')return;
+    if(m.op==='undo')return;  // Reversals don't count as consumption
     const d=new Date(m.ts);
     if(isNaN(d))return;
-    const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     const color=m.color;
     if(!color)return;
-    // delta is negative (inventory went down); prev-newQty = units sold
-    const qty=m.prev!=null&&m.newQty!=null?Math.max(0,m.prev-m.newQty):Math.abs(m.delta||1);
+    // Compute units that left inventory
+    const qty=m.prev!=null&&m.newQty!=null?m.prev-m.newQty:-(m.delta||0);
+    if(qty<=0)return;  // Skip restocks (positive delta = inventory went up)
+    const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     if(!usage[color])usage[color]={};
     usage[color][mk]=(usage[color][mk]||0)+qty;
   });
@@ -4761,10 +4764,14 @@ function renderYarnUsage(){
   const usage=_calcYarnUsageFromMovements(_yarnMovements);
   const inv=getInventory();
 
-  // First/last movement dates for "desde cuándo" info
-  const salesMovs=_yarnMovements.filter(m=>m.op==='venta');
-  const firstDate=salesMovs.length?new Date(Math.min(...salesMovs.map(m=>m.ts))):null;
-  const lastDate=salesMovs.length?new Date(Math.max(...salesMovs.map(m=>m.ts))):null;
+  // First/last outflow dates for "desde cuándo" info
+  const salidaMovs=_yarnMovements.filter(m=>{
+    if(m.op==='undo')return false;
+    const qty=m.prev!=null&&m.newQty!=null?m.prev-m.newQty:-(m.delta||0);
+    return qty>0;
+  });
+  const firstDate=salidaMovs.length?new Date(Math.min(...salidaMovs.map(m=>m.ts))):null;
+  const lastDate=salidaMovs.length?new Date(Math.max(...salidaMovs.map(m=>m.ts))):null;
 
   // All months sorted ascending (oldest → newest)
   const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
@@ -4842,10 +4849,10 @@ function renderYarnUsage(){
     <div style="font-size:11px;color:var(--text-light);font-weight:700;line-height:1.3;">${s.label}</div>
   </div>`).join('')+
   (firstDate?`<div style="background:var(--pink-bg);border:1.5px solid var(--border);border-radius:12px;padding:12px 18px;display:flex;flex-direction:column;gap:4px;min-width:160px;">
-    <div style="font-size:11px;color:var(--text-light);font-weight:700;">📋 Registros de ventas</div>
+    <div style="font-size:11px;color:var(--text-light);font-weight:700;">📋 Registros de salidas</div>
     <div style="font-size:12px;font-weight:800;color:var(--text);">Desde: ${fmtDate(firstDate)}</div>
     <div style="font-size:12px;font-weight:800;color:var(--text);">Hasta: ${fmtDate(lastDate)}</div>
-    <div style="font-size:11px;color:var(--text-light);">${salesMovs.length} movimientos</div>
+    <div style="font-size:11px;color:var(--text-light);">${salidaMovs.length} movimientos</div>
   </div>`:'');
 
   // ── Matrix table ──
@@ -4855,8 +4862,8 @@ function renderYarnUsage(){
 
   if(!rows.length){
     thead.innerHTML='';tfoot.innerHTML='';
-    const msg=salesMovs.length===0
-      ?'Sin movimientos de venta registrados todavía. Cuando se completen pedidos con estambres, aparecerán aquí.'
+    const msg=salidaMovs.length===0
+      ?'Sin movimientos de salida registrados todavía. Aparecerán aquí ventas online, escaneos y ajustes negativos.'
       :'Movimientos cargados pero sin colores con uso o stock aún.';
     tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:40px;color:var(--text-light);font-size:13px;">${msg}</td></tr>`;
     return;
