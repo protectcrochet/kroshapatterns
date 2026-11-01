@@ -830,9 +830,10 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
-function isSinfoniaColor(n){return n==='Arena S'||n==='Sky Blue'||n==='Camel';}
+function isSinfoniaColor(n){return n==='Arena S'||n==='Camel';}
 function yarnGrams(n){return isSinfoniaColor(n)?100:200;}
-function yarnPrice(n){return isSinfoniaColor(n)?130:150;}
+const _YARN_PRICE_OVERRIDE={'Sky Blue':130};
+function yarnPrice(n){return _YARN_PRICE_OVERRIDE[n]??(isSinfoniaColor(n)?130:150);}
 function yarnColorsToList(yc){
   const counts={},order=[],detallesSet=new Set();
   Object.entries(yc).forEach(([key,color])=>{
@@ -1127,7 +1128,7 @@ const defaultYarnColors={
 
 // ── YARN CATALOG (Premier Yarns Basix, 200g / $150 MXN each) ──
 const yarnProducts=YARN_COLORS.map((c,i)=>{
-  const g=yarnGrams(c.name),p=isSinfoniaColor(c.name)?65:150;
+  const g=yarnGrams(c.name),p=_YARN_PRICE_OVERRIDE[c.name]??(isSinfoniaColor(c.name)?65:150);
   return{
     id:100+i,
     title:`Estambre ${c.name} ${g}g`,
