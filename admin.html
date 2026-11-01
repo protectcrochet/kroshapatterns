@@ -4754,10 +4754,31 @@ async function loadYarnUsage(){
   if(sumEl)sumEl.innerHTML='';if(alertEl)alertEl.innerHTML='';
   try{
     const r=await fetch('/api/inventory-movements',{headers:{'x-admin-key':getApiKey()}});
-    if(r.ok){const d=await r.json();if(Array.isArray(d.movements))_yarnMovements=d.movements;}
-    else console.warn('[YarnUsage] movements HTTP',r.status);
-  }catch(e){console.warn('[YarnUsage] Error cargando movimientos:',e);}
-  renderYarnUsage();
+    if(r.ok){
+      const d=await r.json();
+      console.log('[YarnUsage] Respuesta API:',d);
+      if(Array.isArray(d.movements)){_yarnMovements=d.movements;console.log('[YarnUsage] Movimientos cargados:',_yarnMovements.length);}
+      else{console.warn('[YarnUsage] d.movements no es array:',typeof d.movements,d);}
+    }else{
+      const txt=await r.text().catch(()=>'');
+      console.warn('[YarnUsage] HTTP',r.status,txt);
+      const tbody=document.getElementById('yu-tbody');
+      if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error ${r.status} al cargar movimientos. Verifica que la clave admin sea correcta.</td></tr>`;
+      return;
+    }
+  }catch(e){
+    console.error('[YarnUsage] Error red:',e);
+    const tbody=document.getElementById('yu-tbody');
+    if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error de red: ${e.message}</td></tr>`;
+    return;
+  }
+  try{
+    renderYarnUsage();
+  }catch(e){
+    console.error('[YarnUsage] Error al renderizar:',e);
+    const tbody=document.getElementById('yu-tbody');
+    if(tbody)tbody.innerHTML=`<tr><td colspan="20" style="text-align:center;padding:30px;color:#DC2626;font-size:13px;">❌ Error al renderizar: ${e.message}</td></tr>`;
+  }
 }
 
 function renderYarnUsage(){
