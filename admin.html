@@ -4837,7 +4837,7 @@ function renderYarnUsage(){
     alertEl.innerHTML+=`<div style="background:#FEE2E2;border:1.5px solid #FCA5A5;border-radius:12px;padding:14px 18px;margin-bottom:10px;">
       <div style="font-weight:800;color:#991B1B;font-size:14px;margin-bottom:8px;">🚨 Necesitas pedir YA — ${critical.length} color${critical.length>1?'es':''} con menos de 1 mes de stock</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;">${critical.map(r=>{
-        const imgFile=YARN_IMG_MAP[r.name];
+        const imgFile=ADMIN_COLOR_IMGS[r.name];
         const sw=imgFile?`<img src="images/colores/${imgFile}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display='none'">`:`<span style="width:12px;height:12px;border-radius:50%;background:#d4b8c8;display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>`;
         return`<span style="display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #FCA5A5;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:#991B1B;">${sw}${r.name} (${r.stock} madeja${r.stock!==1?'s':''})</span>`;
       }).join('')}</div></div>`;
@@ -4846,7 +4846,7 @@ function renderYarnUsage(){
     alertEl.innerHTML+=`<div style="background:#FEF3C7;border:1.5px solid #FCD34D;border-radius:12px;padding:12px 18px;margin-bottom:10px;">
       <div style="font-weight:800;color:#92400E;font-size:13px;margin-bottom:6px;">⚠️ Considera pedir pronto — ${warn.length} color${warn.length>1?'es':''} con 1–2 meses de stock</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">${warn.map(r=>{
-        const imgFile=YARN_IMG_MAP[r.name];
+        const imgFile=ADMIN_COLOR_IMGS[r.name];
         const sw=imgFile?`<img src="images/colores/${imgFile}" style="width:12px;height:12px;border-radius:50%;object-fit:cover;border:1px solid #ddd;flex-shrink:0;" onerror="this.style.display='none'">`:`<span style="width:10px;height:10px;border-radius:50%;background:#d4b8c8;display:inline-block;border:1px solid #ddd;flex-shrink:0;"></span>`;
         return`<span style="display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid #FCD34D;border-radius:20px;padding:3px 9px;font-size:12px;font-weight:700;color:#92400E;">${sw}${r.name}</span>`;
       }).join('')}</div></div>`;
@@ -4922,7 +4922,7 @@ function renderYarnUsage(){
   // Body rows
   const rowBg=r=>r.status==='🚨 Pedir YA'?'#FFF5F5':r.status==='⚠️ Pedir pronto'?'#FFFDF0':'var(--white)';
   tbody.innerHTML=rows.map(r=>{
-    const imgFile=YARN_IMG_MAP[r.name];
+    const imgFile=ADMIN_COLOR_IMGS[r.name];
     const swatch=imgFile
       ?`<img src="images/colores/${imgFile}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid var(--border);" onerror="this.style.display='none'">`
       :`<div style="width:28px;height:28px;border-radius:50%;background:#d4b8c8;border:2px solid var(--border);"></div>`;
