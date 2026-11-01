@@ -4725,19 +4725,18 @@ const MONTH_NAMES_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','
 let _yarnMovements=[];
 
 function _calcYarnUsageFromMovements(movements){
-  // Returns {colorName: {monthKey: skeinsUsed}} for all outflow movements
-  // Includes: venta (online sale), scan (physical scan-out), adjust (negative manual)
-  // Excludes: undo (reversal), adjust with delta >= 0 (restock)
+  // Returns {colorName: {monthKey: skeinsUsed}}
+  // Only real consumption: venta (online sale) and scan (physical scan-out)
+  // Excludes adjust (inventory corrections/recounts) and undo (reversals)
   const usage={};
   movements.forEach(m=>{
-    if(m.op==='undo')return;  // Reversals don't count as consumption
+    if(m.op!=='venta'&&m.op!=='scan')return;
     const d=new Date(m.ts);
     if(isNaN(d))return;
     const color=m.color;
     if(!color)return;
-    // Compute units that left inventory
-    const qty=m.prev!=null&&m.newQty!=null?m.prev-m.newQty:-(m.delta||0);
-    if(qty<=0)return;  // Skip restocks (positive delta = inventory went up)
+    const qty=m.prev!=null&&m.newQty!=null?m.prev-m.newQty:Math.abs(m.delta||1);
+    if(qty<=0)return;
     const mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
     if(!usage[color])usage[color]={};
     usage[color][mk]=(usage[color][mk]||0)+qty;
@@ -4789,12 +4788,8 @@ function renderYarnUsage(){
   const usage=_calcYarnUsageFromMovements(_yarnMovements);
   const inv=getInventory();
 
-  // First/last outflow dates for "desde cuándo" info
-  const salidaMovs=_yarnMovements.filter(m=>{
-    if(m.op==='undo')return false;
-    const qty=m.prev!=null&&m.newQty!=null?m.prev-m.newQty:-(m.delta||0);
-    return qty>0;
-  });
+  // First/last real consumption dates (venta + scan only)
+  const salidaMovs=_yarnMovements.filter(m=>m.op==='venta'||m.op==='scan');
   const firstDate=salidaMovs.length?new Date(Math.min(...salidaMovs.map(m=>m.ts))):null;
   const lastDate=salidaMovs.length?new Date(Math.max(...salidaMovs.map(m=>m.ts))):null;
 
