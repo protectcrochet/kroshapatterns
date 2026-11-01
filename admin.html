@@ -4755,7 +4755,24 @@ function _calcYarnUsage(orders){
 }
 
 async function loadYarnUsage(){
-  if(!_serverOrders.length) await loadServerOrders();
+  // Show loading state
+  const tbody=document.getElementById('yu-tbody');
+  const thead=document.getElementById('yu-thead');
+  const tfoot=document.getElementById('yu-tfoot');
+  const sumEl=document.getElementById('yu-summary');
+  const alertEl=document.getElementById('yu-alerts');
+  if(tbody)tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-light);">⏳ Cargando pedidos…</td></tr>';
+  if(thead)thead.innerHTML='';
+  if(tfoot)tfoot.innerHTML='';
+  if(sumEl)sumEl.innerHTML='';
+  if(alertEl)alertEl.innerHTML='';
+  // Load orders if not yet loaded (guard against loadServerOrders side effects throwing)
+  if(!_serverOrders.length){
+    try{
+      const r=await fetch('/api/orders',{headers:{'x-admin-key':getApiKey()}});
+      if(r.ok){const d=await r.json();if(Array.isArray(d))_serverOrders=d;}
+    }catch(e){console.warn('[YarnUsage] No se pudieron cargar pedidos del servidor:',e);}
+  }
   renderYarnUsage();
 }
 
