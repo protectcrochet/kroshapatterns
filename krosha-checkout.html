@@ -1834,7 +1834,7 @@ function _totalShipSubsidy(){
   // Fallback: si el producto no tiene shipSubsidy pero parece ovillo, usa $10
   return getCartItems().reduce((total, i)=>{
     let subsidy=0;
-    if(i.shipSubsidy!=null && i.shipSubsidy>0){
+    if(i.shipSubsidy!=null){
       subsidy=i.shipSubsidy;
     } else if((i.img&&i.img.startsWith('yarn:'))||
       i.title.toLowerCase().includes('estambre')||
