@@ -823,6 +823,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div id="email-test-result" style="font-size:12px;display:none;padding:10px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;"></div>
       </div>
 
+      <!-- Subsidio de envío -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🚚 Subsidio de envío (estambres Premier)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:16px;">Cuando está activo, cada madeja Premier 200g descuenta $10 del costo de envío. Los estambres Sinfonía 100g (Arena S, Camel, Sky Blue) nunca aplican subsidio.</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div id="ship-subsidy-toggle" onclick="toggleShipSubsidy()" style="cursor:pointer;width:52px;height:28px;border-radius:14px;background:#ccc;position:relative;transition:background .2s;flex-shrink:0;">
+            <div id="ship-subsidy-knob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:left .2s;"></div>
+          </div>
+          <span id="ship-subsidy-label" style="font-size:13px;font-weight:700;color:var(--text-light);">Cargando…</span>
+          <span id="ship-subsidy-status" style="font-size:11px;color:var(--text-light);"></span>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🔑 Seguridad del panel</div>
@@ -4257,6 +4270,38 @@ function loadSettings(){
   if(s.storeName)document.getElementById('store-name').value=s.storeName;
   if(s.ig)document.getElementById('store-ig').value=s.ig;
   if(s.tt)document.getElementById('store-tt').value=s.tt;
+  _loadShipSubsidy();
+}
+let _shipSubsidyEnabled=false;
+async function _loadShipSubsidy(){
+  try{
+    const r=await fetch('/api/config');
+    if(!r.ok)return;
+    const cfg=await r.json();
+    _shipSubsidyEnabled=!!cfg.shipSubsidy;
+    _renderShipSubsidyToggle();
+  }catch(e){console.error('config load',e);}
+}
+function _renderShipSubsidyToggle(){
+  const toggle=document.getElementById('ship-subsidy-toggle');
+  const knob=document.getElementById('ship-subsidy-knob');
+  const label=document.getElementById('ship-subsidy-label');
+  if(!toggle)return;
+  toggle.style.background=_shipSubsidyEnabled?'var(--pink-dark)':'#ccc';
+  knob.style.left=_shipSubsidyEnabled?'27px':'3px';
+  label.textContent=_shipSubsidyEnabled?'Activo — Premier $10/madeja':'Desactivado — sin subsidio';
+  label.style.color=_shipSubsidyEnabled?'var(--pink-dark)':'var(--text-light)';
+}
+async function toggleShipSubsidy(){
+  const status=document.getElementById('ship-subsidy-status');
+  status.textContent='Guardando…';
+  _shipSubsidyEnabled=!_shipSubsidyEnabled;
+  _renderShipSubsidyToggle();
+  try{
+    const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({shipSubsidy:_shipSubsidyEnabled})});
+    if(r.ok){status.textContent='✓ Guardado';setTimeout(()=>status.textContent='',2000);}
+    else{status.textContent='❌ Error al guardar';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
+  }catch(e){status.textContent='❌ Error de red';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
 }
 function saveSettings(){
   const s={storeName:document.getElementById('store-name').value,ig:document.getElementById('store-ig').value,tt:document.getElementById('store-tt').value};

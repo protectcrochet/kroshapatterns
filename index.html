@@ -830,9 +830,9 @@ const YARN_COLORS=[
 ];
 function getYarnHex(name){const c=YARN_COLORS.find(x=>x.name===name);return c?c.hex:'#ccc';}
 function getYarnImg(name){const c=YARN_COLORS.find(x=>x.name===name);return c&&c.img?`images/colores/${c.img}`:null;}
-function isSinfoniaColor(n){return n==='Arena S'||n==='Camel';}
+function isSinfoniaColor(n){return n==='Arena S'||n==='Camel'||n==='Sky Blue';}
 function yarnGrams(n){return isSinfoniaColor(n)?100:200;}
-const _YARN_PRICE_OVERRIDE={'Sky Blue':130};
+const _YARN_PRICE_OVERRIDE={};
 function yarnPrice(n){return _YARN_PRICE_OVERRIDE[n]??(isSinfoniaColor(n)?130:150);}
 function yarnColorsToList(yc){
   const counts={},order=[],detallesSet=new Set();

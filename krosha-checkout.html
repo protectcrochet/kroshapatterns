@@ -609,6 +609,8 @@ const countryToCurrency={
 let cur='MXN', lang='es', hasDiscount=false, selPayMethod=null;
 let stripeInst=null, stripeCard=null;
 let _coInv={};  // inventario cargado al iniciar checkout
+let _shipSubsidyEnabled=false;  // leído de /api/config al cargar
+fetch('/api/config').then(r=>r.ok?r.json():null).then(cfg=>{if(cfg)_shipSubsidyEnabled=!!cfg.shipSubsidy;}).catch(()=>{});
 
 const FX_MARKUP=1.025; // 2.5% cubre comisión cross-border + conversión de Stripe para pagos internacionales
 function fxRate(){return(rates[cur]||1)*(cur!=='MXN'?FX_MARKUP:1);}
@@ -1832,6 +1834,7 @@ function _totalShipSubsidy(){
   if(country!=='MX') return 0;
   // Suma shipSubsidy de cada item del carrito (campo guardado en el producto desde el admin)
   // Fallback: si el producto no tiene shipSubsidy pero parece ovillo, usa $10
+  if(!_shipSubsidyEnabled) return 0;
   return getCartItems().reduce((total, i)=>{
     let subsidy=0;
     if(i.shipSubsidy!=null){
