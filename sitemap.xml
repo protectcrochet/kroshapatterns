@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://kroshapatterns.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- Patrones PDF -->
+  <url><loc>https://kroshapatterns.com/p/1</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/3</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/4</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/5</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/9</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/10</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/11</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/13</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/14</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/15</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/17</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kroshapatterns.com/p/18</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kroshapatterns.com/p/19</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/21</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/22</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/23</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/24</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/26</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/27</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/28</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/31</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/32</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/33</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/34</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://kroshapatterns.com/p/35</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kroshapatterns.com/p/36</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kroshapatterns.com/p/37</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kroshapatterns.com/p/38</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://kroshapatterns.com/p/39</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <!-- Kits -->
+  <url><loc>https://kroshapatterns.com/p/2</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kroshapatterns.com/p/6</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kroshapatterns.com/p/7</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/8</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://kroshapatterns.com/p/12</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/16</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/20</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://kroshapatterns.com/p/25</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+</urlset>
