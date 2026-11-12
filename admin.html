@@ -2675,7 +2675,7 @@ async function _toJpegIfHeic(file){
     if(!window.heic2any){
       await new Promise((res,rej)=>{
         const s=document.createElement('script');
-        s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+        s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';s.crossOrigin='anonymous';
         s.onload=res;s.onerror=rej;
         document.head.appendChild(s);
       });
