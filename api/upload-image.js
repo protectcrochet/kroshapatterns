@@ -34,8 +34,14 @@ export default async function handler(req, res) {
     const isHeic = finalMime === 'image/heic' || finalMime === 'image/heif' ||
       /\.(heic|heif)$/i.test(fileName);
     if (isHeic) {
-      const sharp = (await import('sharp')).default;
-      buffer = await sharp(buffer).jpeg({ quality: 92 }).toBuffer();
+      try {
+        const heicConvert = (await import('heic-convert')).default;
+        buffer = await heicConvert({ buffer, format: 'JPEG', quality: 0.92 });
+      } catch (_) {
+        // fallback: try sharp
+        const sharp = (await import('sharp')).default;
+        buffer = await sharp(buffer).jpeg({ quality: 92 }).toBuffer();
+      }
       finalMime = 'image/jpeg';
       finalName = fileName.replace(/\.(heic|heif)$/i, '.jpg');
     }
