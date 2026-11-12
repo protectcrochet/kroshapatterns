@@ -593,15 +593,15 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
         <div class="detail-box">
           <div class="detail-chip"><div class="dl" data-es="PRECIO" data-en="PRICE">PRECIO</div><div class="dv" id="md-price"></div></div>
           <div class="detail-chip"><div class="dl" data-es="FORMATO" data-en="FORMAT">FORMATO</div><div class="dv" id="md-format">Patrón Digital</div></div>
-          <div class="detail-chip"><div class="dl" data-es="NIVEL" data-en="LEVEL">NIVEL</div><div class="dv" id="md-level"></div></div>
-          <div class="detail-chip"><div class="dl" data-es="ENTREGA" data-en="ACCESS">ENTREGA</div><div class="dv" data-es="ProtectCrochet" data-en="ProtectCrochet">ProtectCrochet</div></div>
+          <div class="detail-chip" id="md-nivel-chip"><div class="dl" data-es="NIVEL" data-en="LEVEL">NIVEL</div><div class="dv" id="md-level"></div></div>
+          <div class="detail-chip"><div class="dl" data-es="ENTREGA" data-en="ACCESS">ENTREGA</div><div class="dv" id="md-entrega">ProtectCrochet</div></div>
         </div>
         <!-- YARN COLORS -->
         <div id="m-yarn-section" style="display:none;"></div>
         <!-- ADDONS / COMBO -->
         <div id="m-addon-section" style="display:none;"></div>
         <div class="buy-price" id="mbuy-price"></div>
-        <div class="buy-price-sub" data-es="Precio en tu moneda · Acceso vía ProtectCrochet" data-en="Price in your currency · Access via ProtectCrochet">Precio en tu moneda · Acceso vía ProtectCrochet</div>
+        <div class="buy-price-sub" id="buy-price-sub">Precio en tu moneda · Acceso vía ProtectCrochet</div>
         <button class="btn-buy" onclick="buyNow()" id="mbtn-buy">Comprar ahora</button>
         <button class="btn-add-m" onclick="addToCart()" id="mbtn-add">🛍 Agregar al carrito</button>
         <div style="display:flex;justify-content:center;margin-bottom:10px;">
@@ -1618,11 +1618,26 @@ function openM(id,updateUrl=true){
     if(fmtEl)fmtEl.textContent=lang==='es'?'Kit físico':'Physical Kit';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
+  } else if(curProd.type==='amigurumis'){
+    btnBuy.style.display='';
+    btnAdd.style.display='';
+    if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Envío por paquetería a México':'Price in your currency · Ships by courier to Mexico';
+    if(fmtEl)fmtEl.textContent=lang==='en'?'Physical product 🎀':'Producto físico 🎀';
+    const entregaEl=document.getElementById('md-entrega');
+    if(entregaEl)entregaEl.textContent=lang==='es'?'Paquetería':'Courier';
+    const nivelChip=document.getElementById('md-nivel-chip');
+    if(nivelChip)nivelChip.style.display='none';
+    updateModalPrice();
+    btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   } else {
     btnBuy.style.display='';
     btnAdd.style.display='';
     if(buySub)buySub.innerHTML=lang==='es'?'Precio en tu moneda · Acceso vía ProtectCrochet':'Price in your currency · Access via ProtectCrochet';
     if(fmtEl)fmtEl.textContent=lang==='en'?'Digital Pattern':'Patrón Digital';
+    const entregaEl=document.getElementById('md-entrega');
+    if(entregaEl)entregaEl.textContent='ProtectCrochet';
+    const nivelChip=document.getElementById('md-nivel-chip');
+    if(nivelChip)nivelChip.style.display='';
     updateModalPrice();
     btnAdd.textContent=lang==='es'?'🛍 Agregar al carrito':'🛍 Add to cart';
   }

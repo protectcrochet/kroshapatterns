@@ -395,6 +395,7 @@ function typeLabel(type){
   if(type==='kits')return lang==='en'?'Physical Kit 📦':'Kit Físico 📦';
   if(type==='patrones')return lang==='en'?'Digital Pattern 📄':'Patrón Digital 📄';
   if(type==='hilo')return lang==='en'?'Yarn 🧶':'Estambre 🧶';
+  if(type==='amigurumis')return lang==='en'?'Amigurumi 🎀':'Amigurumi 🎀';
   return type||'';
 }
 
@@ -421,6 +422,9 @@ function updatePriceDisplay(){
   } else if(prod.type==='patrones'){
     document.getElementById('price-sub').textContent=lang==='en'?'Instant access after payment':'Acceso inmediato al pagar';
     document.getElementById('price-badge').textContent=lang==='en'?'📄 Instant pattern access':'📄 Acceso inmediato al patrón';
+  } else if(prod.type==='amigurumis'){
+    document.getElementById('price-sub').textContent=lang==='en'?'Ships by courier · Mexico':'Envío por paquetería · México';
+    document.getElementById('price-badge').textContent=lang==='en'?'🎀 Physical product · Shipping calculated at checkout':'🎀 Producto físico · Envío calculado al pagar';
   } else {
     document.getElementById('price-sub').textContent=lang==='en'?'Price in your local currency':'Precio en tu moneda local';
     document.getElementById('price-badge').textContent='';
@@ -673,7 +677,7 @@ function renderProduct(product,allProds){
   if(firstImg)document.getElementById('og-img').setAttribute('content',firstImg);
 
   // breadcrumb
-  const catNames={kits:'Kits',patrones:'Patrones',hilo:'Estambres'};
+  const catNames={kits:'Kits',patrones:'Patrones',hilo:'Estambres',amigurumis:'Amigurumis'};
   document.getElementById('bc-cat').textContent=catNames[product.type]||product.type||'Productos';
   document.getElementById('bc-name').textContent=product.title;
 
@@ -740,6 +744,8 @@ function renderProduct(product,allProds){
     ?[['📦','Kit físico con estambres incluidos'],['🚚','Envío a domicilio en México'],['💬','Soporte por Instagram @kro_shaa']]
     :product.type==='patrones'
     ?[['📋','Patrón con fotos paso a paso'],['🌎','Instrucciones en español e inglés'],['📐','Lista de materiales y medidas exactas'],['💬','Soporte por Instagram @kro_shaa'],['♾️','Acceso de por vida']]
+    :product.type==='amigurumis'
+    ?[['🎀','Muñequita terminada lista para regalar'],['🚚','Envío por paquetería a todo México'],['✨','Hecha a mano con estambres Premier Yarns'],['💬','Soporte por Instagram @kro_shaa']]
     :[['🧶','Estambre de alta calidad 200g'],['🎨','Color seleccionado'],['💬','Soporte por Instagram @kro_shaa']];
   incEl.innerHTML=incItems.map(([icon,txt])=>`<div class="inc-item"><div class="inc-icon">${icon}</div><span>${txt}</span></div>`).join('');
 
