@@ -1592,6 +1592,7 @@ function _autoRecotizar(){
 function hasPhysicalItems(){
   const cart=getCartItems();
   return cart.some(i=>{
+    if(i.type==='amigurumis'||i.type==='kits'||i.type==='hilo'||i.type==='estambres')return true;
     const t=String(i.id);
     return t.includes('-kit')||t.includes('-eyes')||
       (i.img&&i.img.startsWith('yarn:'))||
