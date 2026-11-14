@@ -866,7 +866,7 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         </div>
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🎁 Envío gratis (promoción)</div>
-          <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Al activar, el envío más económico disponible se muestra como $0 en el checkout.</div>
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Al activar, el envío más económico se muestra gratis en pedidos <strong>≥ $800 MXN</strong>. Aparece banner en la tienda.</div>
           <div id="free-ship-status" style="margin-bottom:14px;font-size:13px;color:var(--text-light);">Cargando…</div>
           <button class="btn btn-sm" id="free-ship-btn" onclick="toggleFreeShipping()" disabled>Cargando…</button>
         </div>
@@ -4280,7 +4280,7 @@ function _renderFreeShippingToggle(){
   const btn=document.getElementById('free-ship-btn');
   if(!st||!btn)return;
   if(_freeShipActive){
-    st.innerHTML='<span style="color:#16a34a;font-weight:700;">✅ Activa — el envío más barato se muestra gratis</span>';
+    st.innerHTML='<span style="color:#16a34a;font-weight:700;">✅ Activa — envío gratis en pedidos ≥ $800 MXN</span>';
     btn.textContent='Desactivar promoción';
     btn.className='btn btn-outline btn-sm';
   }else{

@@ -515,6 +515,11 @@ footer{background:#5C0E30;color:rgba(255,220,235,.8);padding:50px 2rem 24px;}
   </div>
 </nav>
 
+<!-- PROMO BANNER -->
+<div id="promo-banner" style="display:none;background:linear-gradient(90deg,#b84d6a,#d4607e);color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:700;letter-spacing:.03em;">
+  🎁 ¡Envío gratis en compras mayores de $800 MXN! &nbsp;·&nbsp; Del 14 al 16 de noviembre 2026 🎁
+</div>
+
 <!-- HERO -->
 <section class="hero">
   <div class="krosha-decoration" aria-hidden="true">
@@ -857,6 +862,13 @@ function getCart(){return JSON.parse(localStorage.getItem(CART_KEY)||'[]');}
 function saveCart(c){localStorage.setItem(CART_KEY,JSON.stringify(c));}
 function getCartCount(){return getCart().reduce((a,i)=>a+i.qty,0);}
 function updateCartBadge(){document.getElementById('cn').textContent=getCartCount();}
+
+// ── STORE CONFIG ──
+let _storeConfig={};
+function _applyPromo(){
+  const banner=document.getElementById('promo-banner');
+  if(banner)banner.style.display=_storeConfig.freeShipping?'block':'none';
+}
 
 // ── INVENTORY ──
 let _inventory={};
@@ -1806,7 +1818,9 @@ let _publishedHero=null;
     fetch('/api/inventory',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_inventory=d;}).catch(()=>{}),
     fetch('/api/hero',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_publishedHero=d;}).catch(()=>{}),
     fetch('/api/customkit',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_customKitConfig=d;}).catch(()=>{}),
+    fetch('/api/config',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object')_storeConfig=d;}).catch(()=>{}),
   ]);
+  _applyPromo();
   applyHero();
   renderCustomKitSection();
   // Abrir producto directo desde URL: ?p=ID
