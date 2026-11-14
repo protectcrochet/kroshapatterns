@@ -1570,7 +1570,7 @@ function showToast(msg){
 }
 
 // ── SHIPPING ──
-let shipCost=0, _shipRates=[], _selRateIdx=0, _lastShipPackage=null, _manualShip=false;
+let shipCost=0, _shipRates=[], _selRateIdx=0, _lastShipPackage=null, _manualShip=false, _freeShippingEnabled=false;
 
 function activarEnvioManual(cp){
   _manualShip=true;
@@ -1814,7 +1814,7 @@ function _renderRatesList(){
           <div style="font-size:12.5px;font-weight:700;color:var(--text);">${r.carrier.toUpperCase()} — ${r.serviceDescription||r.service}</div>
           ${daysStr?`<div style="font-size:11px;color:var(--text-light);">${daysStr}</div>`:''}
         </div>
-        <div style="white-space:nowrap;text-align:right;">${(()=>{const sub=_totalShipSubsidy();const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
+        <div style="white-space:nowrap;text-align:right;">${(()=>{if(_freeShippingEnabled&&i===0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:#16a34a;">🎁 ¡GRATIS!</div>`;}const sub=_totalShipSubsidy();const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
       </div>`;
     }).join('');
 }
@@ -1848,6 +1848,7 @@ function _totalShipSubsidy(){
 
 function _effectiveShipCost(){
   if(shipCost<=0)return 0;
+  if(_freeShippingEnabled&&_shipRates.length>0&&_selRateIdx===0)return 0;
   return Math.max(0, shipCost-_totalShipSubsidy());
 }
 
@@ -1872,6 +1873,14 @@ function _updateShipTotals(){
   const t=document.getElementById('total');if(t)t.textContent=f(total);
   const mt=document.getElementById('ms-total');if(mt)mt.textContent=f(total);
   updateMxnNotice();
+}
+
+// ── STORE CONFIG ──
+async function _loadCheckoutConfig(){
+  try{
+    const r=await fetch('/api/config');
+    if(r.ok){const d=await r.json();_freeShippingEnabled=!!d.freeShipping;}
+  }catch(_){}
 }
 
 // ── IP CURRENCY DETECTION ──
@@ -1927,6 +1936,7 @@ renderCart();
 updateNavCart();
 checkReturnStatus();
 detectCurrencyFromIP();
+_loadCheckoutConfig();
 fetch('/api/inventory',{cache:'no-cache'}).then(r=>r.ok?r.json():null).then(d=>{if(d&&typeof d==='object'){_coInv=d;renderCart();}}).catch(()=>{});
 </script>
 </body>
