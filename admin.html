@@ -877,6 +877,12 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
             <button class="btn btn-red btn-sm" onclick="confirmReset()">🗑️ Reiniciar todo</button>
           </div>
         </div>
+        <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
+          <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🎁 Envío gratis (promoción)</div>
+          <div style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Al activar, el envío más económico se muestra gratis en pedidos <strong>≥ $800 MXN</strong>. Aparece banner en la tienda.</div>
+          <div id="free-ship-status" style="margin-bottom:14px;font-size:13px;color:var(--text-light);">Cargando…</div>
+          <button class="btn btn-sm" id="free-ship-btn" onclick="toggleFreeShipping()" disabled>Cargando…</button>
+        </div>
       </div>
 
       <!-- Prueba T1 Envios -->
@@ -4271,6 +4277,7 @@ function loadSettings(){
   if(s.ig)document.getElementById('store-ig').value=s.ig;
   if(s.tt)document.getElementById('store-tt').value=s.tt;
   _loadShipSubsidy();
+  _loadFreeShipping();
 }
 let _shipSubsidyEnabled=false;
 async function _loadShipSubsidy(){
@@ -4302,6 +4309,49 @@ async function toggleShipSubsidy(){
     if(r.ok){status.textContent='✓ Guardado';setTimeout(()=>status.textContent='',2000);}
     else{status.textContent='❌ Error al guardar';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
   }catch(e){status.textContent='❌ Error de red';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
+}
+
+// ── FREE SHIPPING PROMO ──
+let _freeShipActive=false;
+async function _loadFreeShipping(){
+  try{
+    const r=await fetch('/api/config');
+    if(r.ok){const d=await r.json();_freeShipActive=!!d.freeShipping;}
+  }catch(_){}
+  _renderFreeShippingToggle();
+}
+function _renderFreeShippingToggle(){
+  const st=document.getElementById('free-ship-status');
+  const btn=document.getElementById('free-ship-btn');
+  if(!st||!btn)return;
+  if(_freeShipActive){
+    st.innerHTML='<span style="color:#16a34a;font-weight:700;">✅ Activa — envío gratis en pedidos ≥ $800 MXN</span>';
+    btn.textContent='Desactivar promoción';
+    btn.className='btn btn-outline btn-sm';
+  }else{
+    st.innerHTML='<span style="color:var(--text-light);">⭕ Inactiva</span>';
+    btn.textContent='Activar envío gratis';
+    btn.className='btn btn-pink btn-sm';
+  }
+  btn.disabled=false;
+}
+async function toggleFreeShipping(){
+  const btn=document.getElementById('free-ship-btn');
+  if(btn)btn.disabled=true;
+  try{
+    const r=await fetch('/api/config',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},
+      body:JSON.stringify({freeShipping:!_freeShipActive})
+    });
+    if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error||`HTTP ${r.status}`);}
+    _freeShipActive=!_freeShipActive;
+    _renderFreeShippingToggle();
+    showToast(_freeShipActive?'🎁 Envío gratis activado':'✅ Promoción desactivada');
+  }catch(e){
+    showToast('❌ Error: '+e.message);
+    if(btn)btn.disabled=false;
+  }
 }
 function saveSettings(){
   const s={storeName:document.getElementById('store-name').value,ig:document.getElementById('store-ig').value,tt:document.getElementById('store-tt').value};

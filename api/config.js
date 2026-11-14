@@ -1,4 +1,4 @@
-// api/config.js — Configuración global de la tienda (GET público, POST protegido)
+// api/config.js — Configuración global de la tienda (GET público, POST admin)
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -14,13 +14,12 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const raw = await redis.get('krosha:config');
     const config = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
-    // Default: shipSubsidy OFF
-    return res.status(200).json({ shipSubsidy: false, ...config });
+    return res.status(200).json({ shipSubsidy: false, freeShipping: false, ...config });
   }
 
   if (req.method === 'POST') {
     const expected = process.env.ADMIN_KEY;
-    if (req.headers['x-admin-key'] !== expected) {
+    if (!expected || req.headers['x-admin-key'] !== expected) {
       return res.status(401).json({ error: 'No autorizado' });
     }
     const body = req.body;
