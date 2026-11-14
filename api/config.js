@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const raw = await redis.get('krosha:config');
     const config = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
-    return res.status(200).json(config);
+    return res.status(200).json({ shipSubsidy: false, freeShipping: false, ...config });
   }
 
   if (req.method === 'POST') {
@@ -22,9 +22,11 @@ export default async function handler(req, res) {
     if (!expected || req.headers['x-admin-key'] !== expected) {
       return res.status(401).json({ error: 'No autorizado' });
     }
+    const body = req.body;
+    if (!body || typeof body !== 'object') return res.status(400).json({ error: 'Datos inválidos' });
     const raw = await redis.get('krosha:config');
     const current = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : {};
-    const updated = { ...current, ...req.body };
+    const updated = { ...current, ...body };
     await redis.set('krosha:config', JSON.stringify(updated));
     return res.status(200).json({ ok: true, config: updated });
   }

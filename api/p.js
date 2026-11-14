@@ -30,6 +30,28 @@ export default async function handler(req, res) {
   const priceMxn   = p.price ? `$${p.price} MXN · ` : '';
   const ogDesc     = `${priceMxn}${typeLabel} — ${desc}`.slice(0, 300);
 
+  const productJsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": p.type === 'kits' || p.type === 'estambres' ? 'Product' : (p.type === 'patrones' ? 'Book' : 'Product'),
+    "name": title,
+    "description": desc,
+    "url": canonicalUrl,
+    "image": image || undefined,
+    "brand": { "@type": "Brand", "name": "KroshaPatterns" },
+    "offers": p.price ? {
+      "@type": "Offer",
+      "price": String(p.price),
+      "priceCurrency": "MXN",
+      "availability": "https://schema.org/InStock",
+      "seller": { "@type": "Organization", "name": "KroshaPatterns", "url": "https://kroshapatterns.com" }
+    } : undefined,
+    ...(p.type === 'patrones' ? {
+      "inLanguage": "es",
+      "bookFormat": "https://schema.org/EBook",
+      "publisher": { "@type": "Organization", "name": "KroshaPatterns" }
+    } : {})
+  });
+
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'public, max-age=1800');
   res.status(200).send(`<!DOCTYPE html>
@@ -58,6 +80,7 @@ export default async function handler(req, res) {
   <!-- Redirect humans al producto completo -->
   <meta http-equiv="refresh" content="0; url=${redirectUrl}">
   <link rel="canonical" href="${canonicalUrl}">
+  <script type="application/ld+json">${productJsonLd}</script>
   <style>
     body{font-family:'Nunito',sans-serif;background:#FDF0F5;color:#3A1E2E;
       display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;}

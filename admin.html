@@ -823,6 +823,19 @@ body{font-family:'Nunito',sans-serif;background:var(--pink-bg);color:var(--text)
         <div id="email-test-result" style="font-size:12px;display:none;padding:10px 14px;border-radius:8px;word-break:break-all;white-space:pre-wrap;font-family:monospace;"></div>
       </div>
 
+      <!-- Subsidio de envío -->
+      <div style="background:var(--white);border:2px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;">
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px;">🚚 Subsidio de envío (estambres Premier)</div>
+        <div style="font-size:12px;color:var(--text-light);margin-bottom:16px;">Cuando está activo, cada madeja Premier 200g descuenta $10 del costo de envío. Los estambres Sinfonía 100g (Arena S, Camel, Sky Blue) nunca aplican subsidio.</div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div id="ship-subsidy-toggle" onclick="toggleShipSubsidy()" style="cursor:pointer;width:52px;height:28px;border-radius:14px;background:#ccc;position:relative;transition:background .2s;flex-shrink:0;">
+            <div id="ship-subsidy-knob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:left .2s;"></div>
+          </div>
+          <span id="ship-subsidy-label" style="font-size:13px;font-weight:700;color:var(--text-light);">Cargando…</span>
+          <span id="ship-subsidy-status" style="font-size:11px;color:var(--text-light);"></span>
+        </div>
+      </div>
+
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
         <div style="background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;">
           <div style="font-weight:700;font-size:15px;margin-bottom:18px;">🔑 Seguridad del panel</div>
@@ -4263,7 +4276,39 @@ function loadSettings(){
   if(s.storeName)document.getElementById('store-name').value=s.storeName;
   if(s.ig)document.getElementById('store-ig').value=s.ig;
   if(s.tt)document.getElementById('store-tt').value=s.tt;
+  _loadShipSubsidy();
   _loadFreeShipping();
+}
+let _shipSubsidyEnabled=false;
+async function _loadShipSubsidy(){
+  try{
+    const r=await fetch('/api/config');
+    if(!r.ok)return;
+    const cfg=await r.json();
+    _shipSubsidyEnabled=!!cfg.shipSubsidy;
+    _renderShipSubsidyToggle();
+  }catch(e){console.error('config load',e);}
+}
+function _renderShipSubsidyToggle(){
+  const toggle=document.getElementById('ship-subsidy-toggle');
+  const knob=document.getElementById('ship-subsidy-knob');
+  const label=document.getElementById('ship-subsidy-label');
+  if(!toggle)return;
+  toggle.style.background=_shipSubsidyEnabled?'var(--pink-dark)':'#ccc';
+  knob.style.left=_shipSubsidyEnabled?'27px':'3px';
+  label.textContent=_shipSubsidyEnabled?'Activo — Premier $10/madeja':'Desactivado — sin subsidio';
+  label.style.color=_shipSubsidyEnabled?'var(--pink-dark)':'var(--text-light)';
+}
+async function toggleShipSubsidy(){
+  const status=document.getElementById('ship-subsidy-status');
+  status.textContent='Guardando…';
+  _shipSubsidyEnabled=!_shipSubsidyEnabled;
+  _renderShipSubsidyToggle();
+  try{
+    const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json','x-admin-key':getApiKey()},body:JSON.stringify({shipSubsidy:_shipSubsidyEnabled})});
+    if(r.ok){status.textContent='✓ Guardado';setTimeout(()=>status.textContent='',2000);}
+    else{status.textContent='❌ Error al guardar';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
+  }catch(e){status.textContent='❌ Error de red';_shipSubsidyEnabled=!_shipSubsidyEnabled;_renderShipSubsidyToggle();}
 }
 
 // ── FREE SHIPPING PROMO ──
@@ -4855,17 +4900,34 @@ function renderYarnUsage(){
 
   // All months sorted ascending (oldest → newest)
   const allMonths=[...new Set(Object.values(usage).flatMap(bm=>Object.keys(bm)))].sort();
-  // Last 3 months for status/average
+
+  // Detect current in-progress month and compute daily projection factor
+  const today=new Date();
+  const todayMk=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+  const incompleteLastMonth=allMonths.includes(todayMk)?todayMk:null;
+  let projFactorLast=1;
+  if(incompleteLastMonth){
+    const daysInMonthLast=new Date(today.getFullYear(),today.getMonth()+1,0).getDate();
+    projFactorLast=daysInMonthLast/today.getDate();
+  }
+
   const last3=allMonths.slice(-3);
+  // Averages/status use ONLY completed months (exclude current in-progress month)
+  const allMonthsForAvg=allMonths.filter(m=>m!==incompleteLastMonth);
+  const last3ForAvg=allMonthsForAvg.slice(-3);
 
   // Build rows: all YARN_COLORS that have any usage OR stock
   const rows=YARN_COLORS.map(c=>{
     const bm=usage[c]||{};
-    // Apply projection to incomplete first month for totals/averages
+    // bmAdj: project only the first incomplete month (e.g. Oct starting Oct 15)
     const bmAdj={...bm};
     if(incompleteMonth&&bmAdj[incompleteMonth])bmAdj[incompleteMonth]=Math.round(bmAdj[incompleteMonth]*projFactor);
+    // projLast: projected full-month value for current in-progress month (display only)
+    const projLast=incompleteLastMonth?Math.round((bm[incompleteLastMonth]||0)*projFactorLast):null;
     const total=Object.values(bmAdj).reduce((s,v)=>s+v,0);
-    const avgLast3=last3.length?+(last3.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3.length).toFixed(1):0;
+    // Averages/status use completed months only — keeps reorder alerts realistic
+    const last3WithData=last3ForAvg.filter(m=>(bmAdj[m]||0)>0);
+    const avgLast3=last3WithData.length?+(last3ForAvg.reduce((s,m)=>s+(bmAdj[m]||0),0)/last3WithData.length).toFixed(1):0;
     const stock=inv[c]??0;
     const monthsLeft=avgLast3>0?+(stock/avgLast3).toFixed(1):null;
     let status,statusBg,statusColor;
@@ -4874,7 +4936,7 @@ function renderYarnUsage(){
     else if(monthsLeft!==null&&monthsLeft<1){status='🚨 Pedir YA';statusBg='#FEE2E2';statusColor='#991B1B';}
     else if(monthsLeft!==null&&monthsLeft<2){status='⚠️ Pedir pronto';statusBg='#FEF3C7';statusColor='#92400E';}
     else{status='✅ OK';statusBg='#D1FAE5';statusColor='#065F46';}
-    return{name:c,bm,bmAdj,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
+    return{name:c,bm,bmAdj,projLast,total,avgLast3,stock,monthsLeft,status,statusBg,statusColor};
   }).filter(r=>r.total>0||r.stock>0);
 
   // Sort: critical → warn → ok
@@ -4917,12 +4979,18 @@ function renderYarnUsage(){
   const totalAllTime=rows.reduce((s,r)=>s+r.total,0);
   const totalAvgMes=rows.reduce((s,r)=>s+r.avgLast3,0);
   const totalAvgSem=+(totalAvgMes/4.33).toFixed(1);
+  // Desglose por tipo de operación (meses cerrados = excluye mes en curso)
+  const closedMovs=salidaMovs.filter(m=>incompleteLastMonth?(m.ts<new Date(today.getFullYear(),today.getMonth(),1).getTime()?true:false):true);
+  const totalVentas=closedMovs.filter(m=>m.op==='venta').reduce((s,m)=>s+Math.abs(m.delta||1),0);
+  const totalScans=closedMovs.filter(m=>m.op==='scan').reduce((s,m)=>s+Math.abs(m.delta||1),0);
   const fmtDate=d=>d?`${d.getDate()} ${MONTH_NAMES_ES[d.getMonth()].substring(0,3)} ${d.getFullYear()}`:'—';
   const sumEl=document.getElementById('yu-summary');
   sumEl.innerHTML=[
-    {icon:'📦',label:'Madejas vendidas (histórico)',val:totalAllTime,bg:'var(--pink-bg)'},
-    {icon:'📅',label:'Prom/mes (últimos 3m)',val:totalAvgMes.toFixed(1),bg:'var(--pink-bg)'},
-    {icon:'📆',label:'Prom/semana (últimos 3m)',val:totalAvgSem,bg:'var(--pink-bg)'},
+    {icon:'📦',label:'Salidas reales (histórico)',val:totalAllTime,bg:'var(--pink-bg)'},
+    {icon:'🛒',label:'Ventas online (meses cerrados)',val:totalVentas,bg:'var(--pink-bg)'},
+    {icon:'📲',label:'Escaneos físicos (meses cerrados)',val:totalScans,bg:'var(--pink-bg)'},
+    {icon:'📅',label:'Prom/mes (meses cerrados)',val:totalAvgMes.toFixed(1),bg:'var(--pink-bg)'},
+    {icon:'📆',label:'Prom/semana (meses cerrados)',val:totalAvgSem,bg:'var(--pink-bg)'},
     {icon:'🚨',label:'Pedir YA',val:critical.length,bg:'#FEE2E2'},
     {icon:'⚠️',label:'Pedir pronto',val:warn.length,bg:'#FEF3C7'},
     {icon:'✅',label:'Colores OK',val:rows.filter(r=>r.status==='✅ OK').length,bg:'#D1FAE5'},
@@ -4964,16 +5032,24 @@ function renderYarnUsage(){
     const[y,mo]=m.split('-');
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
-    return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}${isIncomp?'border-bottom:2px dashed #A78BFA;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span>${isIncomp?`<br><span style="font-size:9px;color:#7C3AED;font-weight:700;">~proy.</span>`:''}</th>`;
+    const isPartial=m===incompleteLastMonth;
+    const marker=isIncomp?'~proy.':isPartial?`en curso`:'';
+
+    return`<th style="text-align:center;min-width:52px;font-size:11px;padding:8px 6px;${isLast3?'background:#F5F0FF;':''}${(isIncomp||isPartial)?'border-bottom:2px dashed #A78BFA;':''}">${MONTH_NAMES_ES[parseInt(mo)-1].substring(0,3)}<br><span style="font-weight:400;">${y}</span>${marker?`<br><span style="font-size:9px;color:#7C3AED;font-weight:700;">${marker}</span>`:''}</th>`;
   }).join('');
+  const mo_=incompleteLastMonth?incompleteLastMonth.split('-')[1]:'';
+  const projColHead=incompleteLastMonth
+    ?`<th style="text-align:center;min-width:72px;background:#FDF4FF;border-right:2px dashed #A78BFA;font-size:11px;padding:8px 6px;">📈 Proy.<br><span style="font-weight:400;">${MONTH_NAMES_ES[parseInt(mo_)-1].substring(0,3)} (día ${today.getDate()})</span></th>`
+    :'';
   thead.innerHTML=`<tr style="background:var(--white);">
     <th style="${stickyA}background:var(--white);"></th>
     <th style="${stickyB}background:var(--white);">Color</th>
+    ${projColHead}
     ${monthHeads}
     <th style="text-align:center;min-width:62px;background:#EDE9FE;font-size:12px;">Total</th>
     <th style="text-align:center;min-width:56px;font-size:12px;">Stock</th>
-    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/mes<br><span style="font-weight:400;font-size:10px;">(últ. 3m)</span></th>
-    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/sem<br><span style="font-weight:400;font-size:10px;">(últ. 3m)</span></th>
+    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/mes<br><span style="font-weight:400;font-size:10px;">(meses cerrados)</span></th>
+    <th style="text-align:center;min-width:68px;font-size:12px;">Prom/sem<br><span style="font-weight:400;font-size:10px;">(meses cerrados)</span></th>
     <th style="text-align:center;min-width:76px;font-size:12px;">Meses rest.</th>
     <th style="text-align:center;min-width:110px;font-size:12px;">Estado</th>
   </tr>`;
@@ -4988,17 +5064,25 @@ function renderYarnUsage(){
     const monthCells=monthsDesc.map(m=>{
       const isLast3=last3.includes(m);
       const isIncomp=m===incompleteMonth;
-      const raw=r.bm[m]||0;
-      const v=isIncomp?(r.bmAdj[m]||0):raw;
+      const isPartial=m===incompleteLastMonth;
+      // First incomplete month uses projected bmAdj; current month shows raw
+      const v=isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0);
       const display=v>0?(isIncomp?`~${v}`:v):'—';
-      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${isIncomp?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${v>0?'font-weight:700;':'color:#ccc;'}${isIncomp&&v>0?'color:#7C3AED;':''}">${display}</td>`;
+      return`<td style="text-align:center;font-size:13px;padding:8px 6px;${isLast3?'background:rgba(237,233,254,0.3);':''}${isIncomp?'border-left:1px dashed #C4B5FD;border-right:1px dashed #C4B5FD;':''}${isPartial?'color:#7C3AED;font-style:italic;':''}${v>0?'font-weight:700;':'color:#ccc;'}${isIncomp&&v>0?'color:#7C3AED;':''}">${display}</td>`;
     }).join('');
+    // Projected column for current month (display only, not used for status)
+    const projCell=incompleteLastMonth
+      ?(r.projLast>0
+        ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;background:#FDF4FF;border-right:2px dashed #A78BFA;color:#7C3AED;">~${r.projLast}</td>`
+        :`<td style="text-align:center;padding:8px 6px;background:#FDF4FF;border-right:2px dashed #A78BFA;color:#ccc;">—</td>`)
+      :'';
     const statusHtml=r.status?`<span style="background:${r.statusBg};color:${r.statusColor};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;white-space:nowrap;">${r.status}</span>`:'—';
     const stockColor=r.stock<=2?'#DC2626':r.stock<=5?'#D97706':'var(--text)';
     const mesesColor=r.monthsLeft!==null&&r.monthsLeft<1?'#DC2626':r.monthsLeft!==null&&r.monthsLeft<2?'#D97706':'var(--text)';
     return`<tr style="background:${rowBg(r)};">
       <td style="${stickyA}background:${rowBg(r)};padding:8px 6px;">${swatch}</td>
       <td style="${stickyB}background:${rowBg(r)};padding:8px 8px;"><strong style="font-size:13px;">${r.name}</strong></td>
+      ${projCell}
       ${monthCells}
       <td style="text-align:center;font-weight:800;background:#EDE9FE;font-size:14px;padding:8px 6px;">${r.total}</td>
       <td style="text-align:center;font-weight:700;color:${stockColor};padding:8px 6px;">${r.stock}</td>
@@ -5013,13 +5097,18 @@ function renderYarnUsage(){
   const monthTotals=monthsDesc.map(m=>{
     const isLast3=last3.includes(m);
     const isIncomp=m===incompleteMonth;
+    // First incomplete month: projected; current month: raw
     const t=rows.reduce((s,r)=>s+(isIncomp?(r.bmAdj[m]||0):(r.bm[m]||0)),0);
     const display=t>0?(isIncomp?`~${t}`:t):'—';
     return`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);${isLast3?'background:rgba(237,233,254,0.5);':''}${isIncomp?'color:#7C3AED;':'color:var(--text);'}">${display}</td>`;
   }).join('');
+  const projTotalFoot=incompleteLastMonth
+    ?`<td style="text-align:center;font-weight:800;font-size:13px;padding:8px 6px;border-top:2px solid var(--border);background:#FDF4FF;border-right:2px dashed #A78BFA;color:#7C3AED;">~${rows.reduce((s,r)=>s+(r.projLast||0),0)}</td>`
+    :'';
   tfoot.innerHTML=`<tr style="background:#FAF9FF;">
     <td style="${stickyA}background:#FAF9FF;border-top:2px solid var(--border);"></td>
     <td style="${stickyB}background:#FAF9FF;border-top:2px solid var(--border);padding:8px 8px;font-weight:800;font-size:12px;color:var(--text-light);">TOTAL / MES</td>
+    ${projTotalFoot}
     ${monthTotals}
     <td style="text-align:center;font-weight:800;background:#EDE9FE;border-top:2px solid var(--border);padding:8px 6px;font-size:14px;">${totalAllTime}</td>
     <td colspan="5" style="border-top:2px solid var(--border);"></td>
