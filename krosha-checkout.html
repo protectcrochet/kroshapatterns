@@ -1798,7 +1798,8 @@ function _renderRatesList(){
   if(!el||!_shipRates.length)return;
   const top=_shipRates.slice(0,20);
   const _rSub=getCartItems().reduce((a,i)=>a+(i.price*i.qty),0);
-  const _promoHdr=_freeShippingEnabled?(
+  const _rCountry=document.getElementById('country-sel')?.value||'MX';
+  const _promoHdr=(_freeShippingEnabled&&_rCountry==='MX')?(
     _rSub>=800
       ?`<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12.5px;color:#166534;font-weight:700;">🎁 ¡Envío gratis aplicado en la opción más económica!</div>`
       :`<div style="background:#fff8ec;border:1.5px solid #fcd34d;border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12.5px;color:#7a4f00;font-weight:600;">🎁 Promo: envío gratis en compras ≥ $800 — Falta <strong>$${Math.ceil(800-_rSub)}</strong> más</div>`
@@ -1822,7 +1823,7 @@ function _renderRatesList(){
           <div style="font-size:12.5px;font-weight:700;color:var(--text);">${r.carrier.toUpperCase()} — ${r.serviceDescription||r.service}</div>
           ${daysStr?`<div style="font-size:11px;color:var(--text-light);">${daysStr}</div>`:''}
         </div>
-        <div style="white-space:nowrap;text-align:right;">${(()=>{if(_freeShippingEnabled&&i===0&&_rSub>=800){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:#16a34a;">🎁 ¡GRATIS!</div>`;}const sub=_totalShipSubsidy();const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
+        <div style="white-space:nowrap;text-align:right;">${(()=>{if(_freeShippingEnabled&&_rCountry==='MX'&&i===0&&_rSub>=800){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:#16a34a;">🎁 ¡GRATIS!</div>`;}const sub=_totalShipSubsidy();const disc=Math.max(0,r.price-sub);if(sub>0){return `<div style="font-size:11px;text-decoration:line-through;color:var(--text-light);">${f(r.price)}</div><div style="font-size:14px;font-weight:800;color:${disc===0?'#16a34a':sel?'var(--pink-dark)':'var(--text)'};">${disc===0?'¡Envío gratis!':f(disc)}</div>`;}return `<div style="font-size:14px;font-weight:700;color:${sel?'var(--pink-dark)':'var(--text)'};">${f(r.price)}</div>`;})()}</div>
       </div>`;
     }).join('');
 }
@@ -1857,7 +1858,8 @@ function _totalShipSubsidy(){
 
 function _effectiveShipCost(){
   if(shipCost<=0)return 0;
-  if(_freeShippingEnabled&&_shipRates.length>0&&_selRateIdx===0){
+  const country=document.getElementById('country-sel')?.value||'MX';
+  if(_freeShippingEnabled&&country==='MX'&&_shipRates.length>0&&_selRateIdx===0){
     const sub=getCartItems().reduce((a,i)=>a+(i.price*i.qty),0);
     if(sub>=800)return 0;
   }
